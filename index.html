@@ -125,21 +125,44 @@ if(!data.sales) data.sales=[];
 if(!data.expenses) data.expenses=[];
 if(!data.settings) data.settings={password:'admin'}; 
 
-// PRELOAD DEFAULT DIGITAL PRODUCTS WITH SVG ICONS
+// ICON DICTIONARY TO AUTOMATICALLY MATCH ANY PRODUCT NAME
+const iconMap = {
+  'netflix pakistan': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#E50914"><rect width="24" height="24" rx="4" fill="#01411C"/><path d="M5.5 4H8v16H5.5V4zm10.5 0h2.5v16H16V4z" fill="#E50914"/></svg>',
+  'netflix': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#E50914"><rect width="24" height="24" rx="4" fill="#111"/><path d="M5.5 2H9v20H5.5V2zm9.5 0h3.5v20H15V2zM2 2h3.5v20H2V2z"/></svg>',
+  'prime': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#00A8E1"><rect width="24" height="24" rx="4" fill="#111"/><path d="M12 4l10 10-10 10L2 14z"/></svg>',
+  'sony': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#3B82F6"><rect width="24" height="24" rx="4"/><text x="3" y="16" fill="#fff" font-size="8" font-weight="bold">SONY</text></svg>',
+  'hotstar': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#7C3AED"><rect width="24" height="24" rx="4"/><text x="4" y="16" fill="#fff" font-size="8" font-weight="bold">HOT</text></svg>',
+  'iptv': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#10B981"><rect x="2" y="4" width="20" height="14" rx="2" fill="#10B981"/><path d="M8 21h8M12 18v3" stroke="#10B981" stroke-width="2"/></svg>',
+  'vpn': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#EF4444"><circle cx="12" cy="12" r="10" fill="#EF4444"/><path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2"/></svg>',
+  'chatgpt': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#10A37F"><rect width="24" height="24" rx="4" fill="#10A37F"/><path d="M7 12h10M12 7v10" stroke="#fff" stroke-width="2"/></svg>',
+  'claude': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#D97706"><circle cx="12" cy="12" r="10" fill="#D97706"/></svg>',
+  'midjourney': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#4F46E5"><rect x="3" y="3" width="18" height="18" rx="3" fill="#4F46E5"/></svg>',
+  'capcut': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#000"><rect width="24" height="24" rx="4" fill="#000"/><text x="4" y="16" fill="#fff" font-size="8" font-weight="bold">CC</text></svg>',
+  'heygen': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#8B5CF6"><rect width="24" height="24" rx="4" fill="#8B5CF6"/></svg>'
+};
+
+function getProductIcon(name){
+  let n = (name || '').toLowerCase();
+  for(let key in iconMap){
+    if(n.includes(key)) return iconMap[key];
+  }
+  return '<svg width="28" height="28" viewBox="0 0 24 24" fill="#687386"><rect width="24" height="24" rx="4" fill="#e2e8f0"/><path d="M12 6v12M6 12h12" stroke="#687386" stroke-width="2"/></svg>';
+}
+
 const defaultProducts = [
-  { id: 1, name: 'Netflix Global', type: 'Subscription', price: 1200, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#E50914"><path d="M5.5 2H9v20H5.5V2zm9.5 0h3.5v20H15V2zM2 2h3.5v20H2V2z"/></svg>' },
-  { id: 2, name: 'Netflix Pakistan', type: 'Subscription', price: 1100, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#E50914"><circle cx="12" cy="12" r="10" fill="#01411C"/><path d="M5.5 4H8v16H5.5V4zm10.5 0h2.5v16H16V4z" fill="#E50914"/></svg>' },
-  { id: 3, name: 'Prime Video', type: 'Subscription', price: 800, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#00A8E1"><path d="M12 2l10 10-10 10L2 12z"/></svg>' },
-  { id: 4, name: 'Sony Liv', type: 'Subscription', price: 700, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#3B82F6"><rect width="24" height="24" rx="4"/><text x="4" y="17" fill="#fff" font-size="10" font-weight="bold">SONY</text></svg>' },
-  { id: 5, name: 'JioHotstar', type: 'Subscription', price: 750, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#1F2937"><circle cx="12" cy="12" r="10" fill="#7C3AED"/><text x="7" y="16" fill="#fff" font-size="9" font-weight="bold">HOT</text></svg>' },
-  { id: 6, name: 'My OTT IPTV', type: 'Subscription', price: 1500, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#10B981"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>' },
-  { id: 7, name: 'ExpressVPN', type: 'Subscription', price: 1000, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#EF4444"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2"/></svg>' },
-  { id: 8, name: 'NordVPN', type: 'Subscription', price: 950, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#2563EB"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>' },
-  { id: 9, name: 'Surfshark VPN', type: 'Subscription', price: 900, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#0EA5E9"><path d="M12 2c5.5 0 10 4.5 10 10s-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2z"/></svg>' },
-  { id: 10, name: 'ChatGPT Plus', type: 'Subscription', price: 2000, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#10A37F"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12A10 10 0 0 1 12 2z"/></svg>' },
-  { id: 11, name: 'Claude AI', type: 'Subscription', price: 1800, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#D97706"><circle cx="12" cy="12" r="10"/></svg>' },
-  { id: 12, name: 'Midjourney', type: 'Subscription', price: 2200, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#4F46E5"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>' },
-  { id: 13, name: 'HeyGen AI', type: 'Subscription', price: 2500, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#8B5CF6"><polygon points="12 2 22 22 2 22"/></svg>' }
+  { id: 1, name: 'Netflix Global', type: 'Subscription', price: 1200 },
+  { id: 2, name: 'Netflix Pakistan', type: 'Subscription', price: 1100 },
+  { id: 3, name: 'Prime Video', type: 'Subscription', price: 800 },
+  { id: 4, name: 'Sony Liv', type: 'Subscription', price: 700 },
+  { id: 5, name: 'JioHotstar', type: 'Subscription', price: 750 },
+  { id: 6, name: 'My OTT IPTV', type: 'Subscription', price: 1500 },
+  { id: 7, name: 'ExpressVPN', type: 'Subscription', price: 1000 },
+  { id: 8, name: 'NordVPN', type: 'Subscription', price: 950 },
+  { id: 9, name: 'Surfshark VPN', type: 'Subscription', price: 900 },
+  { id: 10, name: 'ChatGPT Plus', type: 'Subscription', price: 2000 },
+  { id: 11, name: 'Claude AI', type: 'Subscription', price: 1800 },
+  { id: 12, name: 'Midjourney', type: 'Subscription', price: 2200 },
+  { id: 13, name: 'HeyGen AI', type: 'Subscription', price: 2500 }
 ];
 
 if(!data.products || data.products.length === 0) {
@@ -388,7 +411,6 @@ function openProduct() {
     <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix Global, Prime Video"></label>
     <label class="field"><span>Price (Rs) *</span><input id="pp" type="number" required placeholder="1000"></label>
     <label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label>
-    <label class="field full"><span>SVG Icon HTML *</span><textarea id="picon" required placeholder="Paste SVG code here e.g. <svg>...</svg>"></textarea></label>
     <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div>
   </form>`);
   
@@ -398,8 +420,7 @@ function openProduct() {
       id: Date.now(),
       name: document.getElementById('pn').value.trim(),
       price: +document.getElementById('pp').value,
-      type: document.getElementById('pt').value,
-      icon: document.getElementById('picon').value.trim()
+      type: document.getElementById('pt').value
     });
     save();
     closeModal();
@@ -519,7 +540,7 @@ function editSale(id){
 
 function salesTable(a,actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(s.amount - (s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(s.amount - (s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 }
 function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
 
@@ -539,7 +560,7 @@ function productsPage(){
    let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?s.partialPaid:Number(s.amount||0)) - Number(s.purchase||0)), 0);
    totalQty += qty;
    totalProfit += profit;
-   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${p.icon||''}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td><td>${rs(p.price)}</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
+   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td><td>${rs(p.price)}</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
  }).join('');
 
  return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
@@ -716,7 +737,7 @@ function profitPage(){
    const pRev = pSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
    const pCost = pSales.reduce((sum, s) => sum + Number(s.purchase||0), 0);
    const pProfit = pRev - pCost;
-   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${p.icon||''}<b>${esc(p.name)}</b></div></td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
+   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<b>${esc(p.name)}</b></div></td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
  }).join('');
 
  return `<div class="sectionHead"><div><h1>Profit Analytics</h1><span class="muted">Ultimate breakdown of revenue, costs, and profit</span></div></div>
