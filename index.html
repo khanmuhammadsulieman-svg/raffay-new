@@ -343,17 +343,16 @@ window.prefetchProduct = function(name, price, type, tenure) {
   document.getElementById('customProduct').value = name;
   document.getElementById('sa').value = price;
   document.getElementById('stm').value = tenure;
-  // Highlight active chip
   document.querySelectorAll('.prefetch-chip').forEach(c => c.style.borderColor = '#dbe1ea');
   event.currentTarget.style.borderColor = 'var(--blue)';
 }
 
 function openSale(){
-  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:2px solid #dbe1ea;border-radius:10px;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<span>${esc(p.name)}</span></div>`).join('');
+  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:2px solid #dbe1ea;border-radius:12px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<div style="text-align:left"><span>${esc(p.name)}</span><br><span class="muted">${rs(p.price)}</span></div></div>`).join('');
   
   let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
   modal(`<div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
-  <label class="field full"><span>⚡ Quick-Select Prefetch (Click any app):</span><div style="display:flex;flex-wrap:wrap;gap:6px;max-height:130px;overflow-y:auto;padding:4px 0">${prefetchChips}</div></label>
+  <label class="field full"><span>⚡ Quick-Select Prefetch (Click any app):</span><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:200px;overflow-y:auto;padding:4px 0">${prefetchChips}</div></label>
   <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
   <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
   <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" placeholder="Type custom product name"></label>
