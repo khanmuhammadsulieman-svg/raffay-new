@@ -15,7 +15,8 @@ h1{font-size:25px;margin:4px 0}h2{font-size:18px;margin:0}.muted{color:var(--mut
 section{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;margin:14px 0}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
 button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e9edf4;color:#243044}.primary{background:var(--blue);color:#fff}.danger{background:#fee2e2;color:#b91c1c}.small{padding:7px 9px;font-size:12px}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eef1f5;font-size:13px}th{font-size:10px;color:var(--muted);text-transform:uppercase}.table{overflow:auto}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;gap:3px;padding:7px;z-index:6}.nav{background:transparent;color:#667085;font-size:11px;min-width:74px}.nav.on{color:var(--blue)}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:flex-start;gap:3px;padding:7px;z-index:6;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,7px)}
+.nav{background:transparent;color:#667085;font-size:11px;min-width:70px;flex-shrink:0}.nav.on{color:var(--blue)}
 .modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:15px;place-items:center}.modal.show{display:grid}.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:20px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:bold}.field input,.field select,.field textarea{width:100%;border:1px solid #dbe1ea;border-radius:8px;padding:11px;font:inherit;background:#fff}.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}.badge{padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold}.Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
 .tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#eef2f7}.tab.on{background:#dbeafe;color:#1d4ed8}.empty{text-align:center;color:var(--muted);padding:25px}
@@ -287,7 +288,6 @@ function openExpense(){
 }
 function delExpense(id){if(confirm('Delete this expense?')){data.expenses=data.expenses.filter(e=>e.id!==id);save();render()}}
 
-// UPDATED REPORTS PAGE - NOW CLICKABLE MONTHS WITH PROFIT BREAKDOWN
 function reports(){
  const now=new Date(), filtered=data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
  const r=income(filtered.filter(s=>s.owner==='Manager')),t=income(filtered.filter(s=>s.owner==='Admin'));
