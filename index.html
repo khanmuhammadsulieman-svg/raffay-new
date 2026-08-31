@@ -10,22 +10,45 @@
 <style>
 :root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#687386;--blue:#2563eb;--line:#e6eaf0}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
-header{height:64px;background:#101827;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:5}.brand{font-weight:800;font-size:18px}.brand small{display:block;font-size:9px;color:#94a3b8;margin-top:3px}.container{max-width:1050px;margin:auto;padding:18px 16px 88px}
-h1{font-size:25px;margin:4px 0}h2{font-size:18px;margin:0}.muted{color:var(--muted);font-size:13px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px}.card small{color:var(--muted)}.card b{display:block;font-size:23px;margin-top:8px}
-section{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;margin:14px 0}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
-button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e9edf4;color:#243044}.primary{background:var(--blue);color:#fff}.danger{background:#fee2e2;color:#b91c1c}.small{padding:7px 9px;font-size:12px}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eef1f5;font-size:13px}th{font-size:10px;color:var(--muted);text-transform:uppercase}.table{overflow:auto}
+header{height:auto;min-height:64px;background:#101827;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;position:sticky;top:0;z-index:5;flex-wrap:wrap;gap:8px}
+.brand{font-weight:800;font-size:16px}.brand small{display:block;font-size:9px;color:#94a3b8;margin-top:2px}
+.container{max-width:1050px;margin:auto;padding:18px 16px 88px}
+h1{font-size:22px;margin:4px 0}h2{font-size:18px;margin:0}.muted{color:var(--muted);font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px}
+.card small{color:var(--muted)}.card b{display:block;font-size:21px;margin-top:8px}
+section{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;margin:14px 0}
+.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e9edf4;color:#243044}
+.primary{background:var(--blue);color:#fff}.danger{background:#fee2e2;color:#b91c1c}.small{padding:7px 9px;font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eef1f5;font-size:13px}
+th{font-size:10px;color:var(--muted);text-transform:uppercase}.table{overflow:auto}
 .bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:flex-start;gap:3px;padding:7px;z-index:6;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,7px)}
-.nav{background:transparent;color:#667085;font-size:11px;min-width:70px;flex-shrink:0}.nav.on{color:var(--blue)}
-.modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:15px;place-items:center}.modal.show{display:grid}.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:20px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:bold}.field input,.field select,.field textarea{width:100%;border:1px solid #dbe1ea;border-radius:8px;padding:11px;font:inherit;background:#fff}.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}.badge{padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold}.Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
-.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#eef2f7}.tab.on{background:#dbeafe;color:#1d4ed8}.empty{text-align:center;color:var(--muted);padding:25px}
-.menu-btn{background:transparent;color:#fff;font-size:24px;padding:0 5px;line-height:1;}
-.menu-content{display:none;position:absolute;right:0;top:100%;background:#fff;color:#000;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:180px;z-index:100;flex-direction:column;overflow:hidden;}
-.menu-content.show{display:flex;}
-.menu-content a{padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer;font-size:14px;font-weight:bold;text-decoration:none;color:#172033;}
-.menu-content a:hover{background:#f5f7fb;}
-@media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}.card b{font-size:18px}.hideMob{display:none}}
+.nav{background:transparent;color:#667085;font-size:11px;min-width:70px;flex-shrink:0;text-align:center}.nav.on{color:var(--blue)}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:15px;place-items:center}.modal.show{display:grid}
+.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:bold}
+.field input,.field select,.field textarea{width:100%;border:1px solid #dbe1ea;border-radius:8px;padding:11px;font:inherit;background:#fff}
+.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}
+.badge{padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold}
+.Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
+.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#eef2f7}.tab.on{background:#dbeafe;color:#1d4ed8}
+.empty{text-align:center;color:var(--muted);padding:25px}
+.menu-btn{background:transparent;color:#fff;font-size:24px;padding:0 5px;line-height:1}
+.menu-content{display:none;position:absolute;right:18px;top:64px;background:#fff;color:#000;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:180px;z-index:100;flex-direction:column;overflow:hidden}
+.menu-content.show{display:flex}
+.menu-content a{padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer;font-size:14px;font-weight:bold;text-decoration:none;color:#172033}
+.menu-content a:hover{background:#f5f7fb}
+@media(max-width:700px){
+  .cards{grid-template-columns:1fr 1fr}
+  .grid{grid-template-columns:1fr}
+  .full{grid-column:auto}
+  .card b{font-size:18px}
+  .security-box{flex-direction:column;align-items:stretch!important;gap:12px}
+  .security-box > div:last-child{display:flex;justify-content:space-between;width:100%}
+  .security-box button{flex:1;padding:10px 6px;font-size:11px}
+}
 </style>
 
 <script>
@@ -63,9 +86,9 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 
 <header>
   <div class="brand">DR STREAMING<small id="syncStatus">BUSINESS MANAGER • CONNECTING...</small></div>
-  <div style="display:flex;gap:12px;align-items:center">
+  <div style="display:flex;gap:8px;align-items:center">
     <button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button>
-    <button class="primary small hideMob" onclick="openSale()">＋ Sale</button>
+    <button class="primary small" onclick="openSale()">＋ Sale</button>
     
     <div style="position:relative;">
       <button class="menu-btn" onclick="toggleMenu(event)">⋮</button>
@@ -84,7 +107,9 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
     </div>
   </div>
 </header>
+
 <div id="app" class="container"></div>
+
 <nav class="bottom" id="bottomNav">
 <button class="nav on" data-page="dashboard" onclick="go('dashboard')">🏠<br>Home</button>
 <button class="nav" data-page="sales" onclick="go('sales')">💰<br>Sales</button>
@@ -125,7 +150,6 @@ if(!data.sales) data.sales=[];
 if(!data.expenses) data.expenses=[];
 if(!data.settings) data.settings={password:'admin', username:'admin'}; 
 
-// ORIGINAL BRAND VECTOR LOGOS IN SVG
 const iconMap = {
   'netflix pakistan': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#01411C"/><path d="M141.5 96h60l110 320h-60l-110-320z" fill="#E50914"/><path d="M141.5 96h55v320h-55z" fill="#E50914"/><path d="M315.5 96h55v320h-55z" fill="#E50914"/><path d="M201.5 96h60l110 320h-60l-110-320z" fill="#E50914"/></svg>',
   'netflix': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#111"/><path d="M141.5 64h60l110 384h-60l-110-384z" fill="#E50914"/><path d="M141.5 64h55v384h-55z" fill="#E50914"/><path d="M315.5 64h55v384h-55z" fill="#E50914"/><path d="M201.5 64h60l110 384h-60l-110-384z" fill="#E50914"/></svg>',
@@ -319,12 +343,12 @@ function dashboard(){
  const pending=data.sales.filter(s=>s.payment!=='Paid');
  
  return `<h1>Business Overview</h1><p class="muted">Tap any card to see detailed information</p>
- <div class="card" style="background:#f8fafc;border:1px solid var(--line);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
+ <div class="card security-box" style="background:#f8fafc;border:1px solid var(--line);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
    <div style="display:flex;align-items:center;gap:10px;">
      <span style="font-size:22px">🔐</span>
-     <div><b>Security & Quick Access</b><br><span class="muted" style="font-size:11px">Enable fingerprint or change account credentials</span></div>
+     <div><b>Security & Quick Access</b><br><span class="muted" style="font-size:11px">Enable fingerprint or change credentials</span></div>
    </div>
-   <div style="display:flex;gap:8px;">
+   <div style="display:flex;gap:6px;flex-wrap:wrap">
      <button class="small primary" style="background:#10b981" onclick="setupBiometrics()">👆 Fingerprint</button>
      <button class="small primary" style="background:var(--blue)" onclick="changePasswordModal()">⚙️ Credentials</button>
      <button class="small danger" onclick="signOutApp()">🚪 Sign Out</button>
