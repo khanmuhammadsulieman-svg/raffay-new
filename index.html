@@ -62,6 +62,10 @@ let data=JSON.parse(localStorage.getItem(DB)||'{"products":[],"sales":[],"expens
 if(!data.expenses)data.expenses=[];
 let page='dashboard', reportRange='month';
 
+// WhatsApp SVG Icons
+const waSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16" style="vertical-align:middle;margin-left:6px;cursor:pointer;"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>`;
+const waBtnSVG = waSVG.replace('fill="#25D366"','fill="#ffffff"').replace('margin-left:6px;','margin-right:8px;');
+
 async function save(){
   localStorage.setItem(DB,JSON.stringify(data));
   if(!cloudReady) return;
@@ -127,21 +131,57 @@ function showDetails(type){
 }
 function salesTable(a,actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">💬</a>`:''}</td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 }
 function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
 function productsPage(){
  return `<div class="sectionHead"><div><h1>Products</h1><span class="muted">Create products and services</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
  <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product</th><th>Type</th><th>Default Price</th><th></th></tr></thead><tbody>${data.products.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${p.type}</td><td>${rs(p.price)}</td><td><button class="danger small" onclick="delProduct(${p.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`}
+
 function clientsPage(){
  let map={};data.sales.forEach(s=>{if(!s.client)return;let k=s.client+'|'+(s.phone||'');if(!map[k])map[k]={name:s.client,phone:s.phone,total:0,count:0};map[k].total+=Number(s.amount);map[k].count++});
- let a=Object.values(map);return `<h1>Clients</h1><p class="muted">All customers and their purchases</p><section>${a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Phone</th><th>Purchases</th><th>Total</th></tr></thead><tbody>${a.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'—')} ${c.phone?`<a href="https://wa.me/${c.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">💬</a>`:''}</td><td>${c.count}</td><td>${rs(c.total)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No clients yet.</div>'}</section>`}
+ let a=Object.values(map);return `<h1>Clients</h1><p class="muted">All customers and their purchases</p><section>${a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Phone</th><th>Purchases</th><th>Total</th><th>Action</th></tr></thead><tbody>${a.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'—')} ${c.phone?`<a href="https://wa.me/${c.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${c.count}</td><td>${rs(c.total)}</td><td><button class="small" onclick="editClient(decodeURIComponent('${encodeURIComponent(c.name)}'), decodeURIComponent('${encodeURIComponent(c.phone||'')}'))" title="Edit Client">✏️ Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No clients yet.</div>'}</section>`
+}
+
+function editClient(oldName, oldPhone){
+  modal(`<div class="sectionHead"><h2>Edit Client Info</h2><button onclick="closeModal()">×</button></div>
+  <form id="editClientForm" class="grid">
+    <p class="full muted" style="margin-top:0;">Updates the name and phone number for <b>all</b> records belonging to this client.</p>
+    <label class="field full"><span>Client Name *</span><input id="editCName" required value="${esc(oldName)}"></label>
+    <label class="field full"><span>Phone / WhatsApp</span><input id="editCPhone" value="${esc(oldPhone)}"></label>
+    <div class="full actions">
+      <button type="button" onclick="closeModal()">Cancel</button>
+      <button class="primary" type="submit">Save Changes</button>
+    </div>
+  </form>`);
+
+  document.getElementById('editClientForm').onsubmit = e => {
+    e.preventDefault();
+    const newName = document.getElementById('editCName').value.trim();
+    const newPhone = document.getElementById('editCPhone').value.trim();
+    
+    if(!newName) return;
+
+    // Loop through all sales and update the client info where it matches the old details
+    data.sales.forEach(s => {
+      if(s.client === oldName && (s.phone || '') === oldPhone) {
+        s.client = newName;
+        s.phone = newPhone;
+      }
+    });
+
+    save();
+    closeModal();
+    render();
+  };
+}
+
 function pendingPage(){
  const pending=data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
  const total=pending.reduce((a,s)=>a+(s.payment==='Partial'?Number(s.amount||0):Number(s.amount||0)),0);
  return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
  <section><div class="cards"><div class="card"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
- ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">💬</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
+ ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
 }
 function markPaid(id){
  let sale=data.sales.find(s=>s.id===id);
@@ -164,7 +204,7 @@ function viewClient(id){
   if(!s) return;
   modal(`<div class="sectionHead"><h2>Client Details</h2><button onclick="closeModal()">×</button></div>
   <div class="grid">
-    <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:6px 12px;border-radius:12px;font-size:12px">💬 Message on WhatsApp</a>`:''}</div>
+    <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:inline-flex;align-items:center;font-weight:bold;">${waBtnSVG} Message on WhatsApp</a>`:''}</div>
     <div class="card"><small>Product / Service</small><b>${esc(s.product)}</b><span class="muted">${s.type}</span></div>
     <div class="card"><small>Amount</small><b>${rs(s.amount)}</b></div>
     <div class="card"><small>Payment Status</small><b>${s.payment}</b></div>
@@ -226,10 +266,11 @@ function delSale(id){if(confirm('Delete this sale?')){data.sales=data.sales.filt
 function delProduct(id){if(confirm('Delete this product?')){data.products=data.products.filter(p=>p.id!==id);save();render()}}
 function backup(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='DR-Streaming-Backup-'+today()+'.json';a.click()}
 function restore(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.sales||!x.products)throw 0;if(!x.expenses)x.expenses=[];data=x;save();render();alert('Backup restored successfully')}catch{alert('Invalid backup file')}};r.readAsText(f)}
+
 // Make app functions available to the HTML buttons
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage,
-  productsPage, clientsPage, pendingPage, markPaid, quickPayment, viewClient,
+  productsPage, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, reports, render, openProduct,
   openSale, delSale, delProduct, backup, restore
 });
