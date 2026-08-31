@@ -20,13 +20,53 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 .modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:15px;place-items:center}.modal.show{display:grid}.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:20px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:bold}.field input,.field select,.field textarea{width:100%;border:1px solid #dbe1ea;border-radius:8px;padding:11px;font:inherit;background:#fff}.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}.badge{padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold}.Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
 .tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#eef2f7}.tab.on{background:#dbeafe;color:#1d4ed8}.empty{text-align:center;color:var(--muted);padding:25px}
+.menu-btn{background:transparent;color:#fff;font-size:24px;padding:0 5px;line-height:1;}
+.menu-content{display:none;position:absolute;right:0;top:100%;background:#fff;color:#000;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:180px;z-index:100;flex-direction:column;overflow:hidden;}
+.menu-content.show{display:flex;}
+.menu-content a{padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer;font-size:14px;font-weight:bold;text-decoration:none;color:#172033;}
+.menu-content a:hover{background:#f5f7fb;}
 @media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}.card b{font-size:18px}.hideMob{display:none}}
 </style>
 </head>
 <body>
-<header><div class="brand">DR STREAMING<small id="syncStatus">BUSINESS MANAGER • CONNECTING...</small></div><div style="display:flex;gap:7px"><button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button><button class="primary small" onclick="openSale()">＋ Sale</button></div></header>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+  <div class="card" style="width:min(90%, 350px);box-shadow:0 8px 24px rgba(0,0,0,0.05);">
+    <h2 style="margin-bottom:16px;text-align:center">DR Streaming</h2>
+    <form onsubmit="handleLogin(event)" class="grid">
+      <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin"></label>
+      <label class="field full"><span>Password</span><input id="loginPass" type="password" required></label>
+      <div class="full" style="margin-top:10px;"><button class="primary" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button></div>
+    </form>
+  </div>
+</div>
+
+<header>
+  <div class="brand">DR STREAMING<small id="syncStatus">BUSINESS MANAGER • CONNECTING...</small></div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button>
+    <button class="primary small hideMob" onclick="openSale()">＋ Sale</button>
+    
+    <!-- 3-DOT MENU -->
+    <div style="position:relative;">
+      <button class="menu-btn" onclick="toggleMenu(event)">⋮</button>
+      <div id="menuDropdown" class="menu-content">
+        <a onclick="go('dashboard');closeMenu()">🏠 Dashboard</a>
+        <a onclick="go('sales');closeMenu()">💰 Sales</a>
+        <a onclick="go('products');closeMenu()">📦 Products</a>
+        <a onclick="go('clients');closeMenu()">👥 Clients</a>
+        <a onclick="go('pending');closeMenu()">⏳ Pending</a>
+        <a onclick="go('expenses');closeMenu()">💸 Expenses</a>
+        <a onclick="go('profit');closeMenu()">📈 Profit</a>
+        <a onclick="go('reports');closeMenu()">📊 Reports</a>
+        <a onclick="changePasswordModal();closeMenu()" style="color:var(--blue);background:#f0f5ff">⚙️ Change Password</a>
+      </div>
+    </div>
+  </div>
+</header>
 <div id="app" class="container"></div>
-<nav class="bottom">
+<nav class="bottom" id="bottomNav">
 <button class="nav on" data-page="dashboard" onclick="go('dashboard')">🏠<br>Home</button>
 <button class="nav" data-page="sales" onclick="go('sales')">💰<br>Sales</button>
 <button class="nav" data-page="products" onclick="go('products')">📦<br>Products</button>
@@ -62,7 +102,62 @@ let saving = false;
 const DB='dr_streaming_manager_v1';
 let data=JSON.parse(localStorage.getItem(DB)||'{"products":[],"sales":[],"expenses":[]}');
 if(!data.expenses)data.expenses=[];
+if(!data.settings)data.settings={password:'admin'}; // Default Password Initializer
 let page='dashboard', reportRange='month';
+
+// Login Handling
+function handleLogin(e){
+  e.preventDefault();
+  if(document.getElementById('loginUser').value === 'admin' && document.getElementById('loginPass').value === data.settings.password) {
+    sessionStorage.setItem('auth', 'true');
+    document.getElementById('loginScreen').style.display = 'none';
+    render();
+  } else {
+    alert("Incorrect Username or Password.");
+  }
+}
+
+window.onload = () => {
+  if(sessionStorage.getItem('auth') === 'true') {
+    document.getElementById('loginScreen').style.display = 'none';
+  }
+}
+
+// Menu Handling
+function toggleMenu(e) {
+  e.stopPropagation();
+  document.getElementById('menuDropdown').classList.toggle('show');
+}
+function closeMenu() {
+  document.getElementById('menuDropdown').classList.remove('show');
+}
+window.onclick = function(e) {
+  if (!e.target.matches('.menu-btn')) {
+    closeMenu();
+  }
+}
+
+function changePasswordModal() {
+  modal(`<div class="sectionHead"><h2>Change Password</h2><button onclick="closeModal()">×</button></div>
+  <form onsubmit="savePassword(event)" class="grid">
+    <label class="field full"><span>Current Password</span><input id="cpCurrent" type="password" required></label>
+    <label class="field full"><span>New Password</span><input id="cpNew" type="password" required></label>
+    <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Updates</button></div>
+  </form>`);
+}
+function savePassword(e) {
+  e.preventDefault();
+  let c = document.getElementById('cpCurrent').value;
+  let n = document.getElementById('cpNew').value;
+  if(c !== data.settings.password) {
+    alert('Current password incorrect!');
+    return;
+  }
+  data.settings.password = n;
+  save();
+  closeModal();
+  alert('Password updated successfully!');
+}
 
 // WhatsApp SVG Icons
 const waSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16" style="vertical-align:middle;margin-left:6px;cursor:pointer;"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>`;
@@ -89,7 +184,7 @@ const dateObj=d=>new Date(d+'T00:00:00');
 const expiry=(d,n)=>{let x=dateObj(d);x.setDate(x.getDate()+Number(n));return x.toISOString().slice(0,10)};
 const days=d=>Math.ceil((dateObj(d)-new Date(new Date().toDateString()))/86400000);
 const status=s=>!s.expiry?'—':days(s.expiry)<0?'Expired':days(s.expiry)<=7?'Expiring':'Active';
-const income=a=>a.filter(s=>s.payment==='Paid').reduce((x,s)=>x+Number(s.amount||0),0);
+const income=a=>a.filter(s=>s.payment==='Paid').reduce((x,s)=>x+Number(s.amount||0),0) + a.filter(s=>s.payment==='Partial').reduce((x,s)=>x+Number(s.partialPaid||0),0);
 const grossSales=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
 const purchase=a=>a.reduce((x,s)=>x+Number(s.purchase||0),0);
 const expenses=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
@@ -100,8 +195,9 @@ function go(p){page=p;document.querySelectorAll('.nav').forEach(x=>x.classList.t
 function dashboard(){
  const paid=income(data.sales), gross=grossSales(data.sales);
  const r=income(data.sales.filter(s=>s.owner==='Manager')), a=income(data.sales.filter(s=>s.owner==='Admin'));
- const cost=purchase(data.sales), exp=expenses(data.expenses), profit=paid-cost-exp;
+ const cost=purchase(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial')), exp=expenses(data.expenses), profit=paid-cost-exp;
  const pending=data.sales.filter(s=>s.payment!=='Paid');
+ 
  return `<h1>Business Overview</h1><p class="muted">Tap any card to see detailed information</p>
  <div class="cards">
  <div class="card" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b><span class="muted">Tap for details →</span></div>
@@ -111,24 +207,24 @@ function dashboard(){
  <div class="card" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b><span class="muted">Tap for transactions →</span></div>
  <div class="card" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b><span class="muted">Tap for transactions →</span></div>
  <div class="card" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TOTAL TRANSACTIONS</small><b>${data.sales.length}</b><span class="muted">Tap for all records →</span></div>
- <div class="card" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted">${rs(pending.reduce((x,s)=>x+Number(s.amount||0),0))} expected →</span></div>
+ <div class="card" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted">${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} remaining →</span></div>
  </div>
  <section><div class="sectionHead"><h2>Recent Sales</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(data.sales.slice(0,6),false)}</section>
  <section><div class="sectionHead"><h2>🔔 Expiring Soon</h2></div>${salesTable(data.sales.filter(s=>s.type==='Subscription'&&days(s.expiry)>=0&&days(s.expiry)<=14),false)}</section>`;
 }
 function showDetails(type){
- const paid=income(data.sales), cost=purchase(data.sales), exp=expenses(data.expenses);
+ const paid=income(data.sales), cost=purchase(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial')), exp=expenses(data.expenses);
  const pending=data.sales.filter(s=>s.payment!=='Paid');
  let title='',body='';
- const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
- if(type==='income'){title='💼 Paid Income';body=`<p class="muted">Only sales marked <b>Paid</b> are included. Pending and Partial payments are excluded from profit.</p><h2>${rs(paid)}</h2>${list(data.sales.filter(s=>s.payment==='Paid'))}`;}
- if(type==='purchase'){let purchased=data.sales.filter(s=>Number(s.purchase||0)>0);title='🛒 Purchase Cost';body=`<p class="muted">Only transactions with a purchase cost greater than Rs. 0 are shown here.</p><h2>${rs(cost)}</h2>${list(purchased)}`;}
+ const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}${s.payment==='Partial'?`<br><span style="font-size:10px;color:var(--muted)">Paid: ${rs(s.partialPaid)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
+ if(type==='income'){title='💼 Paid Income';body=`<p class="muted">Includes full Paid sales and the received amount from Partial payments.</p><h2>${rs(paid)}</h2>${list(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
+ if(type==='purchase'){let purchased=data.sales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title='🛒 Purchase Cost';body=`<p class="muted">Cost of Paid/Partial transactions greater than Rs. 0.</p><h2>${rs(cost)}</h2>${list(purchased)}`;}
  if(type==='expenses'){title='💸 Business Expenses';body=`<p class="muted">Separate business expenses such as internet, marketing and software.</p><h2>${rs(exp)}</h2><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
- if(type==='profit'){title='📈 Net Profit Breakdown';body=`<p class="muted">Profit calculation:</p><div class="card"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div><p class="muted">Pending payments are not included until marked Paid.</p>`;}
- if(type==='manager'){let a=data.sales.filter(s=>s.owner==='Manager'&&s.payment==='Paid');title='👤 Manager Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
- if(type==='admin'){let a=data.sales.filter(s=>s.owner==='Admin'&&s.payment==='Paid');title='👑 Admin Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='profit'){title='📈 Net Profit Breakdown';body=`<p class="muted">Profit calculation:</p><div class="card"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div><p class="muted">Pending payments are excluded until marked Paid.</p>`;}
+ if(type==='manager'){let a=data.sales.filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='admin'){let a=data.sales.filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
  if(type==='transactions'){title='📦 All Transactions';body=`<p class="muted">${data.sales.length} total transactions • Gross value ${rs(grossSales(data.sales))}</p>${list(data.sales)}`;}
- if(type==='pending'){title='⏳ Pending Payments';body=`<p class="muted">These sales are excluded from income and profit until payment status becomes Paid.</p><h2>${rs(pending.reduce((x,s)=>x+Number(s.amount||0),0))}</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
+ if(type==='pending'){title='⏳ Pending Payments';body=`<p class="muted">Pending payments are excluded from profit until marked Paid.</p><h2>${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} Remaining</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
 
@@ -150,7 +246,11 @@ function editSale(id){
   <label class="field"><span>Purchase Date</span><input id="spdate" type="date" value="${s.purchaseDate||''}"></label>
   <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date" value="${s.paymentDate||''}"></label>
   <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date" value="${s.expiry||''}"></label>
-  <label class="field"><span>Payment</span><select id="payment"><option ${s.payment==='Paid'?'selected':''}>Paid</option><option ${s.payment==='Pending'?'selected':''}>Pending</option><option ${s.payment==='Partial'?'selected':''}>Partial</option></select></label>
+  
+  <!-- Partial Payment Logic Embedded Here -->
+  <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option ${s.payment==='Paid'?'selected':''}>Paid</option><option ${s.payment==='Pending'?'selected':''}>Pending</option><option ${s.payment==='Partial'?'selected':''}>Partial</option></select></label>
+  <label class="field" id="partialDiv" style="display:${s.payment==='Partial'?'flex':'none'};background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="${s.partialPaid||0}"></label>
+  
   <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="${s.tenure||0}" placeholder="e.g. 7, 25, 27, 30"></label>
   <label class="field full"><span>Notes</span><textarea id="sn">${esc(s.notes||'')}</textarea></label>
   <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary" style="background:#fef3c7;color:#92400e">Save Updates</button></div></form>`);
@@ -180,6 +280,7 @@ function editSale(id){
     s.amount = +document.getElementById('sa').value; 
     s.purchase = +document.getElementById('spurchase').value; 
     s.payment = document.getElementById('payment').value;
+    s.partialPaid = s.payment === 'Partial' ? +document.getElementById('partialPaid').value : 0;
     s.date = document.getElementById('sd').value; 
     s.purchaseDate = document.getElementById('spdate').value; 
     s.paymentDate = document.getElementById('spaymentdate').value;
@@ -197,7 +298,7 @@ function editSale(id){
 
 function salesTable(a,actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(s.amount - (s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 }
 function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
 
@@ -207,14 +308,14 @@ function productsPage(){
  
  const rows = data.products.map(p=>{
    let pSales = data.sales.filter(s => {
-     if(s.product !== p.name || s.payment !== 'Paid') return false;
+     if(s.product !== p.name || s.payment === 'Pending') return false;
      let d = dateObj(s.date);
      if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
      if(reportRange==='year') return d.getFullYear()===now.getFullYear();
      return true;
    });
    let qty = pSales.length;
-   let profit = pSales.reduce((sum, s) => sum + (Number(s.amount||0) - Number(s.purchase||0)), 0);
+   let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?s.partialPaid:Number(s.amount||0)) - Number(s.purchase||0)), 0);
    totalQty += qty;
    totalProfit += profit;
    return `<tr><td><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></td><td>${rs(p.price)}</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
@@ -238,7 +339,7 @@ function viewProduct(id){
   if(!p) return;
   const now = new Date();
   let pSales = data.sales.filter(s => {
-     if(s.product !== p.name || s.payment !== 'Paid') return false;
+     if(s.product !== p.name || s.payment === 'Pending') return false;
      let d = dateObj(s.date);
      if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
      if(reportRange==='year') return d.getFullYear()===now.getFullYear();
@@ -246,8 +347,8 @@ function viewProduct(id){
   });
   
   let qty = pSales.length;
-  let revenue = pSales.reduce((sum, s) => sum + Number(s.amount||0), 0);
-  let profit = pSales.reduce((sum, s) => sum + (Number(s.amount||0) - Number(s.purchase||0)), 0);
+  let revenue = pSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
+  let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?s.partialPaid:Number(s.amount||0)) - Number(s.purchase||0)), 0);
 
   modal(`<div class="sectionHead"><h2>${esc(p.name)} Analytics</h2><button onclick="closeModal()">×</button></div>
   <div class="cards">
@@ -256,8 +357,12 @@ function viewProduct(id){
     <div class="card"><small>NET PROFIT</small><b>${rs(profit)}</b></div>
   </div>
   <br>
-  <div class="table"><table><thead><tr><th>Date</th><th>Client</th><th>Amount</th><th>Profit</th></tr></thead><tbody>
-  ${pSales.length ? pSales.map(s=>`<tr><td>${s.date}</td><td><b>${esc(s.client)}</b></td><td>${rs(s.amount)}</td><td><b style="color:#166534">${rs(Number(s.amount||0) - Number(s.purchase||0))}</b></td></tr>`).join('') : `<tr><td colspan="4" class="empty">No paid sales found for this period.</td></tr>`}
+  <div class="table"><table><thead><tr><th>Date</th><th>Client</th><th>Revenue</th><th>Profit</th></tr></thead><tbody>
+  ${pSales.length ? pSales.map(s=>{
+    let rev = s.payment==='Partial' ? s.partialPaid : Number(s.amount||0);
+    let prof = rev - Number(s.purchase||0);
+    return `<tr><td>${s.date}</td><td><b>${esc(s.client)}</b></td><td>${rs(rev)}</td><td><b style="color:#166534">${rs(prof)}</b></td></tr>`;
+  }).join('') : `<tr><td colspan="4" class="empty">No paid sales found for this period.</td></tr>`}
   </tbody></table></div>`);
 }
 
@@ -300,15 +405,16 @@ function editClient(oldName, oldPhone){
 
 function pendingPage(){
  const pending=data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
- const total=pending.reduce((a,s)=>a+(s.payment==='Partial'?Number(s.amount||0):Number(s.amount||0)),0);
+ const total=pending.reduce((a,s)=>a+(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0)),0);
  return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
  <section><div class="cards"><div class="card"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
- ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td style="white-space:nowrap"><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit">✏️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
+ ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Total Bill</th><th>Remaining</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><b style="color:#b91c1c">${rs(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0))}</b></td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td style="white-space:nowrap"><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
 }
 function markPaid(id){
  let sale=data.sales.find(s=>s.id===id);
  if(sale){
    sale.payment='Paid';
+   sale.partialPaid=0;
    sale.paymentDate=prompt('Payment date (YYYY-MM-DD):', sale.paymentDate||today())||today();
    save();render();
  }
@@ -316,8 +422,17 @@ function markPaid(id){
 function quickPayment(id, value){
   let sale=data.sales.find(s=>s.id===id);
   if(sale){
+    if(value === 'Partial') {
+      let p = prompt(`Enter amount paid so far (Total Bill: ${sale.amount}):`, sale.partialPaid || 0);
+      if(p !== null && !isNaN(p)) {
+        sale.partialPaid = Number(p);
+      } else {
+        render(); return; // cancelled
+      }
+    }
     sale.payment=value;
     if(value==='Paid'&&!sale.paymentDate)sale.paymentDate=today();
+    if(value!=='Partial') sale.partialPaid = 0;
     save();render();
   }
 }
@@ -328,8 +443,8 @@ function viewClient(id){
   <div class="grid">
     <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:inline-flex;align-items:center;font-weight:bold;">${waBtnSVG} Message on WhatsApp</a>`:''}</div>
     <div class="card"><small>Product / Service</small><b>${esc(s.product)}</b><span class="muted">${s.type}</span></div>
-    <div class="card"><small>Amount</small><b>${rs(s.amount)}</b></div>
-    <div class="card"><small>Payment Status</small><b>${s.payment}</b></div>
+    <div class="card"><small>Total Amount</small><b>${rs(s.amount)}</b></div>
+    <div class="card"><small>Payment Status</small><b>${s.payment}</b>${s.payment==='Partial'?`<span class="muted" style="display:block;margin-top:4px">Paid: ${rs(s.partialPaid)}<br>Remaining: <b style="color:#b91c1c">${rs(s.amount-(s.partialPaid||0))}</b></span>`:''}</div>
     <div class="card"><small>Subscription Status</small><b>${status(s)}</b></div>
     <div class="card"><small>Sale Date</small><b>${s.date}</b></div>
     <div class="card"><small>Expiry Date</small><b>${s.expiry||'N/A'}</b></div>
@@ -356,7 +471,7 @@ function delExpense(id){if(confirm('Delete this expense?')){data.expenses=data.e
 function profitPage(){
  const now=new Date();
  const filteredSales = data.sales.filter(s => {
-   if(s.payment !== 'Paid') return false;
+   if(s.payment === 'Pending') return false; // Include Paid & Partial
    let d = dateObj(s.date);
    if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
    if(reportRange==='year') return d.getFullYear()===now.getFullYear();
@@ -369,7 +484,7 @@ function profitPage(){
    return true;
  });
  
- const totalRev = filteredSales.reduce((sum, s) => sum + Number(s.amount||0), 0);
+ const totalRev = filteredSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
  const totalCost = filteredSales.reduce((sum, s) => sum + Number(s.purchase||0), 0);
  const totalExp = periodExpenses.reduce((sum, e) => sum + Number(e.amount||0), 0);
  const netProfit = totalRev - totalCost - totalExp;
@@ -377,7 +492,7 @@ function profitPage(){
  const productRows = data.products.map(p => {
    const pSales = filteredSales.filter(s => s.product === p.name);
    const pQty = pSales.length;
-   const pRev = pSales.reduce((sum, s) => sum + Number(s.amount||0), 0);
+   const pRev = pSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
    const pCost = pSales.reduce((sum, s) => sum + Number(s.purchase||0), 0);
    const pProfit = pRev - pCost;
    return `<tr><td><b>${esc(p.name)}</b></td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
@@ -403,7 +518,7 @@ function reports(){
  const now=new Date(), filtered=data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
  const r=income(filtered.filter(s=>s.owner==='Manager')),t=income(filtered.filter(s=>s.owner==='Admin'));
  const periodExpenses=data.expenses.filter(e=>{let d=dateObj(e.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
- const pc=purchase(filtered), ex=expenses(periodExpenses), net=income(filtered)-pc-ex;
+ const pc=purchase(filtered.filter(s=>s.payment==='Paid'||s.payment==='Partial')), ex=expenses(periodExpenses), net=income(filtered)-pc-ex;
  let months=Array.from({length:12},(_,i)=>({m:new Date(now.getFullYear(),i,1).toLocaleString('en',{month:'short'}),v:income(data.sales.filter(s=>{let d=dateObj(s.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===i}))}));
  return `<h1>Sales Reports</h1><div class="tabs"><button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button><button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button><button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button></div>
  <div class="cards"><div class="card"><small>PERIOD TOTAL</small><b>${rs(income(filtered))}</b></div><div class="card"><small>MANAGER</small><b>${rs(r)}</b></div><div class="card"><small>ADMIN</small><b>${rs(t)}</b></div><div class="card"><small>PURCHASE COST</small><b>${rs(pc)}</b></div><div class="card"><small>EXPENSES</small><b>${rs(ex)}</b></div><div class="card"><small>NET PROFIT</small><b>${rs(net)}</b></div><div class="card"><small>TRANSACTIONS</small><b>${filtered.length}</b></div></div>
@@ -420,14 +535,16 @@ function showMonthDetails(mIndex){
   const monthName = new Date(year, mIndex, 1).toLocaleString('en', {month: 'long'});
   
   const monthIncome = income(monthSales);
-  const monthCost = purchase(monthSales.filter(s=>s.payment==='Paid'));
+  const monthCost = purchase(monthSales.filter(s=>s.payment==='Paid'||s.payment==='Partial'));
   const monthProfit = monthIncome - monthCost;
   
   let body = '';
   if(monthSales.length){
-    body = `<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount</th><th>Cost</th><th>Profit</th><th>Status</th></tr></thead><tbody>${monthSales.map(s=>{
-      let profit = (s.payment==='Paid') ? (Number(s.amount||0) - Number(s.purchase||0)) : 0;
-      return `<tr><td><b>${esc(s.client)}</b></td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${rs(s.purchase)}</td><td><b style="color:#166534">${rs(profit)}</b></td><td><span class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}">${s.payment}</span></td></tr>`;
+    body = `<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount Paid</th><th>Cost</th><th>Profit</th><th>Status</th></tr></thead><tbody>${monthSales.map(s=>{
+      let paidAmt = s.payment==='Paid' ? Number(s.amount||0) : (s.payment==='Partial' ? Number(s.partialPaid||0) : 0);
+      let costAmt = (s.payment!=='Pending') ? Number(s.purchase||0) : 0;
+      let profit = paidAmt - costAmt;
+      return `<tr><td><b>${esc(s.client)}</b></td><td>${esc(s.product)}</td><td>${rs(paidAmt)}</td><td>${rs(costAmt)}</td><td><b style="color:#166534">${rs(profit)}</b></td><td><span class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}">${s.payment}</span></td></tr>`;
     }).join('')}</tbody></table></div>`;
   } else {
     body = `<div class="empty">No sales records found for ${monthName} ${year}.</div>`;
@@ -441,7 +558,6 @@ function showMonthDetails(mIndex){
   </div><br>${body}`);
 }
 
-function render(){document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():reports()}
 function openProduct(){modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div><form id="pf" class="grid"><label class="field"><span>Name *</span><input id="pn" required placeholder="ChatGPT Plus"></label><label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label><label class="field"><span>Default Sale Price</span><input id="pp" type="number" value="0"></label><div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div></form>`);pf.onsubmit=e=>{e.preventDefault();data.products.push({id:Date.now(),name:pn.value,type:pt.value,price:+pp.value});save();closeModal();render()}}
 function openSale(){
  let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
@@ -456,24 +572,28 @@ function openSale(){
 <label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
 <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
 <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
- <label class="field"><span>Payment</span><select id="payment"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
+
+ <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
+ <label class="field" id="partialDiv" style="display:none;background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="0"></label>
+
  <label class="field"><span>Tenure in Days (editable)</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 7, 25, 27, 30"></label>
  <label class="field"><span>Notes</span><textarea id="sn"></textarea></label>
  <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div></form>`);
  sp.onchange=()=>{let p=data.products.find(x=>x.id==sp.value);if(p){sa.value=p.price;stm.value=p.type==='Subscription'?'30':'0'}};
- sf.onsubmit=e=>{e.preventDefault();let p=data.products.find(x=>x.id==sp.value), name=customProduct.value.trim()||(p&&p.name);if(!name){alert('Add product name');return}let tenure=+stm.value||0;data.sales.unshift({id:Date.now(),owner:so.value,client:sc.value,phone:sph.value,product:name,type:tenure?'Subscription':(p?.type||'Product'),amount:+sa.value,purchase:+spurchase.value,payment:payment.value,date:sd.value,purchaseDate:spdate.value,paymentDate:spaymentdate.value,tenure,expiry:sexpiry.value||(tenure?expiry(sd.value,tenure):''),notes:sn.value});save();closeModal();render()}
+ sf.onsubmit=e=>{e.preventDefault();let p=data.products.find(x=>x.id==sp.value), name=customProduct.value.trim()||(p&&p.name);if(!name){alert('Add product name');return}let tenure=+stm.value||0;data.sales.unshift({id:Date.now(),owner:so.value,client:sc.value,phone:sph.value,product:name,type:tenure?'Subscription':(p?.type||'Product'),amount:+sa.value,purchase:+spurchase.value,payment:payment.value,partialPaid:(payment.value==='Partial'?+document.getElementById('partialPaid').value:0),date:sd.value,purchaseDate:spdate.value,paymentDate:spaymentdate.value,tenure,expiry:sexpiry.value||(tenure?expiry(sd.value,tenure):''),notes:sn.value});save();closeModal();render()}
 }
 function delSale(id){if(confirm('Delete this sale?')){data.sales=data.sales.filter(s=>s.id!==id);save();render()}}
 function delProduct(id){if(confirm('Delete this product?')){data.products=data.products.filter(p=>p.id!==id);save();render()}}
 function backup(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='DR-Streaming-Backup-'+today()+'.json';a.click()}
-function restore(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.sales||!x.products)throw 0;if(!x.expenses)x.expenses=[];data=x;save();render();alert('Backup restored successfully')}catch{alert('Invalid backup file')}};r.readAsText(f)}
+function restore(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.sales||!x.products)throw 0;if(!x.expenses)x.expenses=[];if(!x.settings)x.settings={password:'admin'};data=x;save();render();alert('Backup restored successfully')}catch{alert('Invalid backup file')}};r.readAsText(f)}
 
-// Make app functions available to the HTML buttons
+function render(){document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():reports()}
+
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage, editSale,
   productsPage, viewProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
-  openSale, delSale, delProduct, backup, restore
+  openSale, delSale, delProduct, backup, restore, handleLogin, toggleMenu, closeMenu, changePasswordModal, savePassword
 });
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
@@ -487,6 +607,7 @@ onSnapshot(cloudRef, async (snap)=>{
     if(snap.exists() && snap.data().data){
       const incoming=snap.data().data;
       if(!incoming.expenses) incoming.expenses=[];
+      if(!incoming.settings) incoming.settings={password:'admin'};
       data=incoming;
       localStorage.setItem(DB,JSON.stringify(data));
       cloudReady=true;
