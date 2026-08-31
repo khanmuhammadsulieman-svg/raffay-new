@@ -16,7 +16,7 @@ section{background:var(--card);border:1px solid var(--line);border-radius:15px;p
 button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e9edf4;color:#243044}.primary{background:var(--blue);color:#fff}.danger{background:#fee2e2;color:#b91c1c}.small{padding:7px 9px;font-size:12px}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eef1f5;font-size:13px}th{font-size:10px;color:var(--muted);text-transform:uppercase}.table{overflow:auto}
 .bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:flex-start;gap:3px;padding:7px;z-index:6;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,7px)}
-.nav{background:transparent;color:#667085;font-size:11px;min-width:70px;flex-shrink:0}.nav.on{color:var(--blue)}
+.nav{background:transparent;color:#667085;font-size:11px;min-width:60px;flex-shrink:0;text-align:center}.nav.on{color:var(--blue)}
 .modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:15px;place-items:center}.modal.show{display:grid}.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:20px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:bold}.field input,.field select,.field textarea{width:100%;border:1px solid #dbe1ea;border-radius:8px;padding:11px;font:inherit;background:#fff}.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}.badge{padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold}.Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
 .tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#eef2f7}.tab.on{background:#dbeafe;color:#1d4ed8}.empty{text-align:center;color:var(--muted);padding:25px}
@@ -78,8 +78,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
         <a onclick="go('expenses');closeMenu()">💸 Expenses</a>
         <a onclick="go('profit');closeMenu()">📈 Profit</a>
         <a onclick="go('reports');closeMenu()">📊 Reports</a>
-        <a onclick="setupBiometrics();closeMenu()" style="color:#10b981;background:#ecfdf5">👆 Enable Fingerprint Login</a>
-        <a onclick="changePasswordModal();closeMenu()" style="color:var(--blue);background:#f0f5ff">⚙️ Change Password</a>
+        <a onclick="go('settings');closeMenu()">⚙️ Settings</a>
       </div>
     </div>
   </div>
@@ -94,6 +93,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 <button class="nav" data-page="expenses" onclick="go('expenses')">💸<br>Expenses</button>
 <button class="nav" data-page="profit" onclick="go('profit')">📈<br>Profit</button>
 <button class="nav" data-page="reports" onclick="go('reports')">📊<br>Reports</button>
+<button class="nav" data-page="settings" onclick="go('settings')">⚙️<br>Settings</button>
 </nav>
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
@@ -125,7 +125,6 @@ if(!data.sales) data.sales=[];
 if(!data.expenses) data.expenses=[];
 if(!data.settings) data.settings={password:'admin'}; 
 
-// ORIGINAL BRAND VECTOR LOGOS IN SVG
 const iconMap = {
   'netflix pakistan': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#01411C"/><path d="M141.5 96h60l110 320h-60l-110-320z" fill="#E50914"/><path d="M141.5 96h55v320h-55z" fill="#E50914"/><path d="M315.5 96h55v320h-55z" fill="#E50914"/><path d="M201.5 96h60l110 320h-60l-110-320z" fill="#E50914"/></svg>',
   'netflix': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#111"/><path d="M141.5 64h60l110 384h-60l-110-384z" fill="#E50914"/><path d="M141.5 64h55v384h-55z" fill="#E50914"/><path d="M315.5 64h55v384h-55z" fill="#E50914"/><path d="M201.5 64h60l110 384h-60l-110-384z" fill="#E50914"/></svg>',
@@ -196,7 +195,7 @@ window.setupBiometrics = async function() {
     });
     const credId = Array.from(new Uint8Array(cred.rawId));
     localStorage.setItem('bioCredId', JSON.stringify(credId));
-    alert("Fingerprint / Face ID setup successful! You can use it next time you log in.");
+    alert("Fingerprint / Face ID setup successful!");
     document.getElementById('bioLoginBtn').style.display = 'block';
   } catch(e) {
     console.error(e);
@@ -206,7 +205,7 @@ window.setupBiometrics = async function() {
 
 window.loginWithBiometrics = async function() {
   const storedId = JSON.parse(localStorage.getItem('bioCredId'));
-  if(!storedId) return alert("Biometrics not set up yet. Log in with password and enable it in the menu.");
+  if(!storedId) return alert("Biometrics not set up yet. Log in with password and enable it in Settings.");
   try {
     const assertion = await navigator.credentials.get({
       publicKey: {
@@ -250,25 +249,26 @@ window.onclick = function(e) {
   }
 }
 
-window.changePasswordModal = function() {
-  modal(`<div class="sectionHead"><h2>Change Password</h2><button onclick="closeModal()">×</button></div>
-  <form onsubmit="event.preventDefault(); window.savePassword()" class="grid">
-    <label class="field full"><span>Current Password</span><input id="cpCurrent" type="password" required></label>
-    <label class="field full"><span>New Password</span><input id="cpNew" type="password" required></label>
-    <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary" type="submit">Save Updates</button></div>
-  </form>`);
-}
-window.savePassword = function() {
-  let c = document.getElementById('cpCurrent').value;
-  let n = document.getElementById('cpNew').value;
-  if(c !== data.settings.password) {
-    alert('Current password incorrect!');
+window.saveSettings = function(e) {
+  e.preventDefault();
+  const newUser = document.getElementById('settingsUser').value.trim();
+  const currentPass = document.getElementById('settingsCurrPass').value;
+  const newPass = document.getElementById('settingsNewPass').value;
+
+  const correctPassword = (data.settings && data.settings.password) ? data.settings.password : 'admin';
+  if(currentPass !== correctPassword) {
+    alert("Current password is incorrect!");
     return;
   }
-  data.settings.password = n;
+  if(newPass) {
+    data.settings.password = newPass;
+  }
+  if(newUser) {
+    data.settings.username = newUser;
+  }
   save();
-  closeModal();
-  alert('Password updated successfully!');
+  alert("Settings updated successfully!");
+  render();
 }
 
 const waSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16" style="vertical-align:middle;margin-left:6px;cursor:pointer;"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>`;
@@ -437,6 +437,24 @@ function openProduct() {
     closeModal();
     render();
   };
+}
+
+function settingsPage() {
+  const currentUsername = (data.settings && data.settings.username) ? data.settings.username : 'admin';
+  return `<h1>Account & Security Settings</h1><p class="muted">Manage login credentials and biometrics</p>
+  <section>
+    <form onsubmit="saveSettings(event)" class="grid" style="max-width:500px">
+      <label class="field full"><span>Username</span><input id="settingsUser" value="${esc(currentUsername)}" required></label>
+      <label class="field full"><span>Current Password</span><input id="settingsCurrPass" type="password" required></label>
+      <label class="field full"><span>New Password (leave blank to keep current)</span><input id="settingsNewPass" type="password"></label>
+      <div class="full actions"><button class="primary" type="submit">Save Changes</button></div>
+    </form>
+  </section>
+  <section>
+    <h2>Biometric Authentication</h2>
+    <p class="muted">Enable fingerprint or face unlock for faster login on supported devices.</p>
+    <button class="primary" style="background:#10b981;margin-top:10px" onclick="setupBiometrics()">👆 Setup / Enable Fingerprint Login</button>
+  </section>`;
 }
 
 function delSale(id){
@@ -779,48 +797,16 @@ function reports(){
  <section><h2>Data Backup</h2><p class="muted">Export your complete data before changing phones.</p><button class="primary" onclick="backup()">⬇ Export Backup</button> <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button><input id="importFile" type="file" accept=".json" hidden onchange="restore(this.files[0])"></section>`
 }
 
-function showMonthDetails(mIndex){
-  const year = new Date().getFullYear();
-  const monthSales = data.sales.filter(s => {
-    let d = dateObj(s.date);
-    return d.getFullYear() === year && d.getMonth() === mIndex;
-  });
-  const monthName = new Date(year, mIndex, 1).toLocaleString('en', {month: 'long'});
-  
-  const monthIncome = income(monthSales);
-  const monthCost = purchase(monthSales.filter(s=>s.payment==='Paid'||s.payment==='Partial'));
-  const monthProfit = monthIncome - monthCost;
-  
-  let body = '';
-  if(monthSales.length){
-    body = `<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount Paid</th><th>Cost</th><th>Profit</th><th>Status</th></tr></thead><tbody>${monthSales.map(s=>{
-      let paidAmt = s.payment==='Paid' ? Number(s.amount||0) : (s.payment==='Partial' ? Number(s.partialPaid||0) : 0);
-      let costAmt = (s.payment!=='Pending') ? Number(s.purchase||0) : 0;
-      let profit = paidAmt - costAmt;
-      return `<tr><td><b>${esc(s.client)}</b></td><td>${esc(s.product)}</td><td>${rs(paidAmt)}</td><td>${rs(costAmt)}</td><td><b style="color:#166534">${rs(profit)}</b></td><td><span class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}">${s.payment}</span></td></tr>`;
-    }).join('')}</tbody></table></div>`;
-  } else {
-    body = `<div class="empty">No sales records found for ${monthName} ${year}.</div>`;
-  }
-  
-  modal(`<div class="sectionHead"><h2>${monthName} ${year} Analytics</h2><button onclick="closeModal()">×</button></div>
-  <div class="cards">
-    <div class="card"><small>TRANSACTIONS</small><b>${monthSales.length}</b></div>
-    <div class="card"><small>PAID INCOME</small><b>${rs(monthIncome)}</b></div>
-    <div class="card"><small>NET PROFIT</small><b>${rs(monthProfit)}</b></div>
-  </div><br>${body}`);
-}
-
 window.renderApp = function() {
-  document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():reports();
+  document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():page==='settings'?settingsPage():reports();
 }
 function render(){ window.renderApp(); }
 
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage, editSale,
   productsPage, viewProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
-  expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
-  openSale, delSale, delProduct, backup, restore
+  expensesPage, openExpense, delExpense, profitPage, reports, render, openProduct,
+  openSale, delSale, delProduct, backup, restore, settingsPage, saveSettings
 });
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
