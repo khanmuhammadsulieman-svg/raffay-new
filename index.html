@@ -137,13 +137,9 @@ function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span c
 
 function productsPage(){
  const now=new Date();
- return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
- <div class="tabs" style="margin-bottom:14px">
-   <button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button>
-   <button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button>
-   <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
- </div>
- <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th></th></tr></thead><tbody>${data.products.map(p=>{
+ let totalQty=0; let totalProfit=0;
+ 
+ const rows = data.products.map(p=>{
    let pSales = data.sales.filter(s => {
      if(s.product !== p.name || s.payment !== 'Paid') return false;
      let d = dateObj(s.date);
@@ -153,8 +149,50 @@ function productsPage(){
    });
    let qty = pSales.length;
    let profit = pSales.reduce((sum, s) => sum + (Number(s.amount||0) - Number(s.purchase||0)), 0);
-   return '<tr><td><b>'+esc(p.name)+'</b><br><span class="muted">'+p.type+'</span></td><td>'+rs(p.price)+'</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">'+qty+'x</span></td><td><b style="color:#166534">'+rs(profit)+'</b></td><td><button class="danger small" onclick="delProduct('+p.id+')" title="Delete">🗑️</button></td></tr>';
- }).join('')}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`
+   totalQty += qty;
+   totalProfit += profit;
+   return `<tr><td><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></td><td>${rs(p.price)}</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
+ }).join('');
+
+ return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
+ <div class="tabs" style="margin-bottom:14px">
+   <button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button>
+   <button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button>
+   <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
+ </div>
+ <div class="cards">
+   <div class="card"><small>TOTAL QTY SOLD</small><b>${totalQty}x</b></div>
+   <div class="card"><small>TOTAL NET PROFIT</small><b>${rs(totalProfit)}</b></div>
+ </div>
+ <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`
+}
+
+function viewProduct(id){
+  let p = data.products.find(x => x.id === id);
+  if(!p) return;
+  const now = new Date();
+  let pSales = data.sales.filter(s => {
+     if(s.product !== p.name || s.payment !== 'Paid') return false;
+     let d = dateObj(s.date);
+     if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+     if(reportRange==='year') return d.getFullYear()===now.getFullYear();
+     return true;
+  });
+  
+  let qty = pSales.length;
+  let revenue = pSales.reduce((sum, s) => sum + Number(s.amount||0), 0);
+  let profit = pSales.reduce((sum, s) => sum + (Number(s.amount||0) - Number(s.purchase||0)), 0);
+
+  modal(`<div class="sectionHead"><h2>${esc(p.name)} Analytics</h2><button onclick="closeModal()">×</button></div>
+  <div class="cards">
+    <div class="card"><small>QUANTITY SOLD</small><b>${qty}x</b></div>
+    <div class="card"><small>TOTAL REVENUE</small><b>${rs(revenue)}</b></div>
+    <div class="card"><small>NET PROFIT</small><b>${rs(profit)}</b></div>
+  </div>
+  <br>
+  <div class="table"><table><thead><tr><th>Date</th><th>Client</th><th>Amount</th><th>Profit</th></tr></thead><tbody>
+  ${pSales.length ? pSales.map(s=>`<tr><td>${s.date}</td><td><b>${esc(s.client)}</b></td><td>${rs(s.amount)}</td><td><b style="color:#166534">${rs(Number(s.amount||0) - Number(s.purchase||0))}</b></td></tr>`).join('') : `<tr><td colspan="4" class="empty">No paid sales found for this period.</td></tr>`}
+  </tbody></table></div>`);
 }
 
 function clientsPage(){
@@ -249,7 +287,7 @@ function openExpense(){
 }
 function delExpense(id){if(confirm('Delete this expense?')){data.expenses=data.expenses.filter(e=>e.id!==id);save();render()}}
 
-// UPDATED REPORTS PAGE - NOW CLICKABLE MONTHS
+// UPDATED REPORTS PAGE - NOW CLICKABLE MONTHS WITH PROFIT BREAKDOWN
 function reports(){
  const now=new Date(), filtered=data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
  const r=income(filtered.filter(s=>s.owner==='Manager')),t=income(filtered.filter(s=>s.owner==='Admin'));
@@ -270,13 +308,26 @@ function showMonthDetails(mIndex){
   });
   const monthName = new Date(year, mIndex, 1).toLocaleString('en', {month: 'long'});
   
+  const monthIncome = income(monthSales);
+  const monthCost = purchase(monthSales.filter(s=>s.payment==='Paid'));
+  const monthProfit = monthIncome - monthCost;
+  
   let body = '';
   if(monthSales.length){
-    body = `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>${monthSales.map(s=>`<tr><td><b>${esc(s.client)}</b></td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><span class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}">${s.payment}</span></td><td>${s.date}</td></tr>`).join('')}</tbody></table></div>`;
+    body = `<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount</th><th>Cost</th><th>Profit</th><th>Status</th></tr></thead><tbody>${monthSales.map(s=>{
+      let profit = (s.payment==='Paid') ? (Number(s.amount||0) - Number(s.purchase||0)) : 0;
+      return `<tr><td><b>${esc(s.client)}</b></td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${rs(s.purchase)}</td><td><b style="color:#166534">${rs(profit)}</b></td><td><span class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}">${s.payment}</span></td></tr>`;
+    }).join('')}</tbody></table></div>`;
   } else {
     body = `<div class="empty">No sales records found for ${monthName} ${year}.</div>`;
   }
-  modal(`<div class="sectionHead"><h2>${monthName} ${year}</h2><button onclick="closeModal()">×</button></div><div class="cards"><div class="card"><small>TOTAL TRANSACTIONS</small><b>${monthSales.length}</b></div><div class="card"><small>PAID INCOME</small><b>${rs(income(monthSales))}</b></div></div><br>${body}`);
+  
+  modal(`<div class="sectionHead"><h2>${monthName} ${year} Analytics</h2><button onclick="closeModal()">×</button></div>
+  <div class="cards">
+    <div class="card"><small>TRANSACTIONS</small><b>${monthSales.length}</b></div>
+    <div class="card"><small>PAID INCOME</small><b>${rs(monthIncome)}</b></div>
+    <div class="card"><small>NET PROFIT</small><b>${rs(monthProfit)}</b></div>
+  </div><br>${body}`);
 }
 
 function render(){document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():reports()}
@@ -309,7 +360,7 @@ function restore(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=
 // Make app functions available to the HTML buttons
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage,
-  productsPage, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
+  productsPage, viewProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, reports, showMonthDetails, render, openProduct,
   openSale, delSale, delProduct, backup, restore
 });
