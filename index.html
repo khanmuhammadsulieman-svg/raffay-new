@@ -105,14 +105,17 @@ let cloudReady = false;
 let saving = false;
 
 const DB='dr_streaming_manager_v1';
-let data=JSON.parse(localStorage.getItem(DB)||'{"products":[],"sales":[],"expenses":[]}');
-if(!data.expenses)data.expenses=[];
-if(!data.settings)data.settings={password:'admin'}; 
+let data=JSON.parse(localStorage.getItem(DB)||'{}');
+
+// CRITICAL FAIL-SAFES: Prevents the blank screen crash entirely
+if(!data.sales) data.sales=[];
+if(!data.products) data.products=[];
+if(!data.expenses) data.expenses=[];
+if(!data.settings) data.settings={password:'admin'}; 
+
 let page='dashboard', reportRange='month';
 
-// ----------------------------------------------------
 // BIOMETRIC AUTHENTICATION & LOGIN LOGIC
-// ----------------------------------------------------
 function getBuffer(len) {
   const b = new Uint8Array(len);
   window.crypto.getRandomValues(b);
@@ -139,6 +142,7 @@ async function setupBiometrics() {
     const credId = Array.from(new Uint8Array(cred.rawId));
     localStorage.setItem('bioCredId', JSON.stringify(credId));
     alert("Fingerprint / Face ID setup successful! You can use it next time you log in.");
+    document.getElementById('bioLoginBtn').style.display = 'block';
   } catch(e) {
     console.error(e);
     alert("Biometric setup failed or was canceled.");
@@ -188,7 +192,6 @@ window.onload = () => {
     document.getElementById('bioLoginBtn').style.display = 'block';
   }
 }
-// ----------------------------------------------------
 
 // Menu Handling
 function toggleMenu(e) {
@@ -241,9 +244,9 @@ async function save(){
   }catch(e){
     console.error(e);
     document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE COPY SAVED';
-    alert('Cloud save failed. Your data is still saved on this device.');
   }finally{saving=false}
 }
+
 const rs=n=>'Rs. '+Number(n||0).toLocaleString('en-PK');
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Date().toISOString().slice(0,10);
@@ -267,13 +270,13 @@ function dashboard(){
  
  return `<h1>Business Overview</h1><p class="muted">Tap any card to see detailed information</p>
  <div class="cards">
- <div class="card" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b><span class="muted">Tap for details →</span></div>
- <div class="card" onclick="showDetails('purchase')" style="cursor:pointer"><small>🛒 PURCHASE COST</small><b>${rs(cost)}</b><span class="muted">Tap for details →</span></div>
- <div class="card" onclick="showDetails('expenses')" style="cursor:pointer"><small>💸 EXPENSES</small><b>${rs(exp)}</b><span class="muted">Tap for details →</span></div>
- <div class="card" onclick="showDetails('profit')" style="cursor:pointer"><small>📈 NET PROFIT</small><b>${rs(profit)}</b><span class="muted">Tap for breakdown →</span></div>
- <div class="card" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b><span class="muted">Tap for transactions →</span></div>
- <div class="card" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b><span class="muted">Tap for transactions →</span></div>
- <div class="card" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TOTAL TRANSACTIONS</small><b>${data.sales.length}</b><span class="muted">Tap for all records →</span></div>
+ <div class="card" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b></div>
+ <div class="card" onclick="showDetails('purchase')" style="cursor:pointer"><small>🛒 PURCHASE COST</small><b>${rs(cost)}</b></div>
+ <div class="card" onclick="showDetails('expenses')" style="cursor:pointer"><small>💸 EXPENSES</small><b>${rs(exp)}</b></div>
+ <div class="card" onclick="showDetails('profit')" style="cursor:pointer"><small>📈 NET PROFIT</small><b>${rs(profit)}</b></div>
+ <div class="card" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b></div>
+ <div class="card" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b></div>
+ <div class="card" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TOTAL TRANSACTIONS</small><b>${data.sales.length}</b></div>
  <div class="card" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted">${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} remaining →</span></div>
  </div>
  <section><div class="sectionHead"><h2>Recent Sales</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(data.sales.slice(0,6),false)}</section>
@@ -284,14 +287,14 @@ function showDetails(type){
  const pending=data.sales.filter(s=>s.payment!=='Paid');
  let title='',body='';
  const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}${s.payment==='Partial'?`<br><span style="font-size:10px;color:var(--muted)">Paid: ${rs(s.partialPaid)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
- if(type==='income'){title='💼 Paid Income';body=`<p class="muted">Includes full Paid sales and the received amount from Partial payments.</p><h2>${rs(paid)}</h2>${list(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
- if(type==='purchase'){let purchased=data.sales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title='🛒 Purchase Cost';body=`<p class="muted">Cost of Paid/Partial transactions greater than Rs. 0.</p><h2>${rs(cost)}</h2>${list(purchased)}`;}
- if(type==='expenses'){title='💸 Business Expenses';body=`<p class="muted">Separate business expenses such as internet, marketing and software.</p><h2>${rs(exp)}</h2><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
- if(type==='profit'){title='📈 Net Profit Breakdown';body=`<p class="muted">Profit calculation:</p><div class="card"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div><p class="muted">Pending payments are excluded until marked Paid.</p>`;}
+ if(type==='income'){title='💼 Paid Income';body=`<h2>${rs(paid)}</h2>${list(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
+ if(type==='purchase'){let purchased=data.sales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title='🛒 Purchase Cost';body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
+ if(type==='expenses'){title='💸 Business Expenses';body=`<h2>${rs(exp)}</h2><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
+ if(type==='profit'){title='📈 Net Profit Breakdown';body=`<div class="card"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
  if(type==='manager'){let a=data.sales.filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
  if(type==='admin'){let a=data.sales.filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
  if(type==='transactions'){title='📦 All Transactions';body=`<p class="muted">${data.sales.length} total transactions • Gross value ${rs(grossSales(data.sales))}</p>${list(data.sales)}`;}
- if(type==='pending'){title='⏳ Pending Payments';body=`<p class="muted">Pending payments are excluded from profit until marked Paid.</p><h2>${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} Remaining</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
+ if(type==='pending'){title='⏳ Pending Payments';body=`<h2>${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} Remaining</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
 
@@ -492,7 +495,7 @@ function quickPayment(id, value){
       if(p !== null && !isNaN(p)) {
         sale.partialPaid = Number(p);
       } else {
-        render(); return; // cancelled
+        render(); return; 
       }
     }
     sale.payment=value;
@@ -643,6 +646,8 @@ onSnapshot(cloudRef, async (snap)=>{
   try{
     if(snap.exists() && snap.data().data){
       const incoming=snap.data().data;
+      if(!incoming.sales) incoming.sales=[];
+      if(!incoming.products) incoming.products=[];
       if(!incoming.expenses) incoming.expenses=[];
       if(!incoming.settings) incoming.settings={password:'admin'};
       data=incoming;
@@ -659,7 +664,6 @@ onSnapshot(cloudRef, async (snap)=>{
 },(err)=>{
   console.error(err);
   document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE MODE';
-  alert('Cloud connection failed. Check Firestore is enabled and in test mode.');
 });
 
 let deferredInstallPrompt;
