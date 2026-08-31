@@ -27,6 +27,28 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 .menu-content a:hover{background:#f5f7fb;}
 @media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}.card b{font-size:18px}.hideMob{display:none}}
 </style>
+
+<!-- INSTANT LOGIN SCRIPT (PREVENTS REFRESH CRASHES) -->
+<script>
+  function instantLoginCheck(event) {
+    event.preventDefault(); // Absolutely block page from refreshing
+    
+    // Read directly from offline memory instantly
+    const localData = JSON.parse(localStorage.getItem('dr_streaming_manager_v1') || '{}');
+    const correctPassword = (localData.settings && localData.settings.password) ? localData.settings.password : 'admin';
+    
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    
+    if (u === 'admin' && p === correctPassword) {
+      sessionStorage.setItem('auth', 'true');
+      document.getElementById('loginScreen').style.display = 'none';
+      if(window.renderApp) window.renderApp(); // Render main dashboard if background loaded
+    } else {
+      alert("Incorrect Username or Password.");
+    }
+  }
+</script>
 </head>
 <body>
 
@@ -34,13 +56,14 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <div class="card" style="width:min(90%, 350px);box-shadow:0 8px 24px rgba(0,0,0,0.05);">
     <h2 style="margin-bottom:16px;text-align:center">DR Streaming</h2>
-    <form onsubmit="handleLogin(event)" class="grid">
+    <!-- The form is now permanently attached to the instant login script -->
+    <form onsubmit="instantLoginCheck(event)" class="grid">
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin"></label>
       <label class="field full"><span>Password</span><input id="loginPass" type="password" required></label>
       <div class="full" style="margin-top:10px;">
-        <button class="primary" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button>
-        <!-- Biometric Button (Hidden by default, shown if setup) -->
-        <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="loginWithBiometrics()">👆 Fingerprint / Face ID</button>
+        <button class="primary" type="submit" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button>
+        <!-- Biometric Button -->
+        <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="if(window.loginWithBiometrics) window.loginWithBiometrics();">👆 Fingerprint / Face ID</button>
       </div>
     </form>
   </div>
@@ -107,7 +130,7 @@ let saving = false;
 const DB='dr_streaming_manager_v1';
 let data=JSON.parse(localStorage.getItem(DB)||'{}');
 
-// CRITICAL FAIL-SAFES: Prevents the blank screen crash entirely
+// CRITICAL FAIL-SAFES
 if(!data.sales) data.sales=[];
 if(!data.products) data.products=[];
 if(!data.expenses) data.expenses=[];
@@ -115,14 +138,14 @@ if(!data.settings) data.settings={password:'admin'};
 
 let page='dashboard', reportRange='month';
 
-// BIOMETRIC AUTHENTICATION & LOGIN LOGIC
+// BIOMETRIC AUTHENTICATION
 function getBuffer(len) {
   const b = new Uint8Array(len);
   window.crypto.getRandomValues(b);
   return b;
 }
 
-async function setupBiometrics() {
+window.setupBiometrics = async function() {
   if (!window.PublicKeyCredential) {
     alert("Biometric login is not supported on this browser or device.");
     return;
@@ -149,7 +172,7 @@ async function setupBiometrics() {
   }
 }
 
-async function loginWithBiometrics() {
+window.loginWithBiometrics = async function() {
   const storedId = JSON.parse(localStorage.getItem('bioCredId'));
   if(!storedId) return alert("Biometrics not set up yet. Log in with password and enable it in the menu.");
   try {
@@ -173,17 +196,6 @@ async function loginWithBiometrics() {
   }
 }
 
-function handleLogin(e){
-  e.preventDefault();
-  if(document.getElementById('loginUser').value === 'admin' && document.getElementById('loginPass').value === data.settings.password) {
-    sessionStorage.setItem('auth', 'true');
-    document.getElementById('loginScreen').style.display = 'none';
-    render();
-  } else {
-    alert("Incorrect Username or Password.");
-  }
-}
-
 window.onload = () => {
   if(sessionStorage.getItem('auth') === 'true') {
     document.getElementById('loginScreen').style.display = 'none';
@@ -194,29 +206,28 @@ window.onload = () => {
 }
 
 // Menu Handling
-function toggleMenu(e) {
+window.toggleMenu = function(e) {
   e.stopPropagation();
   document.getElementById('menuDropdown').classList.toggle('show');
 }
-function closeMenu() {
+window.closeMenu = function() {
   document.getElementById('menuDropdown').classList.remove('show');
 }
 window.onclick = function(e) {
   if (!e.target.matches('.menu-btn')) {
-    closeMenu();
+    window.closeMenu();
   }
 }
 
-function changePasswordModal() {
+window.changePasswordModal = function() {
   modal(`<div class="sectionHead"><h2>Change Password</h2><button onclick="closeModal()">×</button></div>
-  <form onsubmit="savePassword(event)" class="grid">
+  <form onsubmit="event.preventDefault(); window.savePassword()" class="grid">
     <label class="field full"><span>Current Password</span><input id="cpCurrent" type="password" required></label>
     <label class="field full"><span>New Password</span><input id="cpNew" type="password" required></label>
-    <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Updates</button></div>
+    <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary" type="submit">Save Updates</button></div>
   </form>`);
 }
-function savePassword(e) {
-  e.preventDefault();
+window.savePassword = function() {
   let c = document.getElementById('cpCurrent').value;
   let n = document.getElementById('cpNew').value;
   if(c !== data.settings.password) {
@@ -626,14 +637,16 @@ function showMonthDetails(mIndex){
   </div><br>${body}`);
 }
 
-function render(){document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():reports()}
+window.renderApp = function() {
+  document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():reports();
+}
+function render(){ window.renderApp(); }
 
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage, editSale,
   productsPage, viewProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
-  openSale, delSale, delProduct, backup, restore, handleLogin, toggleMenu, closeMenu, changePasswordModal, savePassword,
-  setupBiometrics, loginWithBiometrics
+  openSale, delSale, delProduct, backup, restore
 });
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
