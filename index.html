@@ -127,7 +127,7 @@ function showDetails(type){
 }
 function salesTable(a,actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span></td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}</td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td><button class="small" onclick="changePayment(${s.id})">Payment</button> <button class="danger small" onclick="delSale(${s.id})">Delete</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">💬</a>`:''}</td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 }
 function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
 function productsPage(){
@@ -135,13 +135,13 @@ function productsPage(){
  <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product</th><th>Type</th><th>Default Price</th><th></th></tr></thead><tbody>${data.products.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${p.type}</td><td>${rs(p.price)}</td><td><button class="danger small" onclick="delProduct(${p.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`}
 function clientsPage(){
  let map={};data.sales.forEach(s=>{if(!s.client)return;let k=s.client+'|'+(s.phone||'');if(!map[k])map[k]={name:s.client,phone:s.phone,total:0,count:0};map[k].total+=Number(s.amount);map[k].count++});
- let a=Object.values(map);return `<h1>Clients</h1><p class="muted">All customers and their purchases</p><section>${a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Phone</th><th>Purchases</th><th>Total</th></tr></thead><tbody>${a.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'—')}</td><td>${c.count}</td><td>${rs(c.total)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No clients yet.</div>'}</section>`}
+ let a=Object.values(map);return `<h1>Clients</h1><p class="muted">All customers and their purchases</p><section>${a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Phone</th><th>Purchases</th><th>Total</th></tr></thead><tbody>${a.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'—')} ${c.phone?`<a href="https://wa.me/${c.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">💬</a>`:''}</td><td>${c.count}</td><td>${rs(c.total)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No clients yet.</div>'}</section>`}
 function pendingPage(){
  const pending=data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
  const total=pending.reduce((a,s)=>a+(s.payment==='Partial'?Number(s.amount||0):Number(s.amount||0)),0);
  return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
  <section><div class="cards"><div class="card"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
- ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span></td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><span class="badge Expiring">${s.payment}</span></td><td><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
+ ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">💬</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
 }
 function markPaid(id){
  let sale=data.sales.find(s=>s.id===id);
@@ -151,11 +151,28 @@ function markPaid(id){
    save();render();
  }
 }
-function changePayment(id){
- let sale=data.sales.find(s=>s.id===id);
- if(!sale)return;
- let value=prompt('Enter payment status: Paid, Pending, or Partial',sale.payment||'Pending');
- if(['Paid','Pending','Partial'].includes(value)){sale.payment=value;if(value==='Paid'&&!sale.paymentDate)sale.paymentDate=today();save();render();}
+function quickPayment(id, value){
+  let sale=data.sales.find(s=>s.id===id);
+  if(sale){
+    sale.payment=value;
+    if(value==='Paid'&&!sale.paymentDate)sale.paymentDate=today();
+    save();render();
+  }
+}
+function viewClient(id){
+  let s = data.sales.find(x => x.id === id);
+  if(!s) return;
+  modal(`<div class="sectionHead"><h2>Client Details</h2><button onclick="closeModal()">×</button></div>
+  <div class="grid">
+    <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:6px 12px;border-radius:12px;font-size:12px">💬 Message on WhatsApp</a>`:''}</div>
+    <div class="card"><small>Product / Service</small><b>${esc(s.product)}</b><span class="muted">${s.type}</span></div>
+    <div class="card"><small>Amount</small><b>${rs(s.amount)}</b></div>
+    <div class="card"><small>Payment Status</small><b>${s.payment}</b></div>
+    <div class="card"><small>Subscription Status</small><b>${status(s)}</b></div>
+    <div class="card"><small>Sale Date</small><b>${s.date}</b></div>
+    <div class="card"><small>Expiry Date</small><b>${s.expiry||'N/A'}</b></div>
+    <div class="card full"><small>Notes</small><b>${esc(s.notes||'None')}</b></div>
+  </div>`);
 }
 function expensesPage(){
  return `<div class="sectionHead"><div><h1>Expenses</h1><span class="muted">Business expenses and outgoing payments</span></div><button class="primary" onclick="openExpense()">＋ Add Expense</button></div>
@@ -212,7 +229,7 @@ function restore(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=
 // Make app functions available to the HTML buttons
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage,
-  productsPage, clientsPage, pendingPage, markPaid, changePayment,
+  productsPage, clientsPage, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, reports, render, openProduct,
   openSale, delSale, delProduct, backup, restore
 });
