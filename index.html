@@ -37,7 +37,11 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
     <form onsubmit="handleLogin(event)" class="grid">
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin"></label>
       <label class="field full"><span>Password</span><input id="loginPass" type="password" required></label>
-      <div class="full" style="margin-top:10px;"><button class="primary" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button></div>
+      <div class="full" style="margin-top:10px;">
+        <button class="primary" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button>
+        <!-- Biometric Button (Hidden by default, shown if setup) -->
+        <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="loginWithBiometrics()">👆 Fingerprint / Face ID</button>
+      </div>
     </form>
   </div>
 </div>
@@ -60,6 +64,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
         <a onclick="go('expenses');closeMenu()">💸 Expenses</a>
         <a onclick="go('profit');closeMenu()">📈 Profit</a>
         <a onclick="go('reports');closeMenu()">📊 Reports</a>
+        <a onclick="setupBiometrics();closeMenu()" style="color:#10b981;background:#ecfdf5">👆 Enable Fingerprint Login</a>
         <a onclick="changePasswordModal();closeMenu()" style="color:var(--blue);background:#f0f5ff">⚙️ Change Password</a>
       </div>
     </div>
@@ -102,10 +107,68 @@ let saving = false;
 const DB='dr_streaming_manager_v1';
 let data=JSON.parse(localStorage.getItem(DB)||'{"products":[],"sales":[],"expenses":[]}');
 if(!data.expenses)data.expenses=[];
-if(!data.settings)data.settings={password:'admin'}; // Default Password Initializer
+if(!data.settings)data.settings={password:'admin'}; 
 let page='dashboard', reportRange='month';
 
-// Login Handling
+// ----------------------------------------------------
+// BIOMETRIC AUTHENTICATION & LOGIN LOGIC
+// ----------------------------------------------------
+function getBuffer(len) {
+  const b = new Uint8Array(len);
+  window.crypto.getRandomValues(b);
+  return b;
+}
+
+async function setupBiometrics() {
+  if (!window.PublicKeyCredential) {
+    alert("Biometric login is not supported on this browser or device.");
+    return;
+  }
+  try {
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: getBuffer(32),
+        rp: { name: "DR Streaming", id: window.location.hostname || "localhost" },
+        user: { id: getBuffer(16), name: "admin", displayName: "Admin" },
+        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+        timeout: 60000,
+        attestation: "none"
+      }
+    });
+    const credId = Array.from(new Uint8Array(cred.rawId));
+    localStorage.setItem('bioCredId', JSON.stringify(credId));
+    alert("Fingerprint / Face ID setup successful! You can use it next time you log in.");
+  } catch(e) {
+    console.error(e);
+    alert("Biometric setup failed or was canceled.");
+  }
+}
+
+async function loginWithBiometrics() {
+  const storedId = JSON.parse(localStorage.getItem('bioCredId'));
+  if(!storedId) return alert("Biometrics not set up yet. Log in with password and enable it in the menu.");
+  try {
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge: getBuffer(32),
+        rpId: window.location.hostname || "localhost",
+        allowCredentials: [{ type: "public-key", id: new Uint8Array(storedId) }],
+        userVerification: "required",
+        timeout: 60000
+      }
+    });
+    if(assertion) {
+      sessionStorage.setItem('auth', 'true');
+      document.getElementById('loginScreen').style.display = 'none';
+      render();
+    }
+  } catch(e) {
+    console.error(e);
+    alert("Fingerprint / Face ID verification failed.");
+  }
+}
+
 function handleLogin(e){
   e.preventDefault();
   if(document.getElementById('loginUser').value === 'admin' && document.getElementById('loginPass').value === data.settings.password) {
@@ -121,7 +184,11 @@ window.onload = () => {
   if(sessionStorage.getItem('auth') === 'true') {
     document.getElementById('loginScreen').style.display = 'none';
   }
+  if(localStorage.getItem('bioCredId') && window.PublicKeyCredential) {
+    document.getElementById('bioLoginBtn').style.display = 'block';
+  }
 }
+// ----------------------------------------------------
 
 // Menu Handling
 function toggleMenu(e) {
@@ -228,7 +295,6 @@ function showDetails(type){
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
 
-// SALE EDIT FUNCTIONALITY
 function editSale(id){
   let s = data.sales.find(x => x.id === id);
   if(!s) return;
@@ -247,7 +313,6 @@ function editSale(id){
   <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date" value="${s.paymentDate||''}"></label>
   <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date" value="${s.expiry||''}"></label>
   
-  <!-- Partial Payment Logic Embedded Here -->
   <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option ${s.payment==='Paid'?'selected':''}>Paid</option><option ${s.payment==='Pending'?'selected':''}>Pending</option><option ${s.payment==='Partial'?'selected':''}>Partial</option></select></label>
   <label class="field" id="partialDiv" style="display:${s.payment==='Partial'?'flex':'none'};background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="${s.partialPaid||0}"></label>
   
@@ -423,7 +488,7 @@ function quickPayment(id, value){
   let sale=data.sales.find(s=>s.id===id);
   if(sale){
     if(value === 'Partial') {
-      let p = prompt(`Enter amount paid so far (Total Bill: ${sale.amount}):`, sale.partialPaid || 0);
+      let p = prompt(`Enter amount paid so far (Total Bill: Rs. ${sale.amount}):`, sale.partialPaid || 0);
       if(p !== null && !isNaN(p)) {
         sale.partialPaid = Number(p);
       } else {
@@ -471,7 +536,7 @@ function delExpense(id){if(confirm('Delete this expense?')){data.expenses=data.e
 function profitPage(){
  const now=new Date();
  const filteredSales = data.sales.filter(s => {
-   if(s.payment === 'Pending') return false; // Include Paid & Partial
+   if(s.payment === 'Pending') return false; 
    let d = dateObj(s.date);
    if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
    if(reportRange==='year') return d.getFullYear()===now.getFullYear();
@@ -558,42 +623,14 @@ function showMonthDetails(mIndex){
   </div><br>${body}`);
 }
 
-function openProduct(){modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div><form id="pf" class="grid"><label class="field"><span>Name *</span><input id="pn" required placeholder="ChatGPT Plus"></label><label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label><label class="field"><span>Default Sale Price</span><input id="pp" type="number" value="0"></label><div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div></form>`);pf.onsubmit=e=>{e.preventDefault();data.products.push({id:Date.now(),name:pn.value,type:pt.value,price:+pp.value});save();closeModal();render()}}
-function openSale(){
- let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
- modal(`<div class="sectionHead"><h2>Add New Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
- <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
- <label class="field"><span>Product / Service *</span><select id="sp">${opts||'<option value="">No products yet — type below</option>'}</select></label>
- <label class="field full"><span>Or Product Name</span><input id="customProduct" placeholder="Use if product is not in list"></label>
- <label class="field"><span>Client Name *</span><input id="sc" required></label><label class="field"><span>Phone / WhatsApp</span><input id="sph"></label>
- <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required></label>
-<label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="What you paid"></label>
-<label class="field"><span>Sale Date</span><input id="sd" type="date" value="${today()}" required></label>
-<label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
-<label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
-<label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
-
- <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
- <label class="field" id="partialDiv" style="display:none;background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="0"></label>
-
- <label class="field"><span>Tenure in Days (editable)</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 7, 25, 27, 30"></label>
- <label class="field"><span>Notes</span><textarea id="sn"></textarea></label>
- <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div></form>`);
- sp.onchange=()=>{let p=data.products.find(x=>x.id==sp.value);if(p){sa.value=p.price;stm.value=p.type==='Subscription'?'30':'0'}};
- sf.onsubmit=e=>{e.preventDefault();let p=data.products.find(x=>x.id==sp.value), name=customProduct.value.trim()||(p&&p.name);if(!name){alert('Add product name');return}let tenure=+stm.value||0;data.sales.unshift({id:Date.now(),owner:so.value,client:sc.value,phone:sph.value,product:name,type:tenure?'Subscription':(p?.type||'Product'),amount:+sa.value,purchase:+spurchase.value,payment:payment.value,partialPaid:(payment.value==='Partial'?+document.getElementById('partialPaid').value:0),date:sd.value,purchaseDate:spdate.value,paymentDate:spaymentdate.value,tenure,expiry:sexpiry.value||(tenure?expiry(sd.value,tenure):''),notes:sn.value});save();closeModal();render()}
-}
-function delSale(id){if(confirm('Delete this sale?')){data.sales=data.sales.filter(s=>s.id!==id);save();render()}}
-function delProduct(id){if(confirm('Delete this product?')){data.products=data.products.filter(p=>p.id!==id);save();render()}}
-function backup(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='DR-Streaming-Backup-'+today()+'.json';a.click()}
-function restore(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.sales||!x.products)throw 0;if(!x.expenses)x.expenses=[];if(!x.settings)x.settings={password:'admin'};data=x;save();render();alert('Backup restored successfully')}catch{alert('Invalid backup file')}};r.readAsText(f)}
-
 function render(){document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():reports()}
 
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage, editSale,
   productsPage, viewProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
-  openSale, delSale, delProduct, backup, restore, handleLogin, toggleMenu, closeMenu, changePasswordModal, savePassword
+  openSale, delSale, delProduct, backup, restore, handleLogin, toggleMenu, closeMenu, changePasswordModal, savePassword,
+  setupBiometrics, loginWithBiometrics
 });
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
