@@ -134,9 +134,29 @@ function salesTable(a,actions=true){
  return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${s.phone.replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 }
 function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
+
+// UPDATED PRODUCTS PAGE - NOW INCLUDES QUANTITY AND NET PROFIT
 function productsPage(){
- return `<div class="sectionHead"><div><h1>Products</h1><span class="muted">Create products and services</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
- <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product</th><th>Type</th><th>Default Price</th><th></th></tr></thead><tbody>${data.products.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${p.type}</td><td>${rs(p.price)}</td><td><button class="danger small" onclick="delProduct(${p.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`}
+ const now=new Date();
+ return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
+ <div class="tabs" style="margin-bottom:14px">
+   <button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button>
+   <button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button>
+   <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
+ </div>
+ <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th></th></tr></thead><tbody>${data.products.map(p=>{
+   let pSales = data.sales.filter(s => {
+     if(s.product !== p.name || s.payment !== 'Paid') return false;
+     let d = dateObj(s.date);
+     if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+     if(reportRange==='year') return d.getFullYear()===now.getFullYear();
+     return true;
+   });
+   let qty = pSales.length;
+   let profit = pSales.reduce((sum, s) => sum + (Number(s.amount||0) - Number(s.purchase||0)), 0);
+   return '<tr><td><b>'+esc(p.name)+'</b><br><span class="muted">'+p.type+'</span></td><td>'+rs(p.price)+'</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">'+qty+'x</span></td><td><b style="color:#166534">'+rs(profit)+'</b></td><td><button class="danger small" onclick="delProduct('+p.id+')" title="Delete">🗑️</button></td></tr>';
+ }).join('')}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`
+}
 
 function clientsPage(){
  let map={};data.sales.forEach(s=>{if(!s.client)return;let k=s.client+'|'+(s.phone||'');if(!map[k])map[k]={name:s.client,phone:s.phone,total:0,count:0};map[k].total+=Number(s.amount);map[k].count++});
@@ -162,7 +182,6 @@ function editClient(oldName, oldPhone){
     
     if(!newName) return;
 
-    // Loop through all sales and update the client info where it matches the old details
     data.sales.forEach(s => {
       if(s.client === oldName && (s.phone || '') === oldPhone) {
         s.client = newName;
