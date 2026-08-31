@@ -298,6 +298,139 @@ function showDetails(type){
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
 
+function openSale(){
+  let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
+  modal(`<div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
+  <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
+  <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
+  <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" placeholder="Type custom product name"></label>
+  <label class="field"><span>Client Name *</span><input id="sc" required placeholder="Customer Name"></label>
+  <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
+  <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
+  <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
+  <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${today()}" required></label>
+  <label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
+  <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
+  <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
+  
+  <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
+  <label class="field" id="partialDiv" style="display:none;background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="0"></label>
+  
+  <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 30"></label>
+  <label class="field full"><span>Notes</span><textarea id="sn" placeholder="Optional notes"></textarea></label>
+  <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div></form>`);
+
+  document.getElementById('sp').onchange = () => {
+    let p = data.products.find(x => x.id == document.getElementById('sp').value);
+    if(p){
+      document.getElementById('customProduct').value = p.name;
+      document.getElementById('sa').value = p.price;
+      document.getElementById('stm').value = p.type === 'Subscription' ? '30' : '0';
+    }
+  };
+
+  document.getElementById('sf').onsubmit = e => {
+    e.preventDefault();
+    let name = document.getElementById('customProduct').value.trim();
+    if(!name && document.getElementById('sp').value){
+      let p = data.products.find(x => x.id == document.getElementById('sp').value);
+      if(p) name = p.name;
+    }
+    if(!name){ alert('Please provide a product name.'); return; }
+    
+    let tenureVal = +document.getElementById('stm').value;
+    let saleDate = document.getElementById('sd').value;
+    let pMatch = data.products.find(x => x.name === name);
+    
+    data.sales.unshift({
+      id: Date.now(),
+      owner: document.getElementById('so').value,
+      client: document.getElementById('sc').value,
+      phone: document.getElementById('sph').value,
+      product: name,
+      amount: +document.getElementById('sa').value,
+      purchase: +document.getElementById('spurchase').value,
+      date: saleDate,
+      purchaseDate: document.getElementById('spdate').value,
+      paymentDate: document.getElementById('spaymentdate').value,
+      expiry: document.getElementById('sexpiry').value || (tenureVal ? expiry(saleDate, tenureVal) : ''),
+      payment: document.getElementById('payment').value,
+      partialPaid: document.getElementById('payment').value === 'Partial' ? +document.getElementById('partialPaid').value : 0,
+      tenure: tenureVal,
+      notes: document.getElementById('sn').value,
+      type: tenureVal ? 'Subscription' : (pMatch?.type || 'Product')
+    });
+    save(); closeModal(); render();
+  };
+}
+
+function openProduct() {
+  modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div>
+  <form id="pf" class="grid">
+    <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix, IPTV, Hosting"></label>
+    <label class="field"><span>Price (Rs) *</span><input id="pp" type="number" required placeholder="1000"></label>
+    <label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label>
+    <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div>
+  </form>`);
+  
+  document.getElementById('pf').onsubmit = e => {
+    e.preventDefault();
+    data.products.push({
+      id: Date.now(),
+      name: document.getElementById('pn').value.trim(),
+      price: +document.getElementById('pp').value,
+      type: document.getElementById('pt').value
+    });
+    save();
+    closeModal();
+    render();
+  };
+}
+
+function delSale(id){
+  if(confirm('Are you sure you want to delete this sale?')) {
+    data.sales = data.sales.filter(s => s.id !== id);
+    save(); render();
+  }
+}
+
+function delProduct(id){
+  if(confirm('Are you sure you want to delete this product?')) {
+    data.products = data.products.filter(p => p.id !== id);
+    save(); render();
+  }
+}
+
+function backup(){
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `dr_streaming_backup_${today()}.json`;
+  a.click();
+}
+
+function restore(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if(parsed.sales && parsed.products) {
+        data = parsed;
+        save();
+        render();
+        alert('Data restored successfully!');
+      } else {
+        alert('Invalid backup file format.');
+      }
+    } catch(err) {
+      alert('Failed to parse backup JSON.');
+    }
+  };
+  reader.readAsText(file);
+}
+
 function editSale(id){
   let s = data.sales.find(x => x.id === id);
   if(!s) return;
@@ -644,7 +777,6 @@ Object.defineProperty(window,'reportRange',{
 
 render();
 
-// FAIL-SAFE: Remove "CONNECTING..." if offline and Firebase hangs
 let syncTimeout = setTimeout(() => {
   if(!cloudReady) {
     document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE / LOCAL DATA';
