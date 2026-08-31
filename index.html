@@ -135,7 +135,6 @@ function salesTable(a,actions=true){
 }
 function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
 
-// UPDATED PRODUCTS PAGE - NOW INCLUDES QUANTITY AND NET PROFIT
 function productsPage(){
  const now=new Date();
  return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
@@ -249,6 +248,8 @@ function openExpense(){
  ef.onsubmit=e=>{e.preventDefault();data.expenses.unshift({id:Date.now(),name:en.value,category:ec.value,amount:+ea.value,date:ed.value,notes:enote.value});save();closeModal();render()}
 }
 function delExpense(id){if(confirm('Delete this expense?')){data.expenses=data.expenses.filter(e=>e.id!==id);save();render()}}
+
+// UPDATED REPORTS PAGE - NOW CLICKABLE MONTHS
 function reports(){
  const now=new Date(), filtered=data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
  const r=income(filtered.filter(s=>s.owner==='Manager')),t=income(filtered.filter(s=>s.owner==='Admin'));
@@ -257,8 +258,27 @@ function reports(){
  let months=Array.from({length:12},(_,i)=>({m:new Date(now.getFullYear(),i,1).toLocaleString('en',{month:'short'}),v:income(data.sales.filter(s=>{let d=dateObj(s.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===i}))}));
  return `<h1>Sales Reports</h1><div class="tabs"><button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button><button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button><button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button></div>
  <div class="cards"><div class="card"><small>PERIOD TOTAL</small><b>${rs(income(filtered))}</b></div><div class="card"><small>MANAGER</small><b>${rs(r)}</b></div><div class="card"><small>ADMIN</small><b>${rs(t)}</b></div><div class="card"><small>PURCHASE COST</small><b>${rs(pc)}</b></div><div class="card"><small>EXPENSES</small><b>${rs(ex)}</b></div><div class="card"><small>NET PROFIT</small><b>${rs(net)}</b></div><div class="card"><small>TRANSACTIONS</small><b>${filtered.length}</b></div></div>
- ${reportRange==='year'?`<section><h2>Monthly Sales — ${now.getFullYear()}</h2><div class="table"><table><thead><tr><th>Month</th><th>Sales</th></tr></thead><tbody>${months.map(x=>`<tr><td>${x.m}</td><td>${rs(x.v)}</td></tr>`).join('')}</tbody></table></div></section>`:''}
- <section><h2>Data Backup</h2><p class="muted">Export your complete data before changing phones.</p><button class="primary" onclick="backup()">⬇ Export Backup</button> <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button><input id="importFile" type="file" accept=".json" hidden onchange="restore(this.files[0])"></section>`}
+ ${reportRange==='year'?`<section><h2>Monthly Sales — ${now.getFullYear()}</h2><div class="table"><table><thead><tr><th>Month</th><th>Paid Sales</th><th>Action</th></tr></thead><tbody>${months.map((x,i)=>`<tr style="cursor:pointer" onclick="showMonthDetails(${i})"><td><b>${x.m}</b></td><td>${rs(x.v)}</td><td><button class="small">👁️ View</button></td></tr>`).join('')}</tbody></table></div></section>`:''}
+ <section><h2>Data Backup</h2><p class="muted">Export your complete data before changing phones.</p><button class="primary" onclick="backup()">⬇ Export Backup</button> <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button><input id="importFile" type="file" accept=".json" hidden onchange="restore(this.files[0])"></section>`
+}
+
+function showMonthDetails(mIndex){
+  const year = new Date().getFullYear();
+  const monthSales = data.sales.filter(s => {
+    let d = dateObj(s.date);
+    return d.getFullYear() === year && d.getMonth() === mIndex;
+  });
+  const monthName = new Date(year, mIndex, 1).toLocaleString('en', {month: 'long'});
+  
+  let body = '';
+  if(monthSales.length){
+    body = `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>${monthSales.map(s=>`<tr><td><b>${esc(s.client)}</b></td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><span class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}">${s.payment}</span></td><td>${s.date}</td></tr>`).join('')}</tbody></table></div>`;
+  } else {
+    body = `<div class="empty">No sales records found for ${monthName} ${year}.</div>`;
+  }
+  modal(`<div class="sectionHead"><h2>${monthName} ${year}</h2><button onclick="closeModal()">×</button></div><div class="cards"><div class="card"><small>TOTAL TRANSACTIONS</small><b>${monthSales.length}</b></div><div class="card"><small>PAID INCOME</small><b>${rs(income(monthSales))}</b></div></div><br>${body}`);
+}
+
 function render(){document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():reports()}
 function openProduct(){modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div><form id="pf" class="grid"><label class="field"><span>Name *</span><input id="pn" required placeholder="ChatGPT Plus"></label><label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label><label class="field"><span>Default Sale Price</span><input id="pp" type="number" value="0"></label><div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div></form>`);pf.onsubmit=e=>{e.preventDefault();data.products.push({id:Date.now(),name:pn.value,type:pt.value,price:+pp.value});save();closeModal();render()}}
 function openSale(){
@@ -290,7 +310,7 @@ function restore(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage,
   productsPage, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
-  expensesPage, openExpense, delExpense, reports, render, openProduct,
+  expensesPage, openExpense, delExpense, reports, showMonthDetails, render, openProduct,
   openSale, delSale, delProduct, backup, restore
 });
 Object.defineProperty(window,'reportRange',{
