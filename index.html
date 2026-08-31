@@ -125,20 +125,20 @@ if(!data.sales) data.sales=[];
 if(!data.expenses) data.expenses=[];
 if(!data.settings) data.settings={password:'admin'}; 
 
-// ICON DICTIONARY TO AUTOMATICALLY MATCH ANY PRODUCT NAME
+// ORIGINAL BRAND VECTOR LOGOS IN SVG
 const iconMap = {
-  'netflix pakistan': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#E50914"><rect width="24" height="24" rx="4" fill="#01411C"/><path d="M5.5 4H8v16H5.5V4zm10.5 0h2.5v16H16V4z" fill="#E50914"/></svg>',
-  'netflix': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#E50914"><rect width="24" height="24" rx="4" fill="#111"/><path d="M5.5 2H9v20H5.5V2zm9.5 0h3.5v20H15V2zM2 2h3.5v20H2V2z"/></svg>',
-  'prime': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#00A8E1"><rect width="24" height="24" rx="4" fill="#111"/><path d="M12 4l10 10-10 10L2 14z"/></svg>',
-  'sony': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#3B82F6"><rect width="24" height="24" rx="4"/><text x="3" y="16" fill="#fff" font-size="8" font-weight="bold">SONY</text></svg>',
-  'hotstar': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#7C3AED"><rect width="24" height="24" rx="4"/><text x="4" y="16" fill="#fff" font-size="8" font-weight="bold">HOT</text></svg>',
-  'iptv': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#10B981"><rect x="2" y="4" width="20" height="14" rx="2" fill="#10B981"/><path d="M8 21h8M12 18v3" stroke="#10B981" stroke-width="2"/></svg>',
-  'vpn': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#EF4444"><circle cx="12" cy="12" r="10" fill="#EF4444"/><path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2"/></svg>',
-  'chatgpt': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#10A37F"><rect width="24" height="24" rx="4" fill="#10A37F"/><path d="M7 12h10M12 7v10" stroke="#fff" stroke-width="2"/></svg>',
-  'claude': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#D97706"><circle cx="12" cy="12" r="10" fill="#D97706"/></svg>',
-  'midjourney': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#4F46E5"><rect x="3" y="3" width="18" height="18" rx="3" fill="#4F46E5"/></svg>',
-  'capcut': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#000"><rect width="24" height="24" rx="4" fill="#000"/><text x="4" y="16" fill="#fff" font-size="8" font-weight="bold">CC</text></svg>',
-  'heygen': '<svg width="28" height="28" viewBox="0 0 24 24" fill="#8B5CF6"><rect width="24" height="24" rx="4" fill="#8B5CF6"/></svg>'
+  'netflix pakistan': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#01411C"/><path d="M141.5 96h60l110 320h-60l-110-320z" fill="#E50914"/><path d="M141.5 96h55v320h-55z" fill="#E50914"/><path d="M315.5 96h55v320h-55z" fill="#E50914"/><path d="M201.5 96h60l110 320h-60l-110-320z" fill="#E50914"/></svg>',
+  'netflix': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#111"/><path d="M141.5 64h60l110 384h-60l-110-384z" fill="#E50914"/><path d="M141.5 64h55v384h-55z" fill="#E50914"/><path d="M315.5 64h55v384h-55z" fill="#E50914"/><path d="M201.5 64h60l110 384h-60l-110-384z" fill="#E50914"/></svg>',
+  'prime': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#131A22"/><path d="M140 280c25 50 80 80 140 80 60 0 115-30 140-80" stroke="#00A8E1" stroke-width="28" fill="none" stroke-linecap="round"/><path d="M380 250l40 35-45 20" fill="#00A8E1"/></svg>',
+  'sony': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#003791"/><text x="256" y="300" fill="#fff" font-family="Arial" font-weight="900" font-size="120" text-anchor="middle">SONY</text></svg>',
+  'hotstar': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#0f1026"/><path d="M256 96l40 90 95 15-70 65 20 95-85-50-85 50 20-95-70-65 95-15z" fill="#1f80e0"/></svg>',
+  'iptv': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#065F46"/><path d="M96 144h320v200H96z" fill="none" stroke="#34D399" stroke-width="32" rx="16"/><path d="M192 344l-32 56h192l-32-56" fill="none" stroke="#34D399" stroke-width="32" stroke-linecap="round"/></svg>',
+  'vpn': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#DC2626"/><circle cx="256" cy="256" r="110" fill="none" stroke="#fff" stroke-width="32"/><path d="M256 146v220M146 256h220" stroke="#fff" stroke-width="32" stroke-linecap="round"/></svg>',
+  'chatgpt': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#10A37F"/><path d="M336 210c-10-40-40-70-80-70-50 0-90 40-90 90 0 10 2 20 5 30-30 15-50 45-50 80 0 50 40 90 90 90 35 0 65-20 80-50 10 3 20 5 30 5 50 0 90-40 90-90 0-40-25-75-65-85z" fill="#fff"/></svg>',
+  'claude': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#D97706"/><circle cx="256" cy="256" r="120" fill="#fff"/></svg>',
+  'midjourney': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#4F46E5"/><path d="M160 360V152h48v208h-48zm144 0V152h48v208h-48z" fill="#fff"/></svg>',
+  'capcut': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#000"/><path d="M200 160l112 96-112 96V160z" fill="#fff"/></svg>',
+  'heygen': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#8B5CF6"/><circle cx="256" cy="256" r="100" fill="#fff"/></svg>'
 };
 
 function getProductIcon(name){
@@ -146,7 +146,7 @@ function getProductIcon(name){
   for(let key in iconMap){
     if(n.includes(key)) return iconMap[key];
   }
-  return '<svg width="28" height="28" viewBox="0 0 24 24" fill="#687386"><rect width="24" height="24" rx="4" fill="#e2e8f0"/><path d="M12 6v12M6 12h12" stroke="#687386" stroke-width="2"/></svg>';
+  return '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#E2E8F0"/><path d="M256 160v192M160 256h192" stroke="#64748B" stroke-width="32" stroke-linecap="round"/></svg>';
 }
 
 const defaultProducts = [
@@ -339,9 +339,21 @@ function showDetails(type){
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
 
+window.prefetchProduct = function(name, price, type, tenure) {
+  document.getElementById('customProduct').value = name;
+  document.getElementById('sa').value = price;
+  document.getElementById('stm').value = tenure;
+  // Highlight active chip
+  document.querySelectorAll('.prefetch-chip').forEach(c => c.style.borderColor = '#dbe1ea');
+  event.currentTarget.style.borderColor = 'var(--blue)';
+}
+
 function openSale(){
+  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:2px solid #dbe1ea;border-radius:10px;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<span>${esc(p.name)}</span></div>`).join('');
+  
   let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
   modal(`<div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
+  <label class="field full"><span>⚡ Quick-Select Prefetch (Click any app):</span><div style="display:flex;flex-wrap:wrap;gap:6px;max-height:130px;overflow-y:auto;padding:4px 0">${prefetchChips}</div></label>
   <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
   <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
   <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" placeholder="Type custom product name"></label>
