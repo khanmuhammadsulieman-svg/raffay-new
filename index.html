@@ -28,7 +28,6 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 @media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}.card b{font-size:18px}.hideMob{display:none}}
 </style>
 
-<!-- INSTANT LOGIN SCRIPT (PREVENTS REFRESH CRASHES) -->
 <script>
   function instantLoginCheck(event) {
     event.preventDefault(); 
@@ -48,7 +47,6 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <div class="card" style="width:min(90%, 350px);box-shadow:0 8px 24px rgba(0,0,0,0.05);">
     <h2 style="margin-bottom:16px;text-align:center">DR Streaming</h2>
@@ -124,9 +122,29 @@ const DB='dr_streaming_manager_v1';
 let data=JSON.parse(localStorage.getItem(DB)||'{}');
 
 if(!data.sales) data.sales=[];
-if(!data.products) data.products=[];
 if(!data.expenses) data.expenses=[];
 if(!data.settings) data.settings={password:'admin'}; 
+
+// PRELOAD DEFAULT DIGITAL PRODUCTS WITH SVG ICONS
+const defaultProducts = [
+  { id: 1, name: 'Netflix Global', type: 'Subscription', price: 1200, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#E50914"><path d="M5.5 2H9v20H5.5V2zm9.5 0h3.5v20H15V2zM2 2h3.5v20H2V2z"/></svg>' },
+  { id: 2, name: 'Netflix Pakistan', type: 'Subscription', price: 1100, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#E50914"><circle cx="12" cy="12" r="10" fill="#01411C"/><path d="M5.5 4H8v16H5.5V4zm10.5 0h2.5v16H16V4z" fill="#E50914"/></svg>' },
+  { id: 3, name: 'Prime Video', type: 'Subscription', price: 800, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#00A8E1"><path d="M12 2l10 10-10 10L2 12z"/></svg>' },
+  { id: 4, name: 'Sony Liv', type: 'Subscription', price: 700, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#3B82F6"><rect width="24" height="24" rx="4"/><text x="4" y="17" fill="#fff" font-size="10" font-weight="bold">SONY</text></svg>' },
+  { id: 5, name: 'JioHotstar', type: 'Subscription', price: 750, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#1F2937"><circle cx="12" cy="12" r="10" fill="#7C3AED"/><text x="7" y="16" fill="#fff" font-size="9" font-weight="bold">HOT</text></svg>' },
+  { id: 6, name: 'My OTT IPTV', type: 'Subscription', price: 1500, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#10B981"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>' },
+  { id: 7, name: 'ExpressVPN', type: 'Subscription', price: 1000, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#EF4444"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2"/></svg>' },
+  { id: 8, name: 'NordVPN', type: 'Subscription', price: 950, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#2563EB"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>' },
+  { id: 9, name: 'Surfshark VPN', type: 'Subscription', price: 900, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#0EA5E9"><path d="M12 2c5.5 0 10 4.5 10 10s-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2z"/></svg>' },
+  { id: 10, name: 'ChatGPT Plus', type: 'Subscription', price: 2000, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#10A37F"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12A10 10 0 0 1 12 2z"/></svg>' },
+  { id: 11, name: 'Claude AI', type: 'Subscription', price: 1800, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#D97706"><circle cx="12" cy="12" r="10"/></svg>' },
+  { id: 12, name: 'Midjourney', type: 'Subscription', price: 2200, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#4F46E5"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>' },
+  { id: 13, name: 'HeyGen AI', type: 'Subscription', price: 2500, icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#8B5CF6"><polygon points="12 2 22 22 2 22"/></svg>' }
+];
+
+if(!data.products || data.products.length === 0) {
+  data.products = defaultProducts;
+}
 
 let page='dashboard', reportRange='month';
 
@@ -367,9 +385,10 @@ function openSale(){
 function openProduct() {
   modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div>
   <form id="pf" class="grid">
-    <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix, IPTV, Hosting"></label>
+    <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix Global, Prime Video"></label>
     <label class="field"><span>Price (Rs) *</span><input id="pp" type="number" required placeholder="1000"></label>
     <label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label>
+    <label class="field full"><span>SVG Icon HTML *</span><textarea id="picon" required placeholder="Paste SVG code here e.g. <svg>...</svg>"></textarea></label>
     <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div>
   </form>`);
   
@@ -379,7 +398,8 @@ function openProduct() {
       id: Date.now(),
       name: document.getElementById('pn').value.trim(),
       price: +document.getElementById('pp').value,
-      type: document.getElementById('pt').value
+      type: document.getElementById('pt').value,
+      icon: document.getElementById('picon').value.trim()
     });
     save();
     closeModal();
@@ -519,7 +539,7 @@ function productsPage(){
    let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?s.partialPaid:Number(s.amount||0)) - Number(s.purchase||0)), 0);
    totalQty += qty;
    totalProfit += profit;
-   return `<tr><td><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></td><td>${rs(p.price)}</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
+   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${p.icon||''}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td><td>${rs(p.price)}</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
  }).join('');
 
  return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
@@ -532,7 +552,7 @@ function productsPage(){
    <div class="card"><small>TOTAL QTY SOLD</small><b>${totalQty}x</b></div>
    <div class="card"><small>TOTAL NET PROFIT</small><b>${rs(totalProfit)}</b></div>
  </div>
- <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`
+ <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product Icon</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`
 }
 
 function viewProduct(id){
@@ -696,7 +716,7 @@ function profitPage(){
    const pRev = pSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
    const pCost = pSales.reduce((sum, s) => sum + Number(s.purchase||0), 0);
    const pProfit = pRev - pCost;
-   return `<tr><td><b>${esc(p.name)}</b></td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
+   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${p.icon||''}<b>${esc(p.name)}</b></div></td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
  }).join('');
 
  return `<div class="sectionHead"><div><h1>Profit Analytics</h1><span class="muted">Ultimate breakdown of revenue, costs, and profit</span></div></div>
@@ -712,7 +732,7 @@ function profitPage(){
    <div class="card"><small>ULTIMATE NET PROFIT</small><b style="color:#166534">${rs(netProfit)}</b></div>
  </div>
  <section><h2>Detailed Product Profits</h2>
- <div class="table"><table><thead><tr><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Purchase Cost</th><th>Net Profit</th></tr></thead><tbody>${productRows||'<tr><td colspan="5" class="empty">No products found.</td></tr>'}</tbody></table></div></section>`;
+ <div class="table"><table><thead><tr><th>Product Icon</th><th>Qty Sold</th><th>Revenue</th><th>Purchase Cost</th><th>Net Profit</th></tr></thead><tbody>${productRows||'<tr><td colspan="5" class="empty">No products found.</td></tr>'}</tbody></table></div></section>`;
 }
 
 function reports(){
@@ -789,7 +809,7 @@ onSnapshot(cloudRef, async (snap)=>{
     if(snap.exists() && snap.data().data){
       const incoming=snap.data().data;
       if(!incoming.sales) incoming.sales=[];
-      if(!incoming.products) incoming.products=[];
+      if(!incoming.products || incoming.products.length === 0) incoming.products = defaultProducts;
       if(!incoming.expenses) incoming.expenses=[];
       if(!incoming.settings) incoming.settings={password:'admin'};
       data=incoming;
