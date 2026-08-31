@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#101827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>DR Streaming Manager</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#687386;--blue:#2563eb;--line:#e6eaf0}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{height:64px;background:#101827;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:5}.brand{font-weight:800;font-size:18px}.brand small{display:block;font-size:9px;color:#94a3b8;margin-top:3px}.container{max-width:1050px;margin:auto;padding:18px 16px 88px}
+h1{font-size:25px;margin:4px 0}h2{font-size:18px;margin:0}.muted{color:var(--muted);font-size:13px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px}.card small{color:var(--muted)}.card b{display:block;font-size:23px;margin-top:8px}
+section{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;margin:14px 0}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e9edf4;color:#243044}.primary{background:var(--blue);color:#fff}.danger{background:#fee2e2;color:#b91c1c}.small{padding:7px 9px;font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eef1f5;font-size:13px}th{font-size:10px;color:var(--muted);text-transform:uppercase}.table{overflow:auto}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;gap:3px;padding:7px;z-index:6}.nav{background:transparent;color:#667085;font-size:11px;min-width:74px}.nav.on{color:var(--blue)}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:15px;place-items:center}.modal.show{display:grid}.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:bold}.field input,.field select,.field textarea{width:100%;border:1px solid #dbe1ea;border-radius:8px;padding:11px;font:inherit;background:#fff}.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}.badge{padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold}.Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
+.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#eef2f7}.tab.on{background:#dbeafe;color:#1d4ed8}.empty{text-align:center;color:var(--muted);padding:25px}
+@media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}.card b{font-size:18px}.hideMob{display:none}}
+</style>
+</head>
+<body>
+<header><div class="brand">DR STREAMING<small id="syncStatus">BUSINESS MANAGER • CONNECTING...</small></div><div style="display:flex;gap:7px"><button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button><button class="primary small" onclick="openSale()">＋ Sale</button></div></header>
+<div id="app" class="container"></div>
+<nav class="bottom">
+<button class="nav on" data-page="dashboard" onclick="go('dashboard')">🏠<br>Home</button>
+<button class="nav" data-page="sales" onclick="go('sales')">💰<br>Sales</button>
+<button class="nav" data-page="products" onclick="go('products')">📦<br>Products</button>
+<button class="nav" data-page="clients" onclick="go('clients')">👥<br>Clients</button>
+<button class="nav" data-page="pending" onclick="go('pending')">⏳<br>Pending</button>
+<button class="nav" data-page="expenses" onclick="go('expenses')">💸<br>Expenses</button>
+<button class="nav" data-page="reports" onclick="go('reports')">📊<br>Reports</button>
+</nav>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBDarSjtR0RhflCSttQ1XWr3oKMNe2_43Y",
+  authDomain: "dr-streaming.firebaseapp.com",
+  projectId: "dr-streaming",
+  storageBucket: "dr-streaming.firebasestorage.app",
+  messagingSenderId: "702895699219",
+  appId: "1:702895699219:web:e4773b6f22571bcc7f56e6",
+  measurementId: "G-J2VP61C6GS"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const firestore = getFirestore(firebaseApp);
+const cloudRef = doc(firestore, "dr_streaming", "main");
+let cloudReady = false;
+let saving = false;
+
+const DB='dr_streaming_manager_v1';
+let data=JSON.parse(localStorage.getItem(DB)||'{"products":[],"sales":[],"expenses":[]}');
+if(!data.expenses)data.expenses=[];
+let page='dashboard', reportRange='month';
+
+async function save(){
+  localStorage.setItem(DB,JSON.stringify(data));
+  if(!cloudReady) return;
+  try{
+    saving=true;
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • SAVING...';
+    await setDoc(cloudRef,{data,updatedAt:new Date().toISOString()});
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
+  }catch(e){
+    console.error(e);
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE COPY SAVED';
+    alert('Cloud save failed. Your data is still saved on this device.');
+  }finally{saving=false}
+}
+const rs=n=>'Rs. '+Number(n||0).toLocaleString('en-PK');
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const dateObj=d=>new Date(d+'T00:00:00');
+const expiry=(d,n)=>{let x=dateObj(d);x.setDate(x.getDate()+Number(n));return x.toISOString().slice(0,10)};
+const days=d=>Math.ceil((dateObj(d)-new Date(new Date().toDateString()))/86400000);
+const status=s=>!s.expiry?'—':days(s.expiry)<0?'Expired':days(s.expiry)<=7?'Expiring':'Active';
+const income=a=>a.filter(s=>s.payment==='Paid').reduce((x,s)=>x+Number(s.amount||0),0);
+const grossSales=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
+const purchase=a=>a.reduce((x,s)=>x+Number(s.purchase||0),0);
+const expenses=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
+function modal(html){modalBox.innerHTML=html;document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function go(p){page=p;document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.page===p));render()}
+
+function dashboard(){
+ const paid=income(data.sales), gross=grossSales(data.sales);
+ const r=income(data.sales.filter(s=>s.owner==='Manager')), a=income(data.sales.filter(s=>s.owner==='Admin'));
+ const cost=purchase(data.sales), exp=expenses(data.expenses), profit=paid-cost-exp;
+ const pending=data.sales.filter(s=>s.payment!=='Paid');
+ return `<h1>Business Overview</h1><p class="muted">Tap any card to see detailed information</p>
+ <div class="cards">
+ <div class="card" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b><span class="muted">Tap for details →</span></div>
+ <div class="card" onclick="showDetails('purchase')" style="cursor:pointer"><small>🛒 PURCHASE COST</small><b>${rs(cost)}</b><span class="muted">Tap for details →</span></div>
+ <div class="card" onclick="showDetails('expenses')" style="cursor:pointer"><small>💸 EXPENSES</small><b>${rs(exp)}</b><span class="muted">Tap for details →</span></div>
+ <div class="card" onclick="showDetails('profit')" style="cursor:pointer"><small>📈 NET PROFIT</small><b>${rs(profit)}</b><span class="muted">Tap for breakdown →</span></div>
+ <div class="card" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b><span class="muted">Tap for transactions →</span></div>
+ <div class="card" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b><span class="muted">Tap for transactions →</span></div>
+ <div class="card" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TOTAL TRANSACTIONS</small><b>${data.sales.length}</b><span class="muted">Tap for all records →</span></div>
+ <div class="card" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted">${rs(pending.reduce((x,s)=>x+Number(s.amount||0),0))} expected →</span></div>
+ </div>
+ <section><div class="sectionHead"><h2>Recent Sales</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(data.sales.slice(0,6),false)}</section>
+ <section><div class="sectionHead"><h2>🔔 Expiring Soon</h2></div>${salesTable(data.sales.filter(s=>s.type==='Subscription'&&days(s.expiry)>=0&&days(s.expiry)<=14),false)}</section>`;
+}
+function showDetails(type){
+ const paid=income(data.sales), cost=purchase(data.sales), exp=expenses(data.expenses);
+ const pending=data.sales.filter(s=>s.payment!=='Paid');
+ let title='',body='';
+ const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
+ if(type==='income'){title='💼 Paid Income';body=`<p class="muted">Only sales marked <b>Paid</b> are included. Pending and Partial payments are excluded from profit.</p><h2>${rs(paid)}</h2>${list(data.sales.filter(s=>s.payment==='Paid'))}`;}
+ if(type==='purchase'){let purchased=data.sales.filter(s=>Number(s.purchase||0)>0);title='🛒 Purchase Cost';body=`<p class="muted">Only transactions with a purchase cost greater than Rs. 0 are shown here.</p><h2>${rs(cost)}</h2>${list(purchased)}`;}
+ if(type==='expenses'){title='💸 Business Expenses';body=`<p class="muted">Separate business expenses such as internet, marketing and software.</p><h2>${rs(exp)}</h2><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
+ if(type==='profit'){title='📈 Net Profit Breakdown';body=`<p class="muted">Profit calculation:</p><div class="card"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div><p class="muted">Pending payments are not included until marked Paid.</p>`;}
+ if(type==='manager'){let a=data.sales.filter(s=>s.owner==='Manager'&&s.payment==='Paid');title='👤 Manager Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='admin'){let a=data.sales.filter(s=>s.owner==='Admin'&&s.payment==='Paid');title='👑 Admin Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='transactions'){title='📦 All Transactions';body=`<p class="muted">${data.sales.length} total transactions • Gross value ${rs(grossSales(data.sales))}</p>${list(data.sales)}`;}
+ if(type==='pending'){title='⏳ Pending Payments';body=`<p class="muted">These sales are excluded from income and profit until payment status becomes Paid.</p><h2>${rs(pending.reduce((x,s)=>x+Number(s.amount||0),0))}</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
+ modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
+}
+function salesTable(a,actions=true){
+ if(!a.length)return '<div class="empty">No records yet.</div>';
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span></td><td>${esc(s.product)}<br><span class="muted">${s.type}</span></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}</td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td><button class="small" onclick="changePayment(${s.id})">Payment</button> <button class="danger small" onclick="delSale(${s.id})">Delete</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+}
+function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
+function productsPage(){
+ return `<div class="sectionHead"><div><h1>Products</h1><span class="muted">Create products and services</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
+ <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product</th><th>Type</th><th>Default Price</th><th></th></tr></thead><tbody>${data.products.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${p.type}</td><td>${rs(p.price)}</td><td><button class="danger small" onclick="delProduct(${p.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`}
+function clientsPage(){
+ let map={};data.sales.forEach(s=>{if(!s.client)return;let k=s.client+'|'+(s.phone||'');if(!map[k])map[k]={name:s.client,phone:s.phone,total:0,count:0};map[k].total+=Number(s.amount);map[k].count++});
+ let a=Object.values(map);return `<h1>Clients</h1><p class="muted">All customers and their purchases</p><section>${a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Phone</th><th>Purchases</th><th>Total</th></tr></thead><tbody>${a.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'—')}</td><td>${c.count}</td><td>${rs(c.total)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No clients yet.</div>'}</section>`}
+function pendingPage(){
+ const pending=data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
+ const total=pending.reduce((a,s)=>a+(s.payment==='Partial'?Number(s.amount||0):Number(s.amount||0)),0);
+ return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
+ <section><div class="cards"><div class="card"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
+ ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span></td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><span class="badge Expiring">${s.payment}</span></td><td><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
+}
+function markPaid(id){
+ let sale=data.sales.find(s=>s.id===id);
+ if(sale){
+   sale.payment='Paid';
+   sale.paymentDate=prompt('Payment date (YYYY-MM-DD):', sale.paymentDate||today())||today();
+   save();render();
+ }
+}
+function changePayment(id){
+ let sale=data.sales.find(s=>s.id===id);
+ if(!sale)return;
+ let value=prompt('Enter payment status: Paid, Pending, or Partial',sale.payment||'Pending');
+ if(['Paid','Pending','Partial'].includes(value)){sale.payment=value;if(value==='Paid'&&!sale.paymentDate)sale.paymentDate=today();save();render();}
+}
+function expensesPage(){
+ return `<div class="sectionHead"><div><h1>Expenses</h1><span class="muted">Business expenses and outgoing payments</span></div><button class="primary" onclick="openExpense()">＋ Add Expense</button></div>
+ <section><div class="cards"><div class="card"><small>TOTAL EXPENSES</small><b>${rs(expenses(data.expenses))}</b></div></div>
+ ${data.expenses.length?`<div class="table"><table><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>${data.expenses.map(e=>`<tr><td>${e.date}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.category)}</td><td>${rs(e.amount)}</td><td><button class="danger small" onclick="delExpense(${e.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No expenses recorded yet.</div>'}</section>`;
+}
+function openExpense(){
+ modal(`<div class="sectionHead"><h2>Add Expense</h2><button onclick="closeModal()">×</button></div><form id="ef" class="grid">
+ <label class="field"><span>Expense Name *</span><input id="en" required placeholder="Internet Bill"></label>
+ <label class="field"><span>Category</span><select id="ec"><option>Business</option><option>Internet</option><option>Marketing</option><option>Software</option><option>Other</option></select></label>
+ <label class="field"><span>Amount *</span><input id="ea" type="number" required></label>
+ <label class="field"><span>Date</span><input id="ed" type="date" value="${today()}" required></label>
+ <label class="field full"><span>Notes</span><textarea id="enote"></textarea></label>
+ <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Expense</button></div></form>`);
+ ef.onsubmit=e=>{e.preventDefault();data.expenses.unshift({id:Date.now(),name:en.value,category:ec.value,amount:+ea.value,date:ed.value,notes:enote.value});save();closeModal();render()}
+}
+function delExpense(id){if(confirm('Delete this expense?')){data.expenses=data.expenses.filter(e=>e.id!==id);save();render()}}
+function reports(){
+ const now=new Date(), filtered=data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
+ const r=income(filtered.filter(s=>s.owner==='Manager')),t=income(filtered.filter(s=>s.owner==='Admin'));
+ const periodExpenses=data.expenses.filter(e=>{let d=dateObj(e.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
+ const pc=purchase(filtered), ex=expenses(periodExpenses), net=income(filtered)-pc-ex;
+ let months=Array.from({length:12},(_,i)=>({m:new Date(now.getFullYear(),i,1).toLocaleString('en',{month:'short'}),v:income(data.sales.filter(s=>{let d=dateObj(s.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===i}))}));
+ return `<h1>Sales Reports</h1><div class="tabs"><button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button><button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button><button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button></div>
+ <div class="cards"><div class="card"><small>PERIOD TOTAL</small><b>${rs(income(filtered))}</b></div><div class="card"><small>MANAGER</small><b>${rs(r)}</b></div><div class="card"><small>ADMIN</small><b>${rs(t)}</b></div><div class="card"><small>PURCHASE COST</small><b>${rs(pc)}</b></div><div class="card"><small>EXPENSES</small><b>${rs(ex)}</b></div><div class="card"><small>NET PROFIT</small><b>${rs(net)}</b></div><div class="card"><small>TRANSACTIONS</small><b>${filtered.length}</b></div></div>
+ ${reportRange==='year'?`<section><h2>Monthly Sales — ${now.getFullYear()}</h2><div class="table"><table><thead><tr><th>Month</th><th>Sales</th></tr></thead><tbody>${months.map(x=>`<tr><td>${x.m}</td><td>${rs(x.v)}</td></tr>`).join('')}</tbody></table></div></section>`:''}
+ <section><h2>Data Backup</h2><p class="muted">Export your complete data before changing phones.</p><button class="primary" onclick="backup()">⬇ Export Backup</button> <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button><input id="importFile" type="file" accept=".json" hidden onchange="restore(this.files[0])"></section>`}
+function render(){document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():reports()}
+function openProduct(){modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div><form id="pf" class="grid"><label class="field"><span>Name *</span><input id="pn" required placeholder="ChatGPT Plus"></label><label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label><label class="field"><span>Default Sale Price</span><input id="pp" type="number" value="0"></label><div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div></form>`);pf.onsubmit=e=>{e.preventDefault();data.products.push({id:Date.now(),name:pn.value,type:pt.value,price:+pp.value});save();closeModal();render()}}
+function openSale(){
+ let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
+ modal(`<div class="sectionHead"><h2>Add New Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
+ <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
+ <label class="field"><span>Product / Service *</span><select id="sp">${opts||'<option value="">No products yet — type below</option>'}</select></label>
+ <label class="field full"><span>Or Product Name</span><input id="customProduct" placeholder="Use if product is not in list"></label>
+ <label class="field"><span>Client Name *</span><input id="sc" required></label><label class="field"><span>Phone / WhatsApp</span><input id="sph"></label>
+ <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required></label>
+<label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="What you paid"></label>
+<label class="field"><span>Sale Date</span><input id="sd" type="date" value="${today()}" required></label>
+<label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
+<label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
+<label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
+ <label class="field"><span>Payment</span><select id="payment"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
+ <label class="field"><span>Tenure in Days (editable)</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 7, 25, 27, 30"></label>
+ <label class="field"><span>Notes</span><textarea id="sn"></textarea></label>
+ <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div></form>`);
+ sp.onchange=()=>{let p=data.products.find(x=>x.id==sp.value);if(p){sa.value=p.price;stm.value=p.type==='Subscription'?'30':'0'}};
+ sf.onsubmit=e=>{e.preventDefault();let p=data.products.find(x=>x.id==sp.value), name=customProduct.value.trim()||(p&&p.name);if(!name){alert('Add product name');return}let tenure=+stm.value||0;data.sales.unshift({id:Date.now(),owner:so.value,client:sc.value,phone:sph.value,product:name,type:tenure?'Subscription':(p?.type||'Product'),amount:+sa.value,purchase:+spurchase.value,payment:payment.value,date:sd.value,purchaseDate:spdate.value,paymentDate:spaymentdate.value,tenure,expiry:sexpiry.value||(tenure?expiry(sd.value,tenure):''),notes:sn.value});save();closeModal();render()}
+}
+function delSale(id){if(confirm('Delete this sale?')){data.sales=data.sales.filter(s=>s.id!==id);save();render()}}
+function delProduct(id){if(confirm('Delete this product?')){data.products=data.products.filter(p=>p.id!==id);save();render()}}
+function backup(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='DR-Streaming-Backup-'+today()+'.json';a.click()}
+function restore(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.sales||!x.products)throw 0;if(!x.expenses)x.expenses=[];data=x;save();render();alert('Backup restored successfully')}catch{alert('Invalid backup file')}};r.readAsText(f)}
+// Make app functions available to the HTML buttons
+Object.assign(window,{
+  modal, closeModal, go, dashboard, showDetails, salesTable, salesPage,
+  productsPage, clientsPage, pendingPage, markPaid, changePayment,
+  expensesPage, openExpense, delExpense, reports, render, openProduct,
+  openSale, delSale, delProduct, backup, restore
+});
+Object.defineProperty(window,'reportRange',{
+  get:()=>reportRange,
+  set:(v)=>{reportRange=v;}
+});
+
+render();
+
+onSnapshot(cloudRef, async (snap)=>{
+  try{
+    if(snap.exists() && snap.data().data){
+      const incoming=snap.data().data;
+      if(!incoming.expenses) incoming.expenses=[];
+      data=incoming;
+      localStorage.setItem(DB,JSON.stringify(data));
+      cloudReady=true;
+      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
+      render();
+    }else{
+      cloudReady=true;
+      await save();
+      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
+    }
+  }catch(e){console.error(e);}
+},(err)=>{
+  console.error(err);
+  document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE MODE';
+  alert('Cloud connection failed. Check Firestore is enabled and in test mode.');
+});
+
+let deferredInstallPrompt;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault(); deferredInstallPrompt=e;
+  document.getElementById('installBtn').style.display='inline-block';
+});
+window.installApp=async function(){
+  if(!deferredInstallPrompt){alert('Open this app from its HTTPS website link in Chrome to install.');return;}
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  document.getElementById('installBtn').style.display='none';
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+}
+</script>
+</body></html>
