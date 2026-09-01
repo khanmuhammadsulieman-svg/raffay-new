@@ -339,7 +339,7 @@ const expiry=(d,n)=>{let x=dateObj(d);x.setDate(x.getDate()+Number(n));return x.
 const days=d=>Math.ceil((dateObj(d)-new Date(new Date().toDateString()))/86400000);
 const status=s=>!s.expiry?'—':days(s.expiry)<0?'Expired':days(s.expiry)<=7?'Expiring':'Active';
 
-// DYNAMIC MONTH-BASED FILTERING FOR ALL UPCOMING MONTHS
+// DYNAMIC MONTH-BASED FILTERING FOR ALL FUTURE MONTHS AUTOMATICALLY
 const getFilteredSales = () => {
   const now = new Date();
   let targetYear = now.getFullYear();
@@ -399,10 +399,14 @@ function dashboard(){
  let prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
  const prevMonthName = prevDate.toLocaleString('default', { month: 'long' });
  const currMonthName = now.toLocaleString('default', { month: 'long' });
+ const currentDateTimeStr = now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
  return `<h1>Business Overview</h1>
  <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px;flex-wrap:wrap;gap:8px;">
-   <p class="muted" style="margin:0;">${dashMode==='prev'?'Showing statistics for '+prevMonthName+' (Previous Month)':'Showing statistics for '+currMonthName+' (Current Month)'}</p>
+   <div>
+     <p class="muted" style="margin:0;">📅 Synced: <b>${currentDateTimeStr}</b></p>
+     <p class="muted" style="margin:2px 0 0 0;">${dashMode==='prev'?'Showing statistics for '+prevMonthName+' (Previous Month)':'Showing statistics for '+currMonthName+' (Current Month)'}</p>
+   </div>
    <button class="small ${dashMode==='prev'?'primary':''}" onclick="dashMode=dashMode==='prev'?'current':'prev';render()" style="font-weight:700">⏮️ ${dashMode==='prev'?'Switch to Current Month ('+currMonthName+')':'View Previous Month ('+prevMonthName+')'}</button>
  </div>
  <div class="cards">
