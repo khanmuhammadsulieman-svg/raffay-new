@@ -212,7 +212,7 @@ if(!data.products || data.products.length === 0) {
   data.products = defaultProducts;
 }
 
-let page='dashboard', reportRange='month';
+let page='dashboard', reportRange='month', dashMode='all';
 
 function getBuffer(len) {
   const b = new Uint8Array(len);
@@ -339,23 +339,48 @@ const expiry=(d,n)=>{let x=dateObj(d);x.setDate(x.getDate()+Number(n));return x.
 const days=d=>Math.ceil((dateObj(d)-new Date(new Date().toDateString()))/86400000);
 const status=s=>!s.expiry?'—':days(s.expiry)<0?'Expired':days(s.expiry)<=7?'Expiring':'Active';
 
-// RESTORED FULL ALL-TIME CALCULATIONS FOR DASHBOARD METRICS
+const getFilteredSales = () => {
+  if(dashMode === 'prev') {
+    return data.sales.filter(s => {
+      let d = dateObj(s.date);
+      return d.getMonth() === 7 && d.getFullYear() === 2026; // August 2026
+    });
+  }
+  return data.sales;
+};
+
+const getFilteredExpenses = () => {
+  if(dashMode === 'prev') {
+    return data.expenses.filter(e => {
+      let d = dateObj(e.date);
+      return d.getMonth() === 7 && d.getFullYear() === 2026;
+    });
+  }
+  return data.expenses;
+};
+
 const income=a=>a.filter(s=>s.payment==='Paid').reduce((x,s)=>x+Number(s.amount||0),0) + a.filter(s=>s.payment==='Partial').reduce((x,s)=>x+Number(s.partialPaid||0),0);
 const grossSales=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
 const purchase=a=>a.filter(s=>s.payment==='Paid' || s.payment==='Partial').reduce((x,s)=>x+Number(s.purchase||0),0);
-const expenses=a=>data.expenses.reduce((x,s)=>x+Number(s.amount||0),0);
+const expenses=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
 
 function modal(html){modalBox.innerHTML=html;document.getElementById('modal').classList.add('show')}
 function closeModal(){document.getElementById('modal').classList.remove('show')}
 function go(p){page=p;document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.page===p));render()}
 
 function dashboard(){
- const paid=income(data.sales), gross=grossSales(data.sales);
- const r=income(data.sales.filter(s=>s.owner==='Manager')), a=income(data.sales.filter(s=>s.owner==='Admin'));
- const cost=purchase(data.sales), exp=expenses(data.expenses), profit=paid-cost-exp;
- const pending=data.sales.filter(s=>s.payment!=='Paid');
+ const activeSales = getFilteredSales();
+ const activeExpList = getFilteredExpenses();
+ const paid=income(activeSales), gross=grossSales(activeSales);
+ const r=income(activeSales.filter(s=>s.owner==='Manager')), a=income(activeSales.filter(s=>s.owner==='Admin'));
+ const cost=purchase(activeSales), exp=expenses(activeExpList), profit=paid-cost-exp;
+ const pending=activeSales.filter(s=>s.payment!=='Paid');
  
- return `<h1>Business Overview</h1><p class="muted">Live all-time business statistics and recent orders</p>
+ return `<h1>Business Overview</h1>
+ <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px;flex-wrap:wrap;gap:8px;">
+   <p class="muted" style="margin:0;">${dashMode==='prev'?'Showing statistics for August (Previous Month)':'Live all-time business statistics'}</p>
+   <button class="small ${dashMode==='prev'?'primary':''}" onclick="dashMode=dashMode==='prev'?'all':'prev';render()" style="font-weight:700">⏮️ ${dashMode==='prev'?'Switch to All-Time View':'View Previous Month (August)'}</button>
+ </div>
  <div class="cards">
  <div class="card card-blue" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b></div>
  <div class="card card-orange" onclick="showDetails('purchase')" style="cursor:pointer"><small>🛒 PURCHASE COST</small><b>${rs(cost)}</b></div>
@@ -363,10 +388,10 @@ function dashboard(){
  <div class="card card-green" onclick="showDetails('profit')" style="cursor:pointer"><small>📈 NET PROFIT</small><b>${rs(profit)}</b></div>
  <div class="card card-blue" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b></div>
  <div class="card card-green" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b></div>
- <div class="card card-purple" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TOTAL TRANSACTIONS</small><b>${data.sales.length}</b></div>
+ <div class="card card-purple" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TRANSACTIONS</small><b>${activeSales.length}</b></div>
  <div class="card card-orange" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted" style="font-size:11px">${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} remaining →</span></div>
  </div>
- <section><div class="sectionHead"><h2>Recent Orders (All-Time)</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(data.sales.slice(0,6),false)}</section>
+ <section><div class="sectionHead"><h2>Recent Orders</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(activeSales.slice(0,6),false)}</section>
  <section><div class="sectionHead"><h2>🔔 Expiring Soon</h2></div>${salesTable(data.sales.filter(s=>s.type==='Subscription'&&days(s.expiry)>=0&&days(s.expiry)<=14),false)}</section>`;
 }
 
@@ -394,17 +419,19 @@ function settingsPage(){
 }
 
 function showDetails(type){
- const paid=income(data.sales), cost=purchase(data.sales), exp=expenses(data.expenses);
- const pending=data.sales.filter(s=>s.payment!=='Paid');
+ const activeSales = getFilteredSales();
+ const activeExpList = getFilteredExpenses();
+ const paid=income(activeSales), cost=purchase(activeSales), exp=expenses(activeExpList);
+ const pending=activeSales.filter(s=>s.payment!=='Paid');
  let title='',body='';
  const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}${s.payment==='Partial'?`<br><span style="font-size:10px;color:var(--muted)">Paid: ${rs(s.partialPaid)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
- if(type==='income'){title='💼 Paid Income';body=`<h2>${rs(paid)}</h2>${list(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
- if(type==='purchase'){let purchased=data.sales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title='🛒 Purchase Cost';body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
- if(type==='expenses'){title='💸 Business Expenses';body=`<h2>${rs(exp)}</h2><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
- if(type==='profit'){title='📈 Net Profit Breakdown';body=`<div class="card card-blue"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card card-orange"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card card-purple"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card card-green"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
- if(type==='manager'){let a=data.sales.filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
- if(type==='admin'){let a=data.sales.filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
- if(type==='transactions'){title='📦 All Transactions';body=`<p class="muted">${data.sales.length} total transactions</p>${list(data.sales)}`;}
+ if(type==='income'){title=`💼 Paid Income (${dashMode==='prev'?'August':'All-Time'})`;body=`<h2>${rs(paid)}</h2>${list(activeSales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
+ if(type==='purchase'){let purchased=activeSales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title=`🛒 Purchase Cost (${dashMode==='prev'?'August':'All-Time'})`;body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
+ if(type==='expenses'){title=`💸 Business Expenses (${dashMode==='prev'?'August':'All-Time'})`;body=`<h2>${rs(exp)}</h2>${list(activeExpList)}<br><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
+ if(type==='profit'){title=`📈 Net Profit Breakdown (${dashMode==='prev'?'August':'All-Time'})`;body=`<div class="card card-blue"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card card-orange"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card card-purple"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card card-green"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
+ if(type==='manager'){let a=activeSales.filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='admin'){let a=activeSales.filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='transactions'){title='📦 Transactions';body=`<p class="muted">${activeSales.length} records</p>${list(activeSales)}`;}
  if(type==='pending'){title='⏳ Pending Payments';body=`<h2>${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} Remaining</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
@@ -903,6 +930,10 @@ Object.assign(window,{
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
   set:(v)=>{reportRange=v;}
+});
+Object.defineProperty(window,'dashMode',{
+  get:()=>dashMode,
+  set:(v)=>{dashMode=v;}
 });
 
 render();
