@@ -613,6 +613,36 @@ function openProduct() {
   };
 }
 
+function editProduct(id) {
+  let p = data.products.find(x => x.id == id);
+  if(!p) return;
+  
+  modal(`
+    <div class="sectionHead"><h2>Edit Product / Service</h2><button onclick="closeModal()">×</button></div>
+    <form id="editPf" class="grid">
+      <label class="field full"><span>Product / Service Name *</span><input id="epn" required value="${esc(p.name)}"></label>
+      <label class="field"><span>Price (Rs) *</span><input id="epp" type="number" required value="${p.price}"></label>
+      <label class="field"><span>Type</span><select id="ept"><option ${p.type==='OTT'?'selected':''}>OTT</option><option ${p.type==='VPN'?'selected':''}>VPN</option><option ${p.type==='AI'?'selected':''}>AI</option><option ${p.type==='Subscription'?'selected':''}>Subscription</option><option ${p.type==='Product'?'selected':''}>Product</option></select></label>
+      <label class="field full"><span>Product Image URL (Optional)</span><input id="epimg" value="${esc(p.imageUrl || p.icon || '')}" placeholder="https://example.com/logo.png" /></label>
+      <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Updates</button></div>
+    </form>
+  `);
+  
+  document.getElementById('editPf').onsubmit = e => {
+    e.preventDefault();
+    p.name = document.getElementById('epn').value.trim();
+    p.price = +document.getElementById('epp').value;
+    p.type = document.getElementById('ept').value;
+    let imgVal = document.getElementById('epimg').value.trim();
+    p.imageUrl = imgVal;
+    p.icon = imgVal;
+    
+    save();
+    closeModal();
+    render();
+  };
+}
+
 function delSale(id){
   if(confirm('Are you sure you want to delete this sale?')) {
     data.sales = data.sales.filter(s => s.id !== id);
@@ -745,7 +775,17 @@ function productsPage(){
    let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?s.partialPaid:Number(s.amount||0)) - Number(s.purchase||0)), 0);
    totalQty += qty;
    totalProfit += profit;
-   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td><td>${rs(p.price)}</td><td><span style="background:#f4efe6;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
+   return `<tr>
+     <td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td>
+     <td>${rs(p.price)}</td>
+     <td><span style="background:#f4efe6;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td>
+     <td><b style="color:#166534">${rs(profit)}</b></td>
+     <td style="white-space:nowrap">
+       <button class="small" onclick="viewProduct(${p.id})">👁️ View</button>
+       <button class="small" style="background:#fef3c7;color:#92400e;margin:0 4px;" onclick="editProduct(${p.id})" title="Edit Product">✏️ Edit</button>
+       <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button>
+     </td>
+   </tr>`;
  }).join('');
 
  return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
@@ -1000,7 +1040,7 @@ function render(){ window.renderApp(); }
 
 Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage, editSale,
-  productsPage, viewProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
+  productsPage, viewProduct, editProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
   openSale, delSale, delProduct, backup, restore, signOutApp, settingsPage, saveCredentials, filterCatalogSearch
 });
