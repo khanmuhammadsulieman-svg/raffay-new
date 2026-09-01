@@ -484,7 +484,7 @@ function showDetails(type){
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
 
-window.selectCatalogProduct = function(name, price, type) {
+window.selectCatalogProduct = function(name, price) {
   document.getElementById('customProduct').value = name;
   document.getElementById('sa').value = price;
   document.getElementById('stm').value = '30';
@@ -493,32 +493,18 @@ window.selectCatalogProduct = function(name, price, type) {
   if (gridContainer) {
     gridContainer.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #10b981;border-radius:10px;padding:10px 14px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:14px;font-weight:bold;color:#166534">✅ Selected: ${esc(name)} — ${rs(price)}</span>
-        </div>
-        <button type="button" class="small" onclick="resetCatalogSelection()" style="background:#dcfce7;color:#166534;font-weight:bold;">Change Product</button>
+        <span style="font-size:14px;font-weight:bold;color:#166534">✅ Selected: ${esc(name)} — ${rs(price)}</span>
+        <button type="button" class="small" id="resetCatalogBtn" style="background:#dcfce7;color:#166534;font-weight:bold;">Change Product</button>
       </div>
     `;
+    document.getElementById('resetCatalogBtn').addEventListener('click', resetCatalogSelection);
   }
 }
 
 window.resetCatalogSelection = function() {
   document.getElementById('customProduct').value = '';
   document.getElementById('sa').value = '';
-  let prefetchChips = data.products.map(p => `
-    <div class="prefetch-chip-container" data-name="${esc(p.name)}" onclick="selectCatalogProduct('${esc(p.name)}', ${p.price}, '${p.type || 'Subscription'}')" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s">
-      ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : (p.icon ? `<img src="${esc(p.icon)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : getProductIcon(p.name))}
-      <div style="text-align:left">
-        <span style="font-weight:bold;font-size:12px;color:#0f172a">${esc(p.name)}</span><br>
-        <span class="muted" style="font-size:11px">${rs(p.price)}</span>
-      </div>
-    </div>`).join('');
-
-  document.getElementById('catalogSelectionContainer').innerHTML = `
-    <span style="display:flex;align-items:center;gap:6px;">🔍 Quick-Select Product Catalog & Search</span>
-    <input id="catalogSearchInput" onkeyup="filterCatalogSearch()" placeholder="Type to search apps, VPNs, AI..." style="margin:6px 0 10px 0;padding:10px;border-radius:10px;border:1px solid #d9d0c1;font-size:13px;outline:none;" />
-    <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;padding:4px 0">${prefetchChips}</div>
-  `;
+  renderCatalogChips();
 }
 
 window.filterCatalogSearch = function() {
@@ -530,9 +516,45 @@ window.filterCatalogSearch = function() {
   });
 }
 
+function renderCatalogChips() {
+  let container = document.getElementById('catalogSelectionContainer');
+  if (!container) return;
+
+  container.innerHTML = `
+    <span style="display:flex;align-items:center;gap:6px;">🔍 Quick-Select Product Catalog & Search</span>
+    <input id="catalogSearchInput" placeholder="Type to search apps, VPNs, AI..." style="margin:6px 0 10px 0;padding:10px;border-radius:10px;border:1px solid #d9d0c1;font-size:13px;outline:none;" />
+    <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;padding:4px 0"></div>
+  `;
+
+  document.getElementById('catalogSearchInput').addEventListener('keyup', filterCatalogSearch);
+
+  let grid = document.getElementById('catalogGrid');
+  data.products.forEach(p => {
+    let chip = document.createElement('div');
+    chip.className = 'prefetch-chip-container';
+    chip.setAttribute('data-name', p.name);
+    chip.style.cssText = "display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s";
+    
+    let iconHtml = p.imageUrl ? `<img src="${p.imageUrl}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : (p.icon ? `<img src="${p.icon}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : getProductIcon(p.name));
+    
+    chip.innerHTML = `
+      ${iconHtml}
+      <div style="text-align:left">
+        <span style="font-weight:bold;font-size:12px;color:#0f172a">${esc(p.name)}</span><br>
+        <span class="muted" style="font-size:11px">${rs(p.price)}</span>
+      </div>
+    `;
+
+    chip.addEventListener('click', () => {
+      selectCatalogProduct(p.name, p.price);
+    });
+
+    grid.appendChild(chip);
+  });
+}
+
 window.onClientNameChange = function(inputEl) {
   let val = inputEl.value.trim().toLowerCase();
-  // Find a matching record in past sales to auto-fill the phone number
   let matchedSale = data.sales.find(s => s.client && s.client.toLowerCase() === val && s.phone);
   if (matchedSale) {
     let phoneInput = document.getElementById('sph');
@@ -541,29 +563,16 @@ window.onClientNameChange = function(inputEl) {
 }
 
 function openSale(){
-  let prefetchChips = data.products.map(p => `
-    <div class="prefetch-chip-container" data-name="${esc(p.name)}" onclick="selectCatalogProduct('${esc(p.name)}', ${p.price}, '${p.type || 'Subscription'}')" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s">
-      ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : (p.icon ? `<img src="${esc(p.icon)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : getProductIcon(p.name))}
-      <div style="text-align:left">
-        <span style="font-weight:bold;font-size:12px;color:#0f172a">${esc(p.name)}</span><br>
-        <span class="muted" style="font-size:11px">${rs(p.price)}</span>
-      </div>
-    </div>`).join('');
-  
   let uniqueClients = [...new Set(data.sales.map(s => s.client).filter(Boolean))];
   let clientOptions = uniqueClients.map(c => `<option value="${esc(c)}">`).join('');
 
   modal(`
     <div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div>
     <form id="sf" class="grid">
-      <label id="catalogSelectionContainer" class="field full">
-        <span style="display:flex;align-items:center;gap:6px;">🔍 Quick-Select Product Catalog & Search</span>
-        <input id="catalogSearchInput" onkeyup="filterCatalogSearch()" placeholder="Type to search apps, VPNs, AI..." style="margin:6px 0 10px 0;padding:10px;border-radius:10px;border:1px solid #d9d0c1;font-size:13px;outline:none;" />
-        <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;padding:4px 0">${prefetchChips}</div>
-      </label>
+      <div id="catalogSelectionContainer" class="field full"></div>
       <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
       <label class="field"><span>Product Name (Auto-filled) *</span><input id="customProduct" required placeholder="Select from catalog or type name"></label>
-      <label class="field"><span>Client Name *</span><input id="sc" list="clientList" oninput="onClientNameChange(this)" onchange="onClientNameChange(this)" required placeholder="Select or type customer name"><datalist id="clientList">${clientOptions}</datalist></label>
+      <label class="field"><span>Client Name *</span><input id="sc" list="clientList" required placeholder="Select or type customer name"><datalist id="clientList">${clientOptions}</datalist></label>
       <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
       <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
       <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
@@ -580,6 +589,11 @@ function openSale(){
       <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div>
     </form>
   `);
+
+  renderCatalogChips();
+
+  document.getElementById('sc').addEventListener('input', function() { onClientNameChange(this); });
+  document.getElementById('sc').addEventListener('change', function() { onClientNameChange(this); });
 
   document.getElementById('sf').onsubmit = e => {
     e.preventDefault();
