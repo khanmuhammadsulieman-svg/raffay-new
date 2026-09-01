@@ -144,72 +144,315 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 
 <script>
 const DB='dr_streaming_manager_v1';
-let data=JSON.parse(localStorage.getItem(DB)||'{}');
-
-if(!data.sales) data.sales = [
-  {id: 1725180000001, owner: "Admin", client: "Raza Kuwait", phone: "+96541007584", product: "Netflix International", amount: 450, purchase: 0, date: "2026-08-31", payment: "Pending", tenure: 30, expiry: "2026-09-30", type: "Subscription"},
-  {id: 1725180000002, owner: "Admin", client: "Ali Khakzada", phone: "03290552920", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", payment: "Paid", tenure: 30, expiry: "2026-09-30", type: "Subscription"},
-  {id: 1725180000003, owner: "Admin", client: "Amna", phone: "", product: "Prime video", amount: 700, purchase: 0, date: "2026-10-20", payment: "Paid", tenure: 30, expiry: "2026-11-19", type: "Subscription"},
-  {id: 1725180000004, owner: "Admin", client: "Hussain BB Printer", phone: "+923060358423", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-30", payment: "Paid", tenure: 30, expiry: "2026-09-29", type: "Subscription"},
-  {id: 1725180000005, owner: "Admin", client: "Ali ghaffar", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
-  {id: 1725180000006, owner: "Admin", client: "Zohaib Lodhran", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
-  {id: 1725180000007, owner: "Manager", client: "Ali Hassan abroad", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
-  {id: 1725180000008, owner: "Admin", client: "Mureed", phone: "03051594242", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
-  {id: 1725180000009, owner: "Admin", client: "Burhan", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-21", payment: "Paid", tenure: 30, expiry: "2026-09-20", type: "Subscription"},
-  {id: 1725180000010, owner: "Admin", client: "Tamseela", phone: "+92 320 5060199", product: "Super grook 7days", amount: 1250, purchase: 0, date: "2026-08-30", payment: "Paid", tenure: 7, expiry: "2026-09-06", type: "Subscription"},
-  {id: 1725180000011, owner: "Admin", client: "Tanveer", phone: "+92 317 6085317", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
-  {id: 1725180000012, owner: "Admin", client: "Imdad Shah", phone: "+92 346 8894212", product: "Iptv myott", amount: 700, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"}
-];
-
-if(!data.expenses) data.expenses=[];
-if(!data.settings) data.settings={password:'vetville', username:'admin'};
-else if(!data.settings.password) data.settings.password='vetville';
-
-const catalog = [
-  ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
-  ["Netflix Global", "Netflix", "OTT", "netflix", "E50914", 1200],
-  ["Prime Video", "Amazon Prime", "OTT", "primevideo", "00A8E1", 800],
-  ["Disney+", "Disney+", "OTT", "disneyplus", "113CCF", 900],
-  ["Spotify Premium", "Spotify", "OTT", "spotify", "1DB954", 650],
-  ["YouTube Premium", "YouTube", "OTT", "youtube", "FF0000", 600],
-  ["Apple TV+", "Apple", "OTT", "appletv", "000000", 850],
-  ["HBO Max", "Max", "OTT", "hbo", "000000", 950],
-  ["Crunchyroll", "Crunchyroll", "OTT", "crunchyroll", "F47521", 700],
-  ["ZEE5", "ZEE5", "OTT", "zee5", "000000", 500],
-  ["ExpressVPN", "ExpressVPN", "VPN", "expressvpn", "DA3940", 1000],
-  ["NordVPN", "NordVPN", "VPN", "nordvpn", "4687FF", 950],
-  ["Surfshark", "Surfshark", "VPN", "surfshark", "18A8B8", 900],
-  ["CyberGhost VPN", "CyberGhost", "VPN", "cyberghost", "F5C542", 850],
-  ["Proton VPN", "Proton", "VPN", "protonvpn", "6D4AFF", 900],
-  ["Private Internet Access", "PIA", "VPN", "privateinternetaccess", "5A2D81", 800],
-  ["Windscribe", "Windscribe", "VPN", "windscribe", "0D7CFF", 750],
-  ["TunnelBear", "TunnelBear", "VPN", "tunnelbear", "1C9BEF", 700],
-  ["ChatGPT Plus", "OpenAI", "AI", "openai", "111111", 2000],
-  ["Claude Pro", "Anthropic", "AI", "anthropic", "D97757", 1800],
-  ["Gemini Advanced", "Google Gemini", "AI", "googlegemini", "8E75B2", 1900],
-  ["Microsoft Copilot Pro", "Microsoft", "AI", "microsoftcopilot", "5E5CE6", 1950],
-  ["Perplexity Pro", "Perplexity", "AI", "perplexity", "20B2AA", 1750],
-  ["Midjourney", "Midjourney", "AI", "midjourney", "111111", 2200],
-  ["Canva Pro", "Canva", "AI", "canva", "00C4CC", 1100],
-  ["Adobe Creative Cloud", "Adobe", "AI", "adobecreativecloud", "FF0000", 3500],
-  ["Notion AI", "Notion", "AI", "notion", "000000", 1200],
-  ["Grammarly Premium", "Grammarly", "AI", "grammarly", "15C39A", 1000],
-];
-
-const starterProducts = catalog.map(
-  ([name, brand, type, slug, color, price], index) => ({
-    id: `starter-${index}`,
-    name,
-    brand,
-    type,
-    price,
-    icon: `https://cdn.simpleicons.org/${slug}/${color}`
-  })
-);
-
-if(!data.products || data.products.length === 0) {
-  data.products = starterProducts;
-}
+let data = {
+  "products": [
+    {
+      "name": "Netflix pakistan",
+      "type": "Subscription",
+      "id": 1788154379160,
+      "price": 370
+    },
+    {
+      "id": 1788154404927,
+      "price": 450,
+      "type": "Subscription",
+      "name": "Netflix International "
+    },
+    {
+      "id": 1788154427998,
+      "type": "Subscription",
+      "name": "Chatgpt plus Shared",
+      "price": 1250
+    },
+    {
+      "type": "Subscription",
+      "name": "Prime video",
+      "price": 250,
+      "id": 1788154429121
+    },
+    {
+      "id": 1788155865462,
+      "name": "Iptv myott",
+      "type": "Subscription",
+      "price": 650
+    },
+    {
+      "id": 1788156821335,
+      "name": "Capcut Pro",
+      "type": "Subscription",
+      "price": 1150
+    },
+    {
+      "id": 1788159430894,
+      "name": "Super grook 7days",
+      "type": "Subscription",
+      "price": 1250
+    },
+    {
+      "id": 1788175583796,
+      "name": "Eleven labs",
+      "price": 3000,
+      "type": "Subscription"
+    }
+  ],
+  "expenses": [],
+  "sales": [
+    {
+      "id": 1788253153051,
+      "owner": "Admin",
+      "client": "Raza Kuwait",
+      "phone": "+96541007584",
+      "product": "Netflix International",
+      "amount": 450,
+      "purchase": 0,
+      "date": "2026-09-01",
+      "purchaseDate": "",
+      "paymentDate": "",
+      "expiry": "2026-09-30",
+      "payment": "Pending",
+      "partialPaid": 0,
+      "tenure": 30,
+      "notes": "7-Sep-26 Payment",
+      "type": "Subscription"
+    },
+    {
+      "id": 1788252916657,
+      "owner": "Admin",
+      "client": "Ali Khakzada",
+      "phone": "03290552920",
+      "product": "Netflix pakistan",
+      "amount": 370,
+      "purchase": 0,
+      "date": "2026-09-01",
+      "purchaseDate": "2026-09-01",
+      "paymentDate": "",
+      "expiry": "2026-09-30",
+      "payment": "Paid",
+      "partialPaid": 0,
+      "tenure": 30,
+      "notes": "",
+      "type": "Subscription"
+    },
+    {
+      "id": 1788251672432,
+      "owner": "Admin",
+      "client": "Amna",
+      "phone": "",
+      "product": "Prime video",
+      "amount": 700,
+      "purchase": 0,
+      "date": "2026-09-01",
+      "purchaseDate": "2026-09-01",
+      "paymentDate": "",
+      "expiry": "2026-11-19",
+      "payment": "Paid",
+      "partialPaid": 0,
+      "tenure": 80,
+      "notes": "3 Month Prime",
+      "type": "Subscription"
+    },
+    {
+      "id": 1788172647160,
+      "owner": "Admin",
+      "client": "Hussain BB Printer",
+      "phone": "+923060358423",
+      "product": "Netflix pakistan",
+      "amount": 370,
+      "purchase": 0,
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-18",
+      "paymentDate": "",
+      "expiry": "2026-09-29",
+      "payment": "Paid",
+      "partialPaid": 0,
+      "tenure": 30,
+      "notes": "",
+      "type": "Subscription"
+    },
+    {
+      "id": 1788172534633,
+      "owner": "Admin",
+      "client": "Ali ghaffar",
+      "phone": "",
+      "product": "Netflix pakistan",
+      "amount": 370,
+      "purchase": 0,
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-21",
+      "paymentDate": "",
+      "expiry": "2026-09-26",
+      "payment": "Paid",
+      "partialPaid": 0,
+      "tenure": 27,
+      "notes": "",
+      "type": "Subscription"
+    },
+    {
+      "id": 1788172499069,
+      "owner": "Admin",
+      "client": "Zohaib Lodhran",
+      "phone": "",
+      "product": "Netflix pakistan",
+      "amount": 370,
+      "purchase": 0,
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-18",
+      "paymentDate": "",
+      "expiry": "2026-09-26",
+      "payment": "Paid",
+      "partialPaid": 0,
+      "tenure": 27,
+      "notes": "",
+      "type": "Subscription"
+    },
+    {
+      "id": 1788172411722,
+      "owner": "Manager",
+      "client": "Ali Hassan abroad",
+      "phone": "",
+      "product": "Netflix pakistan",
+      "amount": 370,
+      "purchase": 0,
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-18",
+      "paymentDate": "",
+      "expiry": "2026-09-26",
+      "payment": "Paid",
+      "partialPaid": 0,
+      "tenure": 27,
+      "notes": "",
+      "type": "Subscription"
+    },
+    {
+      "id": 1788169884087,
+      "owner": "Admin",
+      "client": "Mureed",
+      "phone": "03051594242",
+      "product": "Netflix pakistan",
+      "amount": 370,
+      "purchase": 0,
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-31",
+      "paymentDate": "",
+      "expiry": "2026-09-26",
+      "payment": "Paid",
+      "partialPaid": 0,
+      "tenure": 27,
+      "notes": "",
+      "type": "Subscription"
+    },
+    {
+      "id": 1788162143819,
+      "owner": "Admin",
+      "client": "Burhan",
+      "phone": "",
+      "product": "Netflix pakistan",
+      "type": "Subscription",
+      "amount": 370,
+      "purchase": 0,
+      "payment": "Paid",
+      "partialPaid": 0,
+      "date": "2026-08-22",
+      "purchaseDate": "",
+      "paymentDate": "2026-08-22",
+      "tenure": 30,
+      "expiry": "2026-09-20",
+      "notes": ""
+    },
+    {
+      "id": 1788160774990,
+      "owner": "Admin",
+      "client": "Tamseela",
+      "phone": "+92 320 5060199",
+      "product": "Super grook 7days",
+      "type": "Subscription",
+      "amount": 1250,
+      "purchase": 1000,
+      "payment": "Paid",
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-30",
+      "paymentDate": "2026-08-30",
+      "tenure": 7,
+      "expiry": "2026-09-06",
+      "notes": ""
+    },
+    {
+      "id": 1788156084977,
+      "owner": "Admin",
+      "client": "Tanveer",
+      "phone": "+92 317 6085317",
+      "product": "Netflix pakistan",
+      "type": "Subscription",
+      "amount": 370,
+      "purchase": 0,
+      "payment": "Paid",
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-21",
+      "paymentDate": "2026-08-28",
+      "tenure": 27,
+      "expiry": "2026-09-26",
+      "notes": ""
+    },
+    {
+      "id": 1788154955530,
+      "owner": "Admin",
+      "client": "Imdad Shah",
+      "phone": "+92 346 8894212",
+      "product": "Iptv myott",
+      "type": "Subscription",
+      "amount": 700,
+      "purchase": 0,
+      "payment": "Paid",
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-28",
+      "paymentDate": "2026-08-31",
+      "tenure": 27,
+      "expiry": "2026-09-26",
+      "notes": "",
+      "partialPaid": 0
+    },
+    {
+      "id": 1788154736170,
+      "owner": "Admin",
+      "client": "Usman ",
+      "phone": "",
+      "product": "Netflix International ",
+      "type": "Subscription",
+      "amount": 450,
+      "purchase": 0,
+      "payment": "Paid",
+      "date": "2026-08-31",
+      "purchaseDate": "2026-08-30",
+      "paymentDate": "2026-08-30",
+      "tenure": 27,
+      "expiry": "2026-09-26",
+      "notes": "j22492173@gmail.com \nScreen 1"
+    },
+    {
+      "id": 1788154536567,
+      "owner": "Admin",
+      "client": "Huzaifa ",
+      "phone": "+92 329 6713859",
+      "product": "Netflix pakistan",
+      "type": "Subscription",
+      "amount": 350,
+      "purchase": 0,
+      "payment": "Pending",
+      "date": "2026-08-27",
+      "purchaseDate": "",
+      "paymentDate": "2026-08-31",
+      "tenure": 27,
+      "expiry": "2026-09-22",
+      "notes": "",
+      "partialPaid": 0
+    }
+  ],
+  "settings": {
+    "password": "vetville",
+    "username": "admin"
+  }
+};
+localStorage.setItem(DB, JSON.stringify(data));
 
 let page='dashboard', reportRange='month', dashMode='current';
 let customStartDate = '';
@@ -1169,16 +1412,9 @@ Object.defineProperty(window,'customEndDate',{
   set:(v)=>{customEndDate=v;}
 });
 
-// Force local storage sync with default password set to vetville if not present
+// Force persistence and render immediately
 try {
-  let stored = JSON.parse(localStorage.getItem(DB) || '{}');
-  if(!stored.sales || stored.sales.length === 0) {
-    save();
-  } else {
-    data = stored;
-  }
-  if(!data.settings) data.settings = { username: 'admin', password: 'vetville' };
-  if(!data.settings.password) data.settings.password = 'vetville';
+  localStorage.setItem(DB, JSON.stringify(data));
   document.getElementById('syncStatus').textContent = 'BUSINESS MANAGER • READY (LOCAL MODE) ✓';
   render();
 } catch(e) {
