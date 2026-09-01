@@ -94,7 +94,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
     <h2 style="margin-bottom:20px;text-align:center;font-weight:800">DR Streaming</h2>
     <form onsubmit="instantLoginCheck(event)" class="grid">
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin" value="admin"></label>
-      <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="vetville"></label>
+      <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="Enter password"></label>
       <div class="full" style="margin-top:12px;">
         <button class="primary" type="submit" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button>
         <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="if(window.loginWithBiometrics) window.loginWithBiometrics();">👆 Fingerprint / Face ID</button>
@@ -1203,7 +1203,7 @@ Object.defineProperty(window,'customEndDate',{
 
 render();
 
-// Cloud Sync Connection with Local Fallback
+// Cloud Sync Connection with Local Fallback and Multi-Device Auto-Push
 let syncTimeout = setTimeout(() => {
   if(!cloudReady) {
     document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNC CONNECTING...';
