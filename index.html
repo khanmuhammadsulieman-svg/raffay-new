@@ -973,18 +973,56 @@ function quickPayment(id, value){
 function viewClient(id){
   let s = data.sales.find(x => x.id === id);
   if(!s) return;
-  modal(`<div class="sectionHead"><h2>Client Details</h2><div><button class="small" style="background:#fef3c7;color:#92400e;margin-right:8px" onclick="editSale(${id})">✏️ Edit Record</button><button onclick="closeModal()">×</button></div></div>
-  <div class="grid">
-    <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:inline-flex;align-items:center;font-weight:bold;">${waBtnSVG} Message on WhatsApp</a>`:''}</div>
-    <div class="card"><small>Product / Service</small><b>${esc(s.product)}</b><span class="muted">${s.type}</span></div>
-    <div class="card"><small>Total Amount</small><b>${rs(s.amount)}</b></div>
-    <div class="card"><small>Payment Status</small><b>${s.payment}</b>${s.payment==='Partial'?`<span class="muted" style="display:block;margin-top:4px">Paid: ${rs(s.partialPaid)}<br>Remaining: <b style="color:#b91c1c">${rs(s.amount-(s.partialPaid||0))}</b></span>`:''}</div>
-    <div class="card"><small>Subscription Status</small><b>${status(s)}</b></div>
-    <div class="card"><small>Sale Date</small><b>${s.date}</b></div>
-    <div class="card"><small>Expiry Date</small><b>${s.expiry||'N/A'}</b></div>
-    <div class="card full"><small>Notes</small><b>${esc(s.notes||'None')}</b></div>
-  </div>`);
+  modal(`
+    <div class="sectionHead">
+      <h2>Client & Receipt Details</h2>
+      <div>
+        <button class="primary small" id="downloadReceiptBtn" style="margin-right:8px;background:#10b981;" onclick="captureReceiptCard()">📥 Save Receipt</button>
+        <button class="small" style="background:#fef3c7;color:#92400e;margin-right:8px" onclick="editSale(${id})">✏️ Edit</button>
+        <button onclick="closeModal()">×</button>
+      </div>
+    </div>
+    <div id="receiptCardContent" style="background:#fff;padding:16px;border-radius:12px;">
+      <div class="grid">
+        <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:inline-flex;align-items:center;font-weight:bold;">${waBtnSVG} Message on WhatsApp</a>`:''}</div>
+        <div class="card"><small>Product / Service</small><b>${esc(s.product)}</b><span class="muted">${s.type}</span></div>
+        <div class="card"><small>Total Amount</small><b>${rs(s.amount)}</b></div>
+        <div class="card"><small>Payment Status</small><b>${s.payment}</b>${s.payment==='Partial'?`<span class="muted" style="display:block;margin-top:4px">Paid: ${rs(s.partialPaid)}<br>Remaining: <b style="color:#b91c1c">${rs(s.amount-(s.partialPaid||0))}</b></span>`:''}</div>
+        <div class="card"><small>Subscription Status</small><b>${status(s)}</b></div>
+        <div class="card"><small>Sale Date</small><b>${s.date}</b></div>
+        <div class="card"><small>Expiry Date</small><b>${s.expiry||'N/A'}</b></div>
+        <div class="card full"><small>Notes</small><b>${esc(s.notes||'None')}</b></div>
+      </div>
+    </div>
+  `);
 }
+
+window.captureReceiptCard = function() {
+  const cardElement = document.getElementById('receiptCardContent');
+  if(!cardElement) return;
+
+  if (typeof html2canvas === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = () => takeSnapshot(cardElement);
+    document.head.appendChild(script);
+  } else {
+    takeSnapshot(cardElement);
+  }
+}
+
+function takeSnapshot(element) {
+  html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `receipt_${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).catch(err => {
+    console.error(err);
+    alert('Failed to save receipt image.');
+  });
+}
+
 function expensesPage(){
  return `<div class="sectionHead"><div><h1>Expenses</h1><span class="muted">Business expenses and outgoing payments</span></div><button class="primary" onclick="openExpense()">＋ Add Expense</button></div>
  <section><div class="cards"><div class="card card-orange"><small>TOTAL EXPENSES</small><b>${rs(expenses(data.expenses))}</b></div></div>
@@ -1110,7 +1148,7 @@ Object.assign(window,{
   productsPage, viewProduct, editProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
   openSale, delSale, delProduct, backup, restore, signOutApp, settingsPage, saveCredentials, filterCatalogSearch,
-  selectCatalogProduct, resetCatalogSelection, onClientNameChange
+  selectCatalogProduct, resetCatalogSelection, onClientNameChange, captureReceiptCard
 });
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
