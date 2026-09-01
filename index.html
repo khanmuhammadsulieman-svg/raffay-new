@@ -71,19 +71,51 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 </style>
 
 <script>
-  function instantLoginCheck(event) {
-    event.preventDefault(); 
-    const localData = JSON.parse(localStorage.getItem('dr_streaming_manager_v1') || '{}');
-    const correctPassword = (localData.settings && localData.settings.password) ? localData.settings.password : 'vetville';
-    const u = document.getElementById('loginUser').value;
+  async function instantLoginCheck(event) {
+    event.preventDefault();
+    const account = document.getElementById('loginAccount').value;
+    const u = document.getElementById('loginUser').value.trim();
     const p = document.getElementById('loginPass').value;
-    if (u === 'admin' && p === correctPassword) {
-      sessionStorage.setItem('auth', 'true');
-      document.getElementById('loginScreen').style.display = 'none';
-      if(window.renderApp) window.renderApp(); 
-    } else {
-      alert("Incorrect Username or Password.");
+    const btn = event.submitter || event.target.querySelector('button[type="submit"]');
+    if(btn){ btn.disabled=true; btn.textContent='Connecting to Cloud...'; }
+    try {
+      if(window.cloudLoginAccount) {
+        const ok = await window.cloudLoginAccount(account, u, p);
+        if(ok) return;
+      } else {
+        // Fallback while Firebase module is still initializing.
+        const key = account === 'admin' ? 'dr_streaming_manager_v1_admin' : 'dr_streaming_manager_v1_coadmin';
+        let localData = {};
+        try { localData = JSON.parse(localStorage.getItem(key) || (account === 'admin' ? localStorage.getItem('dr_streaming_manager_v1') : '{}') || '{}'); } catch(e) {}
+        const defaults = account === 'admin' ? {username:'admin', password:'vetville'} : {username:'coadmin', password:'coadmin'};
+        if(u === (localData.settings?.username || defaults.username) && p === (localData.settings?.password || defaults.password)) {
+          sessionStorage.setItem('auth','true');
+          sessionStorage.setItem('account',account);
+          document.getElementById('loginScreen').style.display='none';
+          if(window.activateAccount) window.activateAccount(account);
+          return;
+        }
+      }
+      alert('Incorrect Username or Password.');
+    } catch(e) {
+      console.error(e);
+      alert('Cloud connection failed. Please check your internet connection and try again.');
+    } finally {
+      if(btn){ btn.disabled=false; btn.textContent='Login to Dashboard'; }
     }
+  }
+
+  function updateLoginAccount() {
+    const account = document.getElementById('loginAccount').value;
+    const defaults = account === 'admin' ? {username:'admin'} : {username:'coadmin'};
+    const key = account === 'admin' ? 'dr_streaming_manager_v1_admin' : 'dr_streaming_manager_v1_coadmin';
+    let d={};
+    try { d=JSON.parse(localStorage.getItem(key) || (account==='admin'?localStorage.getItem('dr_streaming_manager_v1'):'{}') || '{}'); } catch(e) {}
+    document.getElementById('loginUser').value = d.settings?.username || defaults.username;
+    document.getElementById('loginPass').value = '';
+    const bioKey = 'bioCredId_' + account;
+    const bioBtn = document.getElementById('bioLoginBtn');
+    if (bioBtn) bioBtn.style.display = localStorage.getItem(bioKey) && window.PublicKeyCredential ? 'block' : 'none';
   }
 </script>
 </head>
@@ -93,6 +125,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
   <div class="card" style="width:min(90%, 360px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);border-radius:20px;padding:24px">
     <h2 style="margin-bottom:20px;text-align:center;font-weight:800">DR Streaming</h2>
     <form onsubmit="instantLoginCheck(event)" class="grid">
+      <label class="field full"><span>Account</span><select id="loginAccount" onchange="updateLoginAccount()"><option value="admin">👑 Admin</option><option value="coadmin">👤 Co-Admin</option></select></label>
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin" value="admin"></label>
       <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="Enter password"></label>
       <div class="full" style="margin-top:12px;">
@@ -104,7 +137,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 </div>
 
 <header>
-  <div class="brand">DR STREAMING<small id="syncStatus">BUSINESS MANAGER • CONNECTING...</small></div>
+  <div class="brand">DR STREAMING <span id="accountBadge" style="font-size:10px;padding:3px 7px;border-radius:8px;background:rgba(22,101,52,.12);margin-left:6px;vertical-align:middle">ADMIN</span><small id="syncStatus">BUSINESS MANAGER • CONNECTING...</small></div>
   <div style="display:flex;gap:8px;align-items:center">
     <button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button>
     <button class="primary small" onclick="openSale()">＋ Sale</button>
@@ -121,6 +154,8 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
         <a onclick="go('profit');closeMenu()">📈 Profit</a>
         <a onclick="go('reports');closeMenu()">📊 Reports</a>
         <a onclick="go('settings');closeMenu()">⚙️ Settings</a>
+        <a onclick="switchAccount();closeMenu()">🔄 Switch Account</a>
+        <a onclick="signOutApp();closeMenu()">🚪 Sign Out</a>
       </div>
     </div>
   </div>
@@ -144,7 +179,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBDarSjtR0RhflCSttQ1XWr3oKMNe2_43Y",
@@ -158,14 +193,22 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const firestore = getFirestore(firebaseApp);
-const cloudRef = doc(firestore, "dr_streaming", "main");
+let currentAccount = sessionStorage.getItem('account') || 'admin';
+const LEGACY_DB = 'dr_streaming_manager_v1';
+const ACCOUNT_DBS = { admin:'dr_streaming_manager_v1_admin', coadmin:'dr_streaming_manager_v1_coadmin' };
+const ACCOUNT_DOCS = { admin:'admin', coadmin:'coadmin' };
+if(currentAccount === 'admin' && !localStorage.getItem(ACCOUNT_DBS.admin) && localStorage.getItem(LEGACY_DB)) {
+  localStorage.setItem(ACCOUNT_DBS.admin, localStorage.getItem(LEGACY_DB));
+}
+let DB = ACCOUNT_DBS[currentAccount] || ACCOUNT_DBS.admin;
+let cloudRef = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[currentAccount]);
+let unsubscribeCloud = null;
 let cloudReady = false;
 let saving = false;
 
-const DB='dr_streaming_manager_v1';
 let data = JSON.parse(localStorage.getItem(DB) || '{}');
 
-if(!data.sales || data.sales.length === 0) {
+if(currentAccount === 'admin' && (!data.sales || data.sales.length === 0)) {
   data.sales = [
     {id: 1788253153051, owner: "Admin", client: "Raza Kuwait", phone: "+96541007584", product: "Netflix International", amount: 450, purchase: 0, date: "2026-09-01", purchaseDate: "", paymentDate: "", expiry: "2026-09-30", payment: "Pending", partialPaid: 0, tenure: 30, notes: "7-Sep-26 Payment", type: "Subscription"},
     {id: 1788252916657, owner: "Admin", client: "Ali Khakzada", phone: "03290552920", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-09-01", purchaseDate: "2026-09-01", paymentDate: "", expiry: "2026-09-30", payment: "Paid", partialPaid: 0, tenure: 30, notes: "", type: "Subscription"},
@@ -184,9 +227,13 @@ if(!data.sales || data.sales.length === 0) {
   ];
 }
 
+if(!data.sales) data.sales=[];
 if(!data.expenses) data.expenses=[];
-if(!data.settings) data.settings={password:'vetville', username:'admin'};
-else if(!data.settings.password) data.settings.password='vetville';
+if(!data.products) data.products=[];
+if(!data.clients) data.clients=[];
+if(!data.settings) data.settings=currentAccount==='admin'?{password:'vetville', username:'admin'}:{password:'coadmin', username:'coadmin'};
+if(!data.settings.password) data.settings.password=currentAccount==='admin'?'vetville':'coadmin';
+if(!data.settings.username) data.settings.username=currentAccount==='admin'?'admin':'coadmin';
 
 const catalog = [
   ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
@@ -262,7 +309,7 @@ window.setupBiometrics = async function() {
       }
     });
     const credId = Array.from(new Uint8Array(cred.rawId));
-    localStorage.setItem('bioCredId', JSON.stringify(credId));
+    localStorage.setItem('bioCredId_' + currentAccount, JSON.stringify(credId));
     alert("Fingerprint / Face ID setup successful!");
     document.getElementById('bioLoginBtn').style.display = 'block';
   } catch(e) {
@@ -272,7 +319,8 @@ window.setupBiometrics = async function() {
 }
 
 window.loginWithBiometrics = async function() {
-  const storedId = JSON.parse(localStorage.getItem('bioCredId'));
+  const selectedAccount = document.getElementById('loginAccount')?.value || currentAccount;
+  const storedId = JSON.parse(localStorage.getItem('bioCredId_' + selectedAccount) || 'null');
   if(!storedId) return alert("Biometrics not set up yet. Log in with password and enable it in Settings.");
   try {
     const assertion = await navigator.credentials.get({
@@ -286,8 +334,9 @@ window.loginWithBiometrics = async function() {
     });
     if(assertion) {
       sessionStorage.setItem('auth', 'true');
+      sessionStorage.setItem('account', selectedAccount);
       document.getElementById('loginScreen').style.display = 'none';
-      render();
+      if(window.activateAccount) window.activateAccount(selectedAccount); else render();
     }
   } catch(e) {
     console.error(e);
@@ -296,16 +345,19 @@ window.loginWithBiometrics = async function() {
 }
 
 window.signOutApp = function() {
+  if(unsubscribeCloud) { unsubscribeCloud(); unsubscribeCloud=null; }
   sessionStorage.removeItem('auth');
+  sessionStorage.removeItem('account');
   window.location.reload();
 }
 
 window.onload = () => {
+  const account = sessionStorage.getItem('account') || 'admin';
+  document.getElementById('loginAccount').value = account;
+  updateLoginAccount();
   if(sessionStorage.getItem('auth') === 'true') {
     document.getElementById('loginScreen').style.display = 'none';
-  }
-  if(localStorage.getItem('bioCredId') && window.PublicKeyCredential) {
-    document.getElementById('bioLoginBtn').style.display = 'block';
+    if(window.activateAccount) window.activateAccount(account);
   }
 }
 
@@ -346,14 +398,110 @@ async function save(){
   if(!cloudReady) return;
   try{
     saving=true;
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • SAVING...';
-    await setDoc(cloudRef,{data,updatedAt:new Date().toISOString()});
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • SAVING ' + currentAccount.toUpperCase() + '...';
+    await setDoc(cloudRef,{data,updatedAt:new Date().toISOString(),account:currentAccount},{merge:true});
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • ' + (currentAccount==='admin'?'ADMIN':'CO-ADMIN') + ' CLOUD SYNCED ✓';
   }catch(e){
     console.error(e);
     document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE COPY SAVED';
   }finally{saving=false}
 }
+
+function setAccountState(account){
+  currentAccount = account === 'coadmin' ? 'coadmin' : 'admin';
+  DB = ACCOUNT_DBS[currentAccount];
+  if(currentAccount === 'admin' && !localStorage.getItem(DB) && localStorage.getItem(LEGACY_DB)) localStorage.setItem(DB, localStorage.getItem(LEGACY_DB));
+  try { data = JSON.parse(localStorage.getItem(DB) || '{}'); } catch(e) { data={}; }
+  if(!data.sales) data.sales=[];
+  if(!data.expenses) data.expenses=[];
+  if(!data.products) data.products=[];
+  if(!data.clients) data.clients=[];
+  if(!data.settings) data.settings=currentAccount==='admin'?{password:'vetville',username:'admin'}:{password:'coadmin',username:'coadmin'};
+  if(!data.settings.password) data.settings.password=currentAccount==='admin'?'vetville':'coadmin';
+  if(!data.settings.username) data.settings.username=currentAccount==='admin'?'admin':'coadmin';
+  cloudRef = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[currentAccount]);
+  cloudReady=false;
+  sessionStorage.setItem('account',currentAccount);
+  const badge=document.getElementById('accountBadge');
+  if(badge) badge.textContent=currentAccount==='admin'?'ADMIN':'CO-ADMIN';
+}
+
+async function ensureAccountShape(account, obj){
+  const d = (obj && typeof obj === 'object') ? obj : {};
+  if(!Array.isArray(d.sales)) d.sales=[];
+  if(!Array.isArray(d.expenses)) d.expenses=[];
+  if(!Array.isArray(d.products)) d.products=[];
+  if(!Array.isArray(d.clients)) d.clients=[];
+  if(!d.settings) d.settings = account==='admin' ? {password:'vetville',username:'admin'} : {password:'coadmin',username:'coadmin'};
+  if(!d.settings.password) d.settings.password = account==='admin' ? 'vetville' : 'coadmin';
+  if(!d.settings.username) d.settings.username = account==='admin' ? 'admin' : 'coadmin';
+  return d;
+}
+
+// Cloud-first login: credentials and account data can be recovered on a new device.
+window.cloudLoginAccount = async function(account, username, password){
+  const safeAccount = account === 'coadmin' ? 'coadmin' : 'admin';
+  const ref = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[safeAccount]);
+  let local = {};
+  const localKey = ACCOUNT_DBS[safeAccount];
+  try { local = JSON.parse(localStorage.getItem(localKey) || (safeAccount==='admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}'); } catch(e) {}
+  local = await ensureAccountShape(safeAccount, local);
+
+  const snap = await getDoc(ref);
+  let cloudData = null;
+  if(snap.exists() && snap.data()?.data){
+    cloudData = await ensureAccountShape(safeAccount, snap.data().data);
+    localStorage.setItem(localKey, JSON.stringify(cloudData));
+  } else if(safeAccount === 'admin') {
+    // Migrate the original single-account Firebase document into the new Admin account.
+    const legacyRef = doc(firestore, 'dr_streaming', 'main');
+    const legacySnap = await getDoc(legacyRef);
+    if(legacySnap.exists() && legacySnap.data()?.data){
+      cloudData = await ensureAccountShape('admin', legacySnap.data().data);
+      localStorage.setItem(localKey, JSON.stringify(cloudData));
+      await setDoc(ref, {data: cloudData, updatedAt:new Date().toISOString(), account:'admin', migratedFrom:'dr_streaming/main'}, {merge:true});
+    }
+  }
+  if(!cloudData){
+    // First cloud setup: preserve the existing local account and upload it.
+    cloudData = local;
+    localStorage.setItem(localKey, JSON.stringify(cloudData));
+    await setDoc(ref, {data: cloudData, updatedAt:new Date().toISOString(), account:safeAccount}, {merge:true});
+  }
+
+  if(username !== cloudData.settings.username || password !== cloudData.settings.password) return false;
+
+  currentAccount = safeAccount;
+  DB = ACCOUNT_DBS[safeAccount];
+  cloudRef = ref;
+  data = cloudData;
+  cloudReady = true;
+  sessionStorage.setItem('auth','true');
+  sessionStorage.setItem('account',safeAccount);
+  document.getElementById('loginScreen').style.display='none';
+  const badge=document.getElementById('accountBadge');
+  if(badge) badge.textContent=safeAccount==='admin'?'ADMIN':'CO-ADMIN';
+  render();
+  startCloudSync();
+  return true;
+};
+
+window.activateAccount = async function(account){
+  if(unsubscribeCloud) { unsubscribeCloud(); unsubscribeCloud=null; }
+  setAccountState(account);
+  render();
+  startCloudSync();
+};
+
+window.switchAccount = function(){
+  if(unsubscribeCloud) { unsubscribeCloud(); unsubscribeCloud=null; }
+  sessionStorage.removeItem('auth');
+  sessionStorage.removeItem('account');
+  currentAccount='admin';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginAccount').value='admin';
+  updateLoginAccount();
+};
 
 const rs=n=>'Rs. '+Number(n||0).toLocaleString('en-PK');
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -462,7 +610,7 @@ function dashboard(){
 function settingsPage(){
  return `<h1>Settings & Security</h1><p class="muted">Manage your security credentials and sign out</p>
  <section>
-   <h2>Account Credentials</h2>
+   <h2>Account Credentials — ${currentAccount==='admin'?'Admin':'Co-Admin'}</h2>
    <form onsubmit="saveCredentials(event)" class="grid" style="margin-top:12px;max-width:500px">
      <label class="field full"><span>Username</span><input id="settingsUser" value="${esc(data.settings.username || 'admin')}" required></label>
      <label class="field full"><span>Current Password</span><input id="settingsCurr" type="password" required></label>
@@ -1203,38 +1351,45 @@ Object.defineProperty(window,'customEndDate',{
 
 render();
 
-// Cloud Sync Connection with Local Fallback and Multi-Device Auto-Push
-let syncTimeout = setTimeout(() => {
-  if(!cloudReady) {
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNC CONNECTING...';
-  }
-}, 4000);
-
-onSnapshot(cloudRef, async (snap)=>{
-  clearTimeout(syncTimeout);
-  try{
-    if(snap.exists() && snap.data().data){
-      const incoming=snap.data().data;
-      if(incoming.sales && incoming.sales.length > 0) {
+// Cloud Sync Connection — each account has its own Firestore document
+function startCloudSync(){
+  if(unsubscribeCloud) { unsubscribeCloud(); unsubscribeCloud=null; }
+  cloudReady=false;
+  const accountAtStart=currentAccount;
+  let syncTimeout=setTimeout(()=>{
+    if(accountAtStart===currentAccount && !cloudReady){
+      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • '+(currentAccount==='admin'?'ADMIN':'CO-ADMIN')+' CLOUD CONNECTING...';
+    }
+  },4000);
+  unsubscribeCloud=onSnapshot(cloudRef, async (snap)=>{
+    if(accountAtStart!==currentAccount) return;
+    clearTimeout(syncTimeout);
+    try{
+      if(snap.exists() && snap.data().data){
+        const incoming=snap.data().data;
         data=incoming;
         localStorage.setItem(DB,JSON.stringify(data));
+        cloudReady=true;
+        document.getElementById('syncStatus').textContent='BUSINESS MANAGER • '+(currentAccount==='admin'?'ADMIN':'CO-ADMIN')+' CLOUD SYNCED ✓';
+        render();
+      }else{
+        cloudReady=true;
+        await save();
       }
-      cloudReady=true;
-      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
-      render();
-    }else{
-      cloudReady=true;
-      await save();
-      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
+    }catch(e){
+      console.error(e);
+      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
     }
-  }catch(e){
-    console.error(e);
+  },(err)=>{
+    if(accountAtStart!==currentAccount) return;
+    console.error(err);
     document.getElementById('syncStatus').textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
-  }
-},(err)=>{
-  console.error(err);
-  document.getElementById('syncStatus').textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
-});
+  });
+}
+
+setAccountState(currentAccount);
+render();
+if(sessionStorage.getItem('auth')==='true') startCloudSync();
 
 let deferredInstallPrompt;
 window.addEventListener('beforeinstallprompt',(e)=>{
