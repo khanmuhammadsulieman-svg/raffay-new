@@ -1,116 +1,508 @@
-const catalog = [
-  // OTT
-  ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
-  ["Netflix Global", "Netflix", "OTT", "netflix", "E50914", 1200],
-  ["Prime Video", "Amazon Prime", "OTT", "primevideo", "00A8E1", 800],
-  ["Disney+", "Disney+", "OTT", "disneyplus", "113CCF", 900],
-  ["Spotify Premium", "Spotify", "OTT", "spotify", "1DB954", 650],
-  ["YouTube Premium", "YouTube", "OTT", "youtube", "FF0000", 600],
-  ["Apple TV+", "Apple", "OTT", "appletv", "000000", 850],
-  ["HBO Max", "Max", "OTT", "hbo", "000000", 950],
-  ["Crunchyroll", "Crunchyroll", "OTT", "crunchyroll", "F47521", 700],
-  ["ZEE5", "ZEE5", "OTT", "zee5", "000000", 500],
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#101827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>DR Streaming Manager</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root{--bg:#fdfbf7;--card:#ffffff;--ink:#0f172a;--muted:#64748b;--blue:#2563eb;--line:#f0eae1;--accent-blue:#eff6ff;--accent-green:#f0fdf4;--accent-purple:#f5f3ff;--accent-orange:#fff7ed}
+*{box-sizing:border-box}body{margin:0;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
 
-  // VPN
-  ["ExpressVPN", "ExpressVPN", "VPN", "expressvpn", "DA3940", 1000],
-  ["NordVPN", "NordVPN", "VPN", "nordvpn", "4687FF", 950],
-  ["Surfshark", "Surfshark", "VPN", "surfshark", "18A8B8", 900],
-  ["CyberGhost VPN", "CyberGhost", "VPN", "cyberghost", "F5C542", 850],
-  ["Proton VPN", "Proton", "VPN", "protonvpn", "6D4AFF", 900],
-  ["Private Internet Access", "PIA", "VPN", "privateinternetaccess", "5A2D81", 800],
-  ["Windscribe", "Windscribe", "VPN", "windscribe", "0D7CFF", 750],
-  ["TunnelBear", "TunnelBear", "VPN", "tunnelbear", "1C9BEF", 700],
-
-  // Premium AI
-  ["ChatGPT Plus", "OpenAI", "AI", "openai", "111111", 2000],
-  ["Claude Pro", "Anthropic", "AI", "anthropic", "D97757", 1800],
-  ["Gemini Advanced", "Google Gemini", "AI", "googlegemini", "8E75B2", 1900],
-  ["Microsoft Copilot Pro", "Microsoft", "AI", "microsoftcopilot", "5E5CE6", 1950],
-  ["Perplexity Pro", "Perplexity", "AI", "perplexity", "20B2AA", 1750],
-  ["Midjourney", "Midjourney", "AI", "midjourney", "111111", 2200],
-  ["Canva Pro", "Canva", "AI", "canva", "00C4CC", 1100],
-  ["Adobe Creative Cloud", "Adobe", "AI", "adobecreativecloud", "FF0000", 3500],
-  ["Notion AI", "Notion", "AI", "notion", "000000", 1200],
-  ["Grammarly Premium", "Grammarly", "AI", "grammarly", "15C39A", 1000],
-];
-
-const starterProducts = catalog.map(
-  ([name, brand, type, slug, color, price], index) => ({
-    id: `starter-${index}`,
-    name,
-    brand,
-    type,
-    price,
-    icon: `https://cdn.simpleicons.org/${slug}/${color}`
-  })
-);
-
-if(!data.products || data.products.length === 0) {
-  data.products = starterProducts;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-function getProductIcon(productName) {
-  let matched = data.products.find(p => p.name.toLowerCase() === (productName || '').toLowerCase());
-  if (matched && matched.icon) {
-    return `<img src="${matched.icon}" alt="${matched.name} logo" class="size-10 rounded-xl object-contain" style="width:32px;height:32px;" />`;
+.container > * {
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+
+header{height:auto;min-height:64px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;position:sticky;top:0;z-index:5;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.brand{font-weight:800;font-size:16px;letter-spacing:-0.02em}.brand small{display:block;font-size:9px;color:#94a3b8;margin-top:2px;letter-spacing:0.05em}
+.container{max-width:1100px;margin:auto;padding:24px 16px 92px}
+h1{font-size:24px;margin:4px 0;font-weight:800;letter-spacing:-0.03em}h2{font-size:18px;margin:0;font-weight:700}.muted{color:var(--muted);font-size:13px;font-weight:500}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.01);transition:transform 0.15s ease, box-shadow 0.15s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.04)}
+.card small{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:0.04em}
+.card b{display:block;font-size:22px;margin-top:8px;font-weight:800;letter-spacing:-0.02em}
+.card-blue{border-top:4px solid #2563eb;background:linear-gradient(to bottom, #ffffff, #faf7f0)}
+.card-green{border-top:4px solid #10b981;background:linear-gradient(to bottom, #ffffff, #f4fbf7)}
+.card-purple{border-top:4px solid #8b5cf6;background:linear-gradient(to bottom, #ffffff, #f7f5ff)}
+.card-orange{border-top:4px solid #f59e0b;background:linear-gradient(to bottom, #ffffff, #fbf7f0)}
+section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,0.01)}
+.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
+button{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:#f4efe6;color:#334155;font-family:inherit;transition:background 0.15s}
+button:hover{background:#e8e1d5}
+.primary{background:var(--blue);color:#fff}.primary:hover{background:#1d4ed8}
+.danger{background:#fee2e2;color:#b91c1c}.danger:hover{background:#fecaca}
+.small{padding:7px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #f4efe6;font-size:13px}
+th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:700}.table{overflow:auto}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#ffffff;border-top:1px solid var(--line);display:flex;justify-content:flex-start;gap:6px;padding:8px 12px;z-index:6;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:env(safe-area-inset-bottom,8px);box-shadow:0 -4px 12px rgba(0,0,0,0.02)}
+.bottom::-webkit-scrollbar{display:none}
+.nav{background:transparent;color:#64748b;font-size:11px;min-width:70px;flex-shrink:0;text-align:center;font-weight:600;cursor:pointer;border:none}.nav.on{color:var(--blue)}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:10;padding:15px;place-items:center}.modal.show{display:grid}
+.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:20px;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#334155}
+.field input,.field select,.field textarea{width:100%;border:1px solid #d9d0c1;border-radius:10px;padding:12px;font:inherit;background:#fff;color:#0f172a;outline:none;transition:border-color 0.15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:#f4efe6;color:#475569;border-radius:10px;padding:8px 14px;font-weight:700}.tab.on{background:#dbeafe;color:#1d4ed8}
+.empty{text-align:center;color:var(--muted);padding:32px;font-weight:500}
+.menu-btn{background:transparent;color:#fff;font-size:24px;padding:0 5px;line-height:1}
+.menu-content{display:none;position:absolute;right:18px;top:64px;background:#fff;color:#0f172a;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.1);min-width:200px;z-index:100;flex-direction:column;overflow:hidden}
+.menu-content.show{display:flex}
+.menu-content a{padding:12px 18px;border-bottom:1px solid #f4efe6;cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;color:#334155}
+.menu-content a:hover{background:#faf7f0;color:var(--blue)}
+@media(max-width:700px){
+  .cards{grid-template-columns:1fr 1fr}
+  .grid{grid-template-columns:1fr}
+  .full{grid-column:auto}
+  .card b{font-size:18px}
+}
+</style>
+
+<script>
+  function instantLoginCheck(event) {
+    event.preventDefault(); 
+    const localData = JSON.parse(localStorage.getItem('dr_streaming_manager_v1') || '{}');
+    const correctPassword = (localData.settings && localData.settings.password) ? localData.settings.password : 'admin';
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    if (u === 'admin' && p === correctPassword) {
+      sessionStorage.setItem('auth', 'true');
+      document.getElementById('loginScreen').style.display = 'none';
+      if(window.renderApp) window.renderApp(); 
+    } else {
+      alert("Incorrect Username or Password.");
+    }
+  }
+</script>
+</head>
+<body>
+
+<div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+  <div class="card" style="width:min(90%, 360px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);border-radius:20px;padding:24px">
+    <h2 style="margin-bottom:20px;text-align:center;font-weight:800">DR Streaming</h2>
+    <form onsubmit="instantLoginCheck(event)" class="grid">
+      <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin"></label>
+      <label class="field full"><span>Password</span><input id="loginPass" type="password" required></label>
+      <div class="full" style="margin-top:12px;">
+        <button class="primary" type="submit" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button>
+        <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="if(window.loginWithBiometrics) window.loginWithBiometrics();">👆 Fingerprint / Face ID</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<header>
+  <div class="brand">DR STREAMING<small id="syncStatus">BUSINESS MANAGER • CONNECTING...</small></div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button>
+    <button class="primary small" onclick="openSale()">＋ Sale</button>
+    
+    <div style="position:relative;">
+      <button class="menu-btn" onclick="toggleMenu(event)">⋮</button>
+      <div id="menuDropdown" class="menu-content">
+        <a onclick="go('dashboard');closeMenu()">🏠 Dashboard</a>
+        <a onclick="go('sales');closeMenu()">💰 Sales</a>
+        <a onclick="go('products');closeMenu()">📦 Products</a>
+        <a onclick="go('clients');closeMenu()">👥 Clients</a>
+        <a onclick="go('pending');closeMenu()">⏳ Pending</a>
+        <a onclick="go('expenses');closeMenu()">💸 Expenses</a>
+        <a onclick="go('profit');closeMenu()">📈 Profit</a>
+        <a onclick="go('reports');closeMenu()">📊 Reports</a>
+        <a onclick="go('settings');closeMenu()">⚙️ Settings</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div id="app" class="container"></div>
+
+<nav class="bottom" id="bottomNav">
+<button class="nav on" data-page="dashboard" onclick="go('dashboard')">🏠<br>Home</button>
+<button class="nav" data-page="sales" onclick="go('sales')">💰<br>Sales</button>
+<button class="nav" data-page="products" onclick="go('products')">📦<br>Products</button>
+<button class="nav" data-page="clients" onclick="go('clients')">👥<br>Clients</button>
+<button class="nav" data-page="pending" onclick="go('pending')">⏳<br>Pending</button>
+<button class="nav" data-page="expenses" onclick="go('expenses')">💸<br>Expenses</button>
+<button class="nav" data-page="profit" onclick="go('profit')">📈<br>Profit</button>
+<button class="nav" data-page="reports" onclick="go('reports')">📊<br>Reports</button>
+<button class="nav" data-page="settings" onclick="go('settings')">⚙️<br>Settings</button>
+</nav>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBDarSjtR0RhflCSttQ1XWr3oKMNe2_43Y",
+  authDomain: "dr-streaming.firebaseapp.com",
+  projectId: "dr-streaming",
+  storageBucket: "dr-streaming.firebasestorage.app",
+  messagingSenderId: "702895699219",
+  appId: "1:702895699219:web:e4773b6f22571bcc7f56e6",
+  measurementId: "G-J2VP61C6GS"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const firestore = getFirestore(firebaseApp);
+const cloudRef = doc(firestore, "dr_streaming", "main");
+let cloudReady = false;
+let saving = false;
+
+const DB='dr_streaming_manager_v1';
+let data=JSON.parse(localStorage.getItem(DB)||'{}');
+
+if(!data.sales) data.sales=[];
+if(!data.expenses) data.expenses=[];
+if(!data.settings) data.settings={password:'admin', username:'admin'}; 
+
+const iconMap = {
+  'netflix pakistan': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#01411C"/><path d="M141.5 96h60l110 320h-60l-110-320z" fill="#E50914"/><path d="M141.5 96h55v320h-55z" fill="#E50914"/><path d="M315.5 96h55v320h-55z" fill="#E50914"/><path d="M201.5 96h60l110 320h-60l-110-320z" fill="#E50914"/></svg>',
+  'netflix': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#111"/><path d="M141.5 64h60l110 384h-60l-110-384z" fill="#E50914"/><path d="M141.5 64h55v384h-55z" fill="#E50914"/><path d="M315.5 64h55v384h-55z" fill="#E50914"/><path d="M201.5 64h60l110 384h-60l-110-384z" fill="#E50914"/></svg>',
+  'prime': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#131A22"/><path d="M140 280c25 50 80 80 140 80 60 0 115-30 140-80" stroke="#00A8E1" stroke-width="28" fill="none" stroke-linecap="round"/><path d="M380 250l40 35-45 20" fill="#00A8E1"/></svg>',
+  'sony': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#003791"/><text x="256" y="300" fill="#fff" font-family="Arial" font-weight="900" font-size="120" text-anchor="middle">SONY</text></svg>',
+  'hotstar': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#0f1026"/><path d="M256 96l40 90 95 15-70 65 20 95-85-50-85 50 20-95-70-65 95-15z" fill="#1f80e0"/></svg>',
+  'iptv': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#065F46"/><path d="M96 144h320v200H96z" fill="none" stroke="#34D399" stroke-width="32" rx="16"/><path d="M192 344l-32 56h192l-32-56" fill="none" stroke="#34D399" stroke-width="32" stroke-linecap="round"/></svg>',
+  'vpn': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#DC2626"/><circle cx="256" cy="256" r="110" fill="none" stroke="#fff" stroke-width="32"/><path d="M256 146v220M146 256h220" stroke="#fff" stroke-width="32" stroke-linecap="round"/></svg>',
+  'chatgpt': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#10A37F"/><path d="M336 210c-10-40-40-70-80-70-50 0-90 40-90 90 0 10 2 20 5 30-30 15-50 45-50 80 0 50 40 90 90 90 35 0 65-20 80-50 10 3 20 5 30 5 50 0 90-40 90-90 0-40-25-75-65-85z" fill="#fff"/></svg>',
+  'claude': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#D97706"/><circle cx="256" cy="256" r="120" fill="#fff"/></svg>',
+  'midjourney': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#4F46E5"/><path d="M160 360V152h48v208h-48zm144 0V152h48v208h-48z" fill="#fff"/></svg>',
+  'capcut': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#000"/><path d="M200 160l112 96-112 96V160z" fill="#fff"/></svg>',
+  'heygen': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#8B5CF6"/><circle cx="256" cy="256" r="100" fill="#fff"/></svg>'
+};
+
+function getProductIcon(name){
+  let n = (name || '').toLowerCase();
+  for(let key in iconMap){
+    if(n.includes(key)) return iconMap[key];
   }
   return '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#E2E8F0"/><path d="M256 160v192M160 256h192" stroke="#64748B" stroke-width="32" stroke-linecap="round"/></svg>';
 }
 
-window.filterCatalogSearch = function() {
-  let query = document.getElementById('catalogSearchInput').value.toLowerCase();
-  let items = document.querySelectorAll('.prefetch-chip-container');
-  items.forEach(item => {
-    let text = item.getAttribute('data-name').toLowerCase();
-    item.style.display = text.includes(query) ? 'flex' : 'none';
+const defaultProducts = [
+  { id: 1, name: 'Netflix Global', type: 'Subscription', price: 1200 },
+  { id: 2, name: 'Netflix Pakistan', type: 'Subscription', price: 1100 },
+  { id: 3, name: 'Prime Video', type: 'Subscription', price: 800 },
+  { id: 4, name: 'Sony Liv', type: 'Subscription', price: 700 },
+  { id: 5, name: 'JioHotstar', type: 'Subscription', price: 750 },
+  { id: 6, name: 'My OTT IPTV', type: 'Subscription', price: 1500 },
+  { id: 7, name: 'ExpressVPN', type: 'Subscription', price: 1000 },
+  { id: 8, name: 'NordVPN', type: 'Subscription', price: 950 },
+  { id: 9, name: 'Surfshark VPN', type: 'Subscription', price: 900 },
+  { id: 10, name: 'ChatGPT Plus', type: 'Subscription', price: 2000 },
+  { id: 11, name: 'Claude AI', type: 'Subscription', price: 1800 },
+  { id: 12, name: 'Midjourney', type: 'Subscription', price: 2200 },
+  { id: 13, name: 'HeyGen AI', type: 'Subscription', price: 2500 }
+];
+
+if(!data.products || data.products.length === 0) {
+  data.products = defaultProducts;
+}
+
+let page='dashboard', reportRange='month', dashMode='current';
+
+function getBuffer(len) {
+  const b = new Uint8Array(len);
+  window.crypto.getRandomValues(b);
+  return b;
+}
+
+window.setupBiometrics = async function() {
+  if (!window.PublicKeyCredential) {
+    alert("Biometric login is not supported on this browser or device.");
+    return;
+  }
+  try {
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: getBuffer(32),
+        rp: { name: "DR Streaming", id: window.location.hostname || "localhost" },
+        user: { id: getBuffer(16), name: "admin", displayName: "Admin" },
+        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+        timeout: 60000,
+        attestation: "none"
+      }
+    });
+    const credId = Array.from(new Uint8Array(cred.rawId));
+    localStorage.setItem('bioCredId', JSON.stringify(credId));
+    alert("Fingerprint / Face ID setup successful!");
+    document.getElementById('bioLoginBtn').style.display = 'block';
+  } catch(e) {
+    console.error(e);
+    alert("Biometric setup failed or was canceled.");
+  }
+}
+
+window.loginWithBiometrics = async function() {
+  const storedId = JSON.parse(localStorage.getItem('bioCredId'));
+  if(!storedId) return alert("Biometrics not set up yet. Log in with password and enable it in Settings.");
+  try {
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge: getBuffer(32),
+        rpId: window.location.hostname || "localhost",
+        allowCredentials: [{ type: "public-key", id: new Uint8Array(storedId) }],
+        userVerification: "required",
+        timeout: 60000
+      }
+    });
+    if(assertion) {
+      sessionStorage.setItem('auth', 'true');
+      document.getElementById('loginScreen').style.display = 'none';
+      render();
+    }
+  } catch(e) {
+    console.error(e);
+    alert("Fingerprint / Face ID verification failed.");
+  }
+}
+
+window.signOutApp = function() {
+  sessionStorage.removeItem('auth');
+  window.location.reload();
+}
+
+window.onload = () => {
+  if(sessionStorage.getItem('auth') === 'true') {
+    document.getElementById('loginScreen').style.display = 'none';
+  }
+  if(localStorage.getItem('bioCredId') && window.PublicKeyCredential) {
+    document.getElementById('bioLoginBtn').style.display = 'block';
+  }
+}
+
+window.toggleMenu = function(e) {
+  e.stopPropagation();
+  document.getElementById('menuDropdown').classList.toggle('show');
+}
+window.closeMenu = function() {
+  document.getElementById('menuDropdown').classList.remove('show');
+}
+window.onclick = function(e) {
+  if (!e.target.matches('.menu-btn')) {
+    window.closeMenu();
+  }
+}
+
+window.saveCredentials = function(e) {
+  e.preventDefault();
+  let u = document.getElementById('settingsUser').value.trim();
+  let c = document.getElementById('settingsCurr').value;
+  let n = document.getElementById('settingsNew').value;
+  if(c !== data.settings.password) {
+    alert('Current password incorrect!');
+    return;
+  }
+  data.settings.username = u;
+  if(n) data.settings.password = n;
+  save();
+  alert('Credentials updated successfully!');
+  render();
+}
+
+const waSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16" style="vertical-align:middle;margin-left:6px;cursor:pointer;"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>`;
+const waBtnSVG = waSVG.replace('fill="#25D366"','fill="#ffffff"').replace('margin-left:6px;','margin-right:8px;');
+
+async function save(){
+  localStorage.setItem(DB,JSON.stringify(data));
+  if(!cloudReady) return;
+  try{
+    saving=true;
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • SAVING...';
+    await setDoc(cloudRef,{data,updatedAt:new Date().toISOString()});
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
+  }catch(e){
+    console.error(e);
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE COPY SAVED';
+  }finally{saving=false}
+}
+
+const rs=n=>'Rs. '+Number(n||0).toLocaleString('en-PK');
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const dateObj=d=>new Date(d+'T00:00:00');
+const expiry=(d,n)=>{let x=dateObj(d);x.setDate(x.getDate()+Number(n));return x.toISOString().slice(0,10)};
+const days=d=>Math.ceil((dateObj(d)-new Date(new Date().toDateString()))/86400000);
+const status=s=>!s.expiry?'—':days(s.expiry)<0?'Expired':days(s.expiry)<=7?'Expiring':'Active';
+
+// DYNAMIC MONTH-BASED FILTERING FOR ALL FUTURE MONTHS AUTOMATICALLY
+const getFilteredSales = () => {
+  const now = new Date();
+  let targetYear = now.getFullYear();
+  let targetMonth = now.getMonth();
+
+  if(dashMode === 'prev') {
+    targetMonth -= 1;
+    if(targetMonth < 0) {
+      targetMonth = 11;
+      targetYear -= 1;
+    }
+  }
+
+  return data.sales.filter(s => {
+    let d = dateObj(s.date);
+    return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
   });
+};
+
+const getFilteredExpenses = () => {
+  const now = new Date();
+  let targetYear = now.getFullYear();
+  let targetMonth = now.getMonth();
+
+  if(dashMode === 'prev') {
+    targetMonth -= 1;
+    if(targetMonth < 0) {
+      targetMonth = 11;
+      targetYear -= 1;
+    }
+  }
+
+  return data.expenses.filter(e => {
+    let d = dateObj(e.date);
+    return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+  });
+};
+
+const income=a=>a.filter(s=>s.payment==='Paid').reduce((x,s)=>x+Number(s.amount||0),0) + a.filter(s=>s.payment==='Partial').reduce((x,s)=>x+Number(s.partialPaid||0),0);
+const grossSales=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
+const purchase=a=>a.filter(s=>s.payment==='Paid' || s.payment==='Partial').reduce((x,s)=>x+Number(s.purchase||0),0);
+const expenses=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
+
+function modal(html){modalBox.innerHTML=html;document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function go(p){page=p;document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.page===p));render()}
+
+function dashboard(){
+ const activeSales = getFilteredSales();
+ const activeExpList = getFilteredExpenses();
+ const paid=income(activeSales), gross=grossSales(activeSales);
+ const r=income(activeSales.filter(s=>s.owner==='Manager')), a=income(activeSales.filter(s=>s.owner==='Admin'));
+ const cost=purchase(activeSales), exp=expenses(activeExpList), profit=paid-cost-exp;
+ const pending=data.sales.filter(s=>s.payment!=='Paid');
+ 
+ const now = new Date();
+ let prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+ const prevMonthName = prevDate.toLocaleString('default', { month: 'long' });
+ const currMonthName = now.toLocaleString('default', { month: 'long' });
+ const currentDateTimeStr = now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+ return `<h1>Business Overview</h1>
+ <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px;flex-wrap:wrap;gap:8px;">
+   <div>
+     <p class="muted" style="margin:0;">📅 Synced: <b>${currentDateTimeStr}</b></p>
+     <p class="muted" style="margin:2px 0 0 0;">${dashMode==='prev'?'Showing statistics for '+prevMonthName+' (Previous Month)':'Showing statistics for '+currMonthName+' (Current Month)'}</p>
+   </div>
+   <button class="small ${dashMode==='prev'?'primary':''}" onclick="dashMode=dashMode==='prev'?'current':'prev';render()" style="font-weight:700">⏮️ ${dashMode==='prev'?'Switch to Current Month ('+currMonthName+')':'View Previous Month ('+prevMonthName+')'}</button>
+ </div>
+ <div class="cards">
+ <div class="card card-blue" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b></div>
+ <div class="card card-orange" onclick="showDetails('purchase')" style="cursor:pointer"><small>🛒 PURCHASE COST</small><b>${rs(cost)}</b></div>
+ <div class="card card-purple" onclick="showDetails('expenses')" style="cursor:pointer"><small>💸 EXPENSES</small><b>${rs(exp)}</b></div>
+ <div class="card card-green" onclick="showDetails('profit')" style="cursor:pointer"><small>📈 NET PROFIT</small><b>${rs(profit)}</b></div>
+ <div class="card card-blue" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b></div>
+ <div class="card card-green" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b></div>
+ <div class="card card-purple" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TRANSACTIONS</small><b>${activeSales.length}</b></div>
+ <div class="card card-orange" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted" style="font-size:11px">${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} remaining →</span></div>
+ </div>
+ <section><div class="sectionHead"><h2>Recent Orders</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(activeSales.slice(0,6),false)}</section>
+ <section><div class="sectionHead"><h2>🔔 Expiring Soon</h2></div>${salesTable(data.sales.filter(s=>s.type==='Subscription'&&days(s.expiry)>=0&&days(s.expiry)<=14),false)}</section>`;
+}
+
+function settingsPage(){
+ return `<h1>Settings & Security</h1><p class="muted">Manage your security credentials and sign out</p>
+ <section>
+   <h2>Account Credentials</h2>
+   <form onsubmit="saveCredentials(event)" class="grid" style="margin-top:12px;max-width:500px">
+     <label class="field full"><span>Username</span><input id="settingsUser" value="${esc(data.settings.username || 'admin')}" required></label>
+     <label class="field full"><span>Current Password</span><input id="settingsCurr" type="password" required></label>
+     <label class="field full"><span>New Password</span><input id="settingsNew" type="password" placeholder="Leave blank to keep current"></label>
+     <div class="full actions"><button class="primary" type="submit">Save Changes</button></div>
+   </form>
+ </section>
+ <section>
+   <h2>Biometric Login</h2>
+   <p class="muted">Enable device fingerprint or Face ID for fast one-tap sign-in.</p>
+   <button class="primary" style="background:#10b981;margin-top:10px" onclick="setupBiometrics()">👆 Enable Fingerprint Login</button>
+ </section>
+ <section>
+   <h2>Session Control</h2>
+   <p class="muted">Securely log out of your session on this device.</p>
+   <button class="danger" style="margin-top:10px" onclick="signOutApp()">🚪 Sign Out</button>
+ </section>`;
+}
+
+function showDetails(type){
+ const activeSales = getFilteredSales();
+ const activeExpList = getFilteredExpenses();
+ const paid=income(activeSales), cost=purchase(activeSales), exp=expenses(activeExpList);
+ const pending=data.sales.filter(s=>s.payment!=='Paid');
+ let title='',body='';
+ const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}${s.payment==='Partial'?`<br><span style="font-size:10px;color:var(--muted)">Paid: ${rs(s.partialPaid)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
+ if(type==='income'){title=`💼 Paid Income (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<h2>${rs(paid)}</h2>${list(activeSales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
+ if(type==='purchase'){let purchased=activeSales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title=`🛒 Purchase Cost (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
+ if(type==='expenses'){title=`💸 Business Expenses (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<h2>${rs(exp)}</h2>${list(activeExpList)}<br><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
+ if(type==='profit'){title=`📈 Net Profit Breakdown (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<div class="card card-blue"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card card-orange"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card card-purple"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card card-green"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
+ if(type==='manager'){let a=activeSales.filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='admin'){let a=activeSales.filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='transactions'){title='📦 Transactions';body=`<p class="muted">${activeSales.length} records</p>${list(activeSales)}`;}
+ if(type==='pending'){title='⏳ Pending Payments (All-Time)';body=`<h2>${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} Remaining</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
+ modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
+}
+
+window.prefetchProduct = function(name, price, type, tenure) {
+  document.getElementById('customProduct').value = name;
+  document.getElementById('sa').value = price;
+  document.getElementById('stm').value = tenure;
+  document.querySelectorAll('.prefetch-chip').forEach(c => c.style.borderColor = '#d9d0c1');
+  event.currentTarget.style.borderColor = 'var(--blue)';
 }
 
 function openSale(){
-  let prefetchChips = data.products.map(p => `
-    <div class="prefetch-chip-container" data-name="${esc(p.name)}" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type || 'Subscription'}', 30)" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s">
-      <img src="${p.icon || 'https://cdn.simpleicons.org/applemusic/000000'}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />
-      <div style="text-align:left">
-        <span style="font-weight:bold;font-size:12px;color:#0f172a">${esc(p.name)}</span><br>
-        <span class="muted" style="font-size:11px">${rs(p.price)}</span>
-      </div>
-    </div>`).join('');
+  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<div style="text-align:left"><span>${esc(p.name)}</span><br><span class="muted">${rs(p.price)}</span></div></div>`).join('');
   
-  let opts = data.products.map(p => `<option value="${p.id}">${esc(p.name)} — ${p.type || 'Subscription'}</option>`).join('');
+  let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
+  modal(`<div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
+  <label class="field full"><span>⚡ Quick-Select Prefetch (Click any app):</span><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:200px;overflow-y:auto;padding:4px 0">${prefetchChips}</div></label>
+  <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
+  <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
+  <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" placeholder="Type custom product name"></label>
+  <label class="field"><span>Client Name *</span><input id="sc" required placeholder="Customer Name"></label>
+  <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
+  <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
+  <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
+  <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${today()}" required></label>
+  <label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
+  <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
+  <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
   
-  modal(`<div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div>
-  <form id="sf" class="grid">
-    <label class="field full">
-      <span>⚡ Search & Quick-Select Product Catalog:</span>
-      <input id="catalogSearchInput" onkeyup="filterCatalogSearch()" placeholder="🔍 Type to search Netflix, VPN, AI..." style="margin:6px 0 10px 0;padding:10px;border-radius:10px;border:1px solid #d9d0c1;font-size:13px;outline:none;" />
-      <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;padding:4px 0">${prefetchChips}</div>
-    </label>
-    <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
-    <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
-    <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" placeholder="Type custom product name"></label>
-    <label class="field"><span>Client Name *</span><input id="sc" required placeholder="Customer Name"></label>
-    <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
-    <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
-    <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
-    <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${today()}" required></label>
-    <label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
-    <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
-    <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
-    
-    <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
-    <label class="field" id="partialDiv" style="display:none;background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="0"></label>
-    
-    <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 30"></label>
-    <label class="field full"><span>Notes</span><textarea id="sn" placeholder="Optional notes"></textarea></label>
-    <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div>
-  </form>`);
+  <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
+  <label class="field" id="partialDiv" style="display:none;background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="0"></label>
+  
+  <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 30"></label>
+  <label class="field full"><span>Notes</span><textarea id="sn" placeholder="Optional notes"></textarea></label>
+  <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div></form>`);
 
   document.getElementById('sp').onchange = () => {
     let p = data.products.find(x => x.id == document.getElementById('sp').value);
     if(p){
       document.getElementById('customProduct').value = p.name;
       document.getElementById('sa').value = p.price;
-      document.getElementById('stm').value = '30';
+      document.getElementById('stm').value = p.type === 'Subscription' ? '30' : '0';
     }
   };
 
@@ -143,8 +535,482 @@ function openSale(){
       partialPaid: document.getElementById('payment').value === 'Partial' ? +document.getElementById('partialPaid').value : 0,
       tenure: tenureVal,
       notes: document.getElementById('sn').value,
-      type: pMatch?.type || 'Subscription'
+      type: tenureVal ? 'Subscription' : (pMatch?.type || 'Product')
     });
     save(); closeModal(); render();
   };
 }
+
+function openProduct() {
+  modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div>
+  <form id="pf" class="grid">
+    <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix Global, Prime Video"></label>
+    <label class="field"><span>Price (Rs) *</span><input id="pp" type="number" required placeholder="1000"></label>
+    <label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label>
+    <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div>
+  </form>`);
+  
+  document.getElementById('pf').onsubmit = e => {
+    e.preventDefault();
+    data.products.push({
+      id: Date.now(),
+      name: document.getElementById('pn').value.trim(),
+      price: +document.getElementById('pp').value,
+      type: document.getElementById('pt').value
+    });
+    save();
+    closeModal();
+    render();
+  };
+}
+
+function delSale(id){
+  if(confirm('Are you sure you want to delete this sale?')) {
+    data.sales = data.sales.filter(s => s.id !== id);
+    save(); render();
+  }
+}
+
+function delProduct(id){
+  if(confirm('Are you sure you want to delete this product?')) {
+    data.products = data.products.filter(p => p.id !== id);
+    save(); render();
+  }
+}
+
+function backup(){
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `dr_streaming_backup_${today()}.json`;
+  a.click();
+}
+
+function restore(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if(parsed.sales && parsed.products) {
+        data = parsed;
+        save();
+        render();
+        alert('Data restored successfully!');
+      } else {
+        alert('Invalid backup file format.');
+      }
+    } catch(err) {
+      alert('Failed to parse backup JSON.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function editSale(id){
+  let s = data.sales.find(x => x.id === id);
+  if(!s) return;
+  let opts=data.products.map(p=>`<option value="${p.id}" ${s.product===p.name?'selected':''}>${esc(p.name)} — ${p.type}</option>`).join('');
+  
+  modal(`<div class="sectionHead"><h2>Edit Full Record</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
+  <label class="field"><span>Sold By *</span><select id="so"><option ${s.owner==='Admin'?'selected':''}>Admin</option><option ${s.owner==='Manager'?'selected':''}>Manager</option></select></label>
+  <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
+  <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" value="${esc(s.product)}" placeholder="Use if product is not in list"></label>
+  <label class="field"><span>Client Name *</span><input id="sc" required value="${esc(s.client)}"></label>
+  <label class="field"><span>Phone / WhatsApp</span><input id="sph" value="${esc(s.phone||'')}"></label>
+  <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required value="${s.amount}"></label>
+  <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="${s.purchase||0}" placeholder="What you paid"></label>
+  <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${s.date}" required></label>
+  <label class="field"><span>Purchase Date</span><input id="spdate" type="date" value="${s.purchaseDate||''}"></label>
+  <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date" value="${s.paymentDate||''}"></label>
+  <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date" value="${s.expiry||''}"></label>
+  
+  <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option ${s.payment==='Paid'?'selected':''}>Paid</option><option ${s.payment==='Pending'?'selected':''}>Pending</option><option ${s.payment==='Partial'?'selected':''}>Partial</option></select></label>
+  <label class="field" id="partialDiv" style="display:${s.payment==='Partial'?'flex':'none'};background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="${s.partialPaid||0}"></label>
+  
+  <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="${s.tenure||0}" placeholder="e.g. 7, 25, 27, 30"></label>
+  <label class="field full"><span>Notes</span><textarea id="sn">${esc(s.notes||'')}</textarea></label>
+  <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary" style="background:#fef3c7;color:#92400e">Save Updates</button></div></form>`);
+  
+  document.getElementById('sp').onchange = () => {
+    let p = data.products.find(x => x.id == document.getElementById('sp').value);
+    if(p){
+      document.getElementById('customProduct').value = p.name; 
+      document.getElementById('sa').value = p.price;
+      document.getElementById('stm').value = p.type === 'Subscription' ? '30' : '0';
+    }
+  };
+  
+  document.getElementById('sf').onsubmit = e => {
+    e.preventDefault();
+    let name = document.getElementById('customProduct').value.trim();
+    if(!name && document.getElementById('sp').value){
+      let p = data.products.find(x => x.id == document.getElementById('sp').value);
+      if(p) name = p.name;
+    }
+    if(!name){ alert('Add product name'); return; }
+    
+    s.owner = document.getElementById('so').value; 
+    s.client = document.getElementById('sc').value; 
+    s.phone = document.getElementById('sph').value; 
+    s.product = name;
+    s.amount = +document.getElementById('sa').value; 
+    s.purchase = +document.getElementById('spurchase').value; 
+    s.payment = document.getElementById('payment').value;
+    s.partialPaid = s.payment === 'Partial' ? +document.getElementById('partialPaid').value : 0;
+    s.date = document.getElementById('sd').value; 
+    s.purchaseDate = document.getElementById('spdate').value; 
+    s.paymentDate = document.getElementById('spaymentdate').value;
+    s.tenure = +document.getElementById('stm').value; 
+    s.expiry = document.getElementById('sexpiry').value; 
+    s.notes = document.getElementById('sn').value;
+    
+    let pMatch = data.products.find(x => x.name === name);
+    s.type = s.tenure ? 'Subscription' : (pMatch?.type || 'Product');
+    if(s.tenure && !s.expiry) s.expiry = expiry(s.date, s.tenure);
+    
+    save(); closeModal(); render();
+  }
+}
+
+function salesTable(a,actions=true){
+ if(!a.length)return '<div class="empty">No records yet.</div>';
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(s.amount - (s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+}
+function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
+
+function productsPage(){
+ const now=new Date();
+ let totalQty=0; let totalProfit=0;
+ 
+ const rows = data.products.map(p=>{
+   let pSales = data.sales.filter(s => {
+     if(s.product !== p.name || s.payment === 'Pending') return false;
+     let d = dateObj(s.date);
+     if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+     if(reportRange==='year') return d.getFullYear()===now.getFullYear();
+     return true;
+   });
+   let qty = pSales.length;
+   let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?s.partialPaid:Number(s.amount||0)) - Number(s.purchase||0)), 0);
+   totalQty += qty;
+   totalProfit += profit;
+   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td><td>${rs(p.price)}</td><td><span style="background:#f4efe6;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
+ }).join('');
+
+ return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
+ <div class="tabs" style="margin-bottom:14px">
+   <button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button>
+   <button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button>
+   <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
+ </div>
+ <div class="cards">
+   <div class="card card-blue"><small>TOTAL QTY SOLD</small><b>${totalQty}x</b></div>
+   <div class="card card-green"><small>TOTAL NET PROFIT</small><b>${rs(totalProfit)}</b></div>
+ </div>
+ <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product Icon</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`
+}
+
+function viewProduct(id){
+  let p = data.products.find(x => x.id === id);
+  if(!p) return;
+  const now = new Date();
+  let pSales = data.sales.filter(s => {
+     if(s.product !== p.name || s.payment === 'Pending') return false;
+     let d = dateObj(s.date);
+     if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+     if(reportRange==='year') return d.getFullYear()===now.getFullYear();
+     return true;
+  });
+  
+  let qty = pSales.length;
+  let revenue = pSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
+  let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?s.partialPaid:Number(s.amount||0)) - Number(s.purchase||0)), 0);
+
+  modal(`<div class="sectionHead"><h2>${esc(p.name)} Analytics</h2><button onclick="closeModal()">×</button></div>
+  <div class="cards">
+    <div class="card card-blue"><small>QUANTITY SOLD</small><b>${qty}x</b></div>
+    <div class="card card-green"><small>TOTAL REVENUE</small><b>${rs(revenue)}</b></div>
+    <div class="card card-purple"><small>NET PROFIT</small><b>${rs(profit)}</b></div>
+  </div>
+  <br>
+  <div class="table"><table><thead><tr><th>Date</th><th>Client</th><th>Revenue</th><th>Profit</th></tr></thead><tbody>
+  ${pSales.length ? pSales.map(s=>{
+    let rev = s.payment==='Partial' ? s.partialPaid : Number(s.amount||0);
+    let prof = rev - Number(s.purchase||0);
+    return `<tr><td>${s.date}</td><td><b>${esc(s.client)}</b></td><td>${rs(rev)}</td><td><b style="color:#166534">${rs(prof)}</b></td></tr>`;
+  }).join('') : `<tr><td colspan="4" class="empty">No paid sales found for this period.</td></tr>`}
+  </tbody></table></div>`);
+}
+
+function clientsPage(){
+ let map={};data.sales.forEach(s=>{if(!s.client)return;let k=s.client+'|'+(s.phone||'');if(!map[k])map[k]={name:s.client,phone:s.phone,total:0,count:0};map[k].total+=Number(s.amount);map[k].count++});
+ let a=Object.values(map);return `<h1>Clients</h1><p class="muted">All customers and their purchases</p><section>${a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Phone</th><th>Purchases</th><th>Total</th><th>Action</th></tr></thead><tbody>${a.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'—')} ${c.phone?`<a href="https://wa.me/${String(c.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${c.count}</td><td>${rs(c.total)}</td><td><button class="small" onclick="editClient(decodeURIComponent('${encodeURIComponent(c.name)}'), decodeURIComponent('${encodeURIComponent(c.phone||'')}'))" title="Edit Client">✏️ Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No clients yet.</div>'}</section>`
+}
+
+function editClient(oldName, oldPhone){
+  modal(`<div class="sectionHead"><h2>Edit Client Info</h2><button onclick="closeModal()">×</button></div>
+  <form id="editClientForm" class="grid">
+    <p class="full muted" style="margin-top:0;">Updates the name and phone number for <b>all</b> records belonging to this client.</p>
+    <label class="field full"><span>Client Name *</span><input id="editCName" required value="${esc(oldName)}"></label>
+    <label class="field full"><span>Phone / WhatsApp</span><input id="editCPhone" value="${esc(oldPhone)}"></label>
+    <div class="full actions">
+      <button type="button" onclick="closeModal()">Cancel</button>
+      <button class="primary" type="submit">Save Changes</button>
+    </div>
+  </form>`);
+
+  document.getElementById('editClientForm').onsubmit = e => {
+    e.preventDefault();
+    const newName = document.getElementById('editCName').value.trim();
+    const newPhone = document.getElementById('editCPhone').value.trim();
+    
+    if(!newName) return;
+
+    data.sales.forEach(s => {
+      if(s.client === oldName && (s.phone || '') === oldPhone) {
+        s.client = newName;
+        s.phone = newPhone;
+      }
+    });
+
+    save();
+    closeModal();
+    render();
+  };
+}
+
+function pendingPage(){
+ const pending=data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
+ const total=pending.reduce((a,s)=>a+(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0)),0);
+ return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
+ <section><div class="cards"><div class="card card-orange"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card card-blue"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
+ ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Total Bill</th><th>Remaining</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><b style="color:#b91c1c">${rs(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0))}</b></td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td style="white-space:nowrap"><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
+}
+function markPaid(id){
+ let sale=data.sales.find(s=>s.id===id);
+ if(sale){
+   sale.payment='Paid';
+   sale.partialPaid=0;
+   sale.paymentDate=prompt('Payment date (YYYY-MM-DD):', sale.paymentDate||today())||today();
+   save();render();
+ }
+}
+function quickPayment(id, value){
+  let sale=data.sales.find(s=>s.id===id);
+  if(sale){
+    if(value === 'Partial') {
+      let p = prompt(`Enter amount paid so far (Total Bill: Rs. ${sale.amount}):`, sale.partialPaid || 0);
+      if(p !== null && !isNaN(p)) {
+        sale.partialPaid = Number(p);
+      } else {
+        render(); return; 
+      }
+    }
+    sale.payment=value;
+    if(value==='Paid'&&!sale.paymentDate)sale.paymentDate=today();
+    if(value!=='Partial') sale.partialPaid = 0;
+    save();render();
+  }
+}
+function viewClient(id){
+  let s = data.sales.find(x => x.id === id);
+  if(!s) return;
+  modal(`<div class="sectionHead"><h2>Client Details</h2><div><button class="small" style="background:#fef3c7;color:#92400e;margin-right:8px" onclick="editSale(${id})">✏️ Edit Record</button><button onclick="closeModal()">×</button></div></div>
+  <div class="grid">
+    <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:inline-flex;align-items:center;font-weight:bold;">${waBtnSVG} Message on WhatsApp</a>`:''}</div>
+    <div class="card"><small>Product / Service</small><b>${esc(s.product)}</b><span class="muted">${s.type}</span></div>
+    <div class="card"><small>Total Amount</small><b>${rs(s.amount)}</b></div>
+    <div class="card"><small>Payment Status</small><b>${s.payment}</b>${s.payment==='Partial'?`<span class="muted" style="display:block;margin-top:4px">Paid: ${rs(s.partialPaid)}<br>Remaining: <b style="color:#b91c1c">${rs(s.amount-(s.partialPaid||0))}</b></span>`:''}</div>
+    <div class="card"><small>Subscription Status</small><b>${status(s)}</b></div>
+    <div class="card"><small>Sale Date</small><b>${s.date}</b></div>
+    <div class="card"><small>Expiry Date</small><b>${s.expiry||'N/A'}</b></div>
+    <div class="card full"><small>Notes</small><b>${esc(s.notes||'None')}</b></div>
+  </div>`);
+}
+function expensesPage(){
+ return `<div class="sectionHead"><div><h1>Expenses</h1><span class="muted">Business expenses and outgoing payments</span></div><button class="primary" onclick="openExpense()">＋ Add Expense</button></div>
+ <section><div class="cards"><div class="card card-orange"><small>TOTAL EXPENSES</small><b>${rs(expenses(data.expenses))}</b></div></div>
+ ${data.expenses.length?`<div class="table"><table><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>${data.expenses.map(e=>`<tr><td>${e.date}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.category)}</td><td>${rs(e.amount)}</td><td><button class="danger small" onclick="delExpense(${e.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No expenses recorded yet.</div>'}</section>`;
+}
+function openExpense(){
+ modal(`<div class="sectionHead"><h2>Add Expense</h2><button onclick="closeModal()">×</button></div><form id="ef" class="grid">
+ <label class="field"><span>Expense Name *</span><input id="en" required placeholder="Internet Bill"></label>
+ <label class="field"><span>Category</span><select id="ec"><option>Business</option><option>Internet</option><option>Marketing</option><option>Software</option><option>Other</option></select></label>
+ <label class="field"><span>Amount *</span><input id="ea" type="number" required></label>
+ <label class="field"><span>Date</span><input id="ed" type="date" value="${today()}" required></label>
+ <label class="field full"><span>Notes</span><textarea id="enote"></textarea></label>
+ <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Expense</button></div></form>`);
+ ef.onsubmit=e=>{e.preventDefault();data.expenses.unshift({id:Date.now(),name:en.value,category:ec.value,amount:+ea.value,date:ed.value,notes:enote.value});save();closeModal();render()}
+}
+function delExpense(id){if(confirm('Delete this expense?')){data.expenses=data.expenses.filter(e=>e.id!==id);save();render()}}
+
+function profitPage(){
+ const now=new Date();
+ const filteredSales = data.sales.filter(s => {
+   if(s.payment === 'Pending') return false; 
+   let d = dateObj(s.date);
+   if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+   if(reportRange==='year') return d.getFullYear()===now.getFullYear();
+   return true;
+ });
+ const periodExpenses = data.expenses.filter(e => {
+   let d = dateObj(e.date);
+   if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+   if(reportRange==='year') return d.getFullYear()===now.getFullYear();
+   return true;
+ });
+ 
+ const totalRev = filteredSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
+ const totalCost = filteredSales.reduce((sum, s) => sum + Number(s.purchase||0), 0);
+ const totalExp = periodExpenses.reduce((sum, e) => sum + Number(e.amount||0), 0);
+ const netProfit = totalRev - totalCost - totalExp;
+ 
+ const productRows = data.products.map(p => {
+   const pSales = filteredSales.filter(s => s.product === p.name);
+   const pQty = pSales.length;
+   const pRev = pSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
+   const pCost = pSales.reduce((sum, s) => sum + Number(s.purchase||0), 0);
+   const pProfit = pRev - pCost;
+   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<b>${esc(p.name)}</b></div></td><td><span style="background:#f4efe6;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
+ }).join('');
+
+ return `<div class="sectionHead"><div><h1>Profit Analytics</h1><span class="muted">Ultimate breakdown of revenue, costs, and profit</span></div></div>
+ <div class="tabs" style="margin-bottom:14px">
+   <button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button>
+   <button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button>
+   <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
+ </div>
+ <div class="cards">
+   <div class="card card-blue"><small>TOTAL REVENUE</small><b>${rs(totalRev)}</b></div>
+   <div class="card card-orange"><small>TOTAL PRODUCT COST</small><b>${rs(totalCost)}</b></div>
+   <div class="card card-purple"><small>TOTAL EXPENSES</small><b>${rs(totalExp)}</b></div>
+   <div class="card card-green"><small>ULTIMATE NET PROFIT</small><b style="color:#166534">${rs(netProfit)}</b></div>
+ </div>
+ <section><h2>Detailed Product Profits</h2>
+ <div class="table"><table><thead><tr><th>Product Icon</th><th>Qty Sold</th><th>Revenue</th><th>Purchase Cost</th><th>Net Profit</th></tr></thead><tbody>${productRows||'<tr><td colspan="5" class="empty">No products found.</td></tr>'}</tbody></table></div></section>`;
+}
+
+function reports(){
+ const now=new Date(), filtered=data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
+ const r=income(filtered.filter(s=>s.owner==='Manager')),t=income(filtered.filter(s=>s.owner==='Admin'));
+ const periodExpenses=data.expenses.filter(e=>{let d=dateObj(e.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
+ const pc=purchase(filtered.filter(s=>s.payment==='Paid'||s.payment==='Partial')), ex=expenses(periodExpenses), net=income(filtered)-pc-ex;
+ let months=Array.from({length:12},(_,i)=>({m:new Date(now.getFullYear(),i,1).toLocaleString('en',{month:'short'}),v:income(data.sales.filter(s=>{let d=dateObj(s.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===i}))}));
+ return `<h1>Sales Reports</h1><div class="tabs"><button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button><button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button><button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button></div>
+ <div class="cards">
+   <div class="card card-blue"><small>PERIOD TOTAL</small><b>${rs(income(filtered))}</b></div>
+   <div class="card card-blue"><small>MANAGER</small><b>${rs(r)}</b></div>
+   <div class="card card-green"><small>ADMIN</small><b>${rs(t)}</b></div>
+   <div class="card card-orange"><small>PURCHASE COST</small><b>${rs(pc)}</b></div>
+   <div class="card card-purple"><small>EXPENSES</small><b>${rs(ex)}</b></div>
+   <div class="card card-green"><small>NET PROFIT</small><b>${rs(net)}</b></div>
+   <div class="card card-blue"><small>TRANSACTIONS</small><b>${filtered.length}</b></div>
+ </div>
+ ${reportRange==='year'?`<section><h2>Monthly Sales — ${now.getFullYear()}</h2><div class="table"><table><thead><tr><th>Month</th><th>Paid Sales</th><th>Action</th></tr></thead><tbody>${months.map((x,i)=>`<tr style="cursor:pointer" onclick="showMonthDetails(${i})"><td><b>${x.m}</b></td><td>${rs(x.v)}</td><td><button class="small">👁️ View</button></td></tr>`).join('')}</tbody></table></div></section>`:''}
+ <section><h2>Data Backup</h2><p class="muted">Export your complete data before changing phones.</p><button class="primary" onclick="backup()">⬇ Export Backup</button> <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button><input id="importFile" type="file" accept=".json" hidden onchange="restore(this.files[0])"></section>`
+}
+
+function showMonthDetails(mIndex){
+  const year = new Date().getFullYear();
+  const monthSales = data.sales.filter(s => {
+    let d = dateObj(s.date);
+    return d.getFullYear() === year && d.getMonth() === mIndex;
+  });
+  const monthName = new Date(year, mIndex, 1).toLocaleString('en', {month: 'long'});
+  
+  const monthIncome = income(monthSales);
+  const monthCost = purchase(monthSales.filter(s=>s.payment==='Paid'||s.payment==='Partial'));
+  const monthProfit = monthIncome - monthCost;
+  
+  let body = '';
+  if(monthSales.length){
+    body = `<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount Paid</th><th>Cost</th><th>Profit</th><th>Status</th></tr></thead><tbody>${monthSales.map(s=>{
+      let paidAmt = s.payment==='Paid' ? Number(s.amount||0) : (s.payment==='Partial' ? Number(s.partialPaid||0) : 0);
+      let costAmt = (s.payment!=='Pending') ? Number(s.purchase||0) : 0;
+      let profit = paidAmt - costAmt;
+      return `<tr><td><b>${esc(s.client)}</b></td><td>${esc(s.product)}</td><td>${rs(paidAmt)}</td><td>${rs(costAmt)}</td><td><b style="color:#166534">${rs(profit)}</b></td><td><span class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}">${s.payment}</span></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+  } else {
+    body = `<div class="empty">No sales records found for ${monthName} ${year}.</div>`;
+  }
+  
+  modal(`<div class="sectionHead"><h2>${monthName} ${year} Analytics</h2><button onclick="closeModal()">×</button></div>
+  <div class="cards">
+    <div class="card card-blue"><small>TRANSACTIONS</small><b>${monthSales.length}</b></div>
+    <div class="card card-green"><small>PAID INCOME</small><b>${rs(monthIncome)}</b></div>
+    <div class="card card-purple"><small>NET PROFIT</small><b>${rs(monthProfit)}</b></div>
+  </div><br>${body}`);
+}
+
+window.renderApp = function() {
+  document.getElementById('app').innerHTML=page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():page==='settings'?settingsPage():reports();
+}
+function render(){ window.renderApp(); }
+
+Object.assign(window,{
+  modal, closeModal, go, dashboard, showDetails, salesTable, salesPage, editSale,
+  productsPage, viewProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
+  expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
+  openSale, delSale, delProduct, backup, restore, signOutApp, settingsPage, saveCredentials
+});
+Object.defineProperty(window,'reportRange',{
+  get:()=>reportRange,
+  set:(v)=>{reportRange=v;}
+});
+Object.defineProperty(window,'dashMode',{
+  get:()=>dashMode,
+  set:(v)=>{dashMode=v;}
+});
+
+render();
+
+let syncTimeout = setTimeout(() => {
+  if(!cloudReady) {
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE / LOCAL DATA';
+  }
+}, 4000);
+
+onSnapshot(cloudRef, async (snap)=>{
+  clearTimeout(syncTimeout);
+  try{
+    if(snap.exists() && snap.data().data){
+      const incoming=snap.data().data;
+      if(!incoming.sales) incoming.sales=[];
+      if(!incoming.products || incoming.products.length === 0) incoming.products = defaultProducts;
+      if(!incoming.expenses) incoming.expenses=[];
+      if(!incoming.settings) incoming.settings={password:'admin'};
+      data=incoming;
+      localStorage.setItem(DB,JSON.stringify(data));
+      cloudReady=true;
+      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
+      render();
+    }else{
+      cloudReady=true;
+      await save();
+      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
+    }
+  }catch(e){console.error(e);}
+},(err)=>{
+  console.error(err);
+  document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE MODE';
+});
+
+let deferredInstallPrompt;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault(); deferredInstallPrompt=e;
+  document.getElementById('installBtn').style.display='inline-block';
+});
+window.installApp=async function(){
+  if(!deferredInstallPrompt){alert('Open this app from its HTTPS website link in Chrome to install.');return;}
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  document.getElementById('installBtn').style.display='none';
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+}
+</script>
+</body></html>
