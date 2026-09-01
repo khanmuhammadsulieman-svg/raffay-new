@@ -169,47 +169,55 @@ if(!data.sales) data.sales=[];
 if(!data.expenses) data.expenses=[];
 if(!data.settings) data.settings={password:'admin', username:'admin'}; 
 
-const iconMap = {
-  'netflix pakistan': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#01411C"/><path d="M141.5 96h60l110 320h-60l-110-320z" fill="#E50914"/><path d="M141.5 96h55v320h-55z" fill="#E50914"/><path d="M315.5 96h55v320h-55z" fill="#E50914"/><path d="M201.5 96h60l110 320h-60l-110-320z" fill="#E50914"/></svg>',
-  'netflix': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#111"/><path d="M141.5 64h60l110 384h-60l-110-384z" fill="#E50914"/><path d="M141.5 64h55v384h-55z" fill="#E50914"/><path d="M315.5 64h55v384h-55z" fill="#E50914"/><path d="M201.5 64h60l110 384h-60l-110-384z" fill="#E50914"/></svg>',
-  'prime': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#131A22"/><path d="M140 280c25 50 80 80 140 80 60 0 115-30 140-80" stroke="#00A8E1" stroke-width="28" fill="none" stroke-linecap="round"/><path d="M380 250l40 35-45 20" fill="#00A8E1"/></svg>',
-  'sony': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#003791"/><text x="256" y="300" fill="#fff" font-family="Arial" font-weight="900" font-size="120" text-anchor="middle">SONY</text></svg>',
-  'hotstar': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#0f1026"/><path d="M256 96l40 90 95 15-70 65 20 95-85-50-85 50 20-95-70-65 95-15z" fill="#1f80e0"/></svg>',
-  'iptv': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#065F46"/><path d="M96 144h320v200H96z" fill="none" stroke="#34D399" stroke-width="32" rx="16"/><path d="M192 344l-32 56h192l-32-56" fill="none" stroke="#34D399" stroke-width="32" stroke-linecap="round"/></svg>',
-  'vpn': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#DC2626"/><circle cx="256" cy="256" r="110" fill="none" stroke="#fff" stroke-width="32"/><path d="M256 146v220M146 256h220" stroke="#fff" stroke-width="32" stroke-linecap="round"/></svg>',
-  'chatgpt': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#10A37F"/><path d="M336 210c-10-40-40-70-80-70-50 0-90 40-90 90 0 10 2 20 5 30-30 15-50 45-50 80 0 50 40 90 90 90 35 0 65-20 80-50 10 3 20 5 30 5 50 0 90-40 90-90 0-40-25-75-65-85z" fill="#fff"/></svg>',
-  'claude': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#D97706"/><circle cx="256" cy="256" r="120" fill="#fff"/></svg>',
-  'midjourney': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#4F46E5"/><path d="M160 360V152h48v208h-48zm144 0V152h48v208h-48z" fill="#fff"/></svg>',
-  'capcut': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#000"/><path d="M200 160l112 96-112 96V160z" fill="#fff"/></svg>',
-  'heygen': '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#8B5CF6"/><circle cx="256" cy="256" r="100" fill="#fff"/></svg>'
-};
+const catalog = [
+  // OTT
+  ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
+  ["Netflix Global", "Netflix", "OTT", "netflix", "E50914", 1200],
+  ["Prime Video", "Amazon Prime", "OTT", "primevideo", "00A8E1", 800],
+  ["Disney+", "Disney+", "OTT", "disneyplus", "113CCF", 900],
+  ["Spotify Premium", "Spotify", "OTT", "spotify", "1DB954", 650],
+  ["YouTube Premium", "YouTube", "OTT", "youtube", "FF0000", 600],
+  ["Apple TV+", "Apple", "OTT", "appletv", "000000", 850],
+  ["HBO Max", "Max", "OTT", "hbo", "000000", 950],
+  ["Crunchyroll", "Crunchyroll", "OTT", "crunchyroll", "F47521", 700],
+  ["ZEE5", "ZEE5", "OTT", "zee5", "000000", 500],
 
-function getProductIcon(name){
-  let n = (name || '').toLowerCase();
-  for(let key in iconMap){
-    if(n.includes(key)) return iconMap[key];
-  }
-  return '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#E2E8F0"/><path d="M256 160v192M160 256h192" stroke="#64748B" stroke-width="32" stroke-linecap="round"/></svg>';
-}
+  // VPN
+  ["ExpressVPN", "ExpressVPN", "VPN", "expressvpn", "DA3940", 1000],
+  ["NordVPN", "NordVPN", "VPN", "nordvpn", "4687FF", 950],
+  ["Surfshark", "Surfshark", "VPN", "surfshark", "18A8B8", 900],
+  ["CyberGhost VPN", "CyberGhost", "VPN", "cyberghost", "F5C542", 850],
+  ["Proton VPN", "Proton", "VPN", "protonvpn", "6D4AFF", 900],
+  ["Private Internet Access", "PIA", "VPN", "privateinternetaccess", "5A2D81", 800],
+  ["Windscribe", "Windscribe", "VPN", "windscribe", "0D7CFF", 750],
+  ["TunnelBear", "TunnelBear", "VPN", "tunnelbear", "1C9BEF", 700],
 
-const defaultProducts = [
-  { id: 1, name: 'Netflix Global', type: 'Subscription', price: 1200 },
-  { id: 2, name: 'Netflix Pakistan', type: 'Subscription', price: 1100 },
-  { id: 3, name: 'Prime Video', type: 'Subscription', price: 800 },
-  { id: 4, name: 'Sony Liv', type: 'Subscription', price: 700 },
-  { id: 5, name: 'JioHotstar', type: 'Subscription', price: 750 },
-  { id: 6, name: 'My OTT IPTV', type: 'Subscription', price: 1500 },
-  { id: 7, name: 'ExpressVPN', type: 'Subscription', price: 1000 },
-  { id: 8, name: 'NordVPN', type: 'Subscription', price: 950 },
-  { id: 9, name: 'Surfshark VPN', type: 'Subscription', price: 900 },
-  { id: 10, name: 'ChatGPT Plus', type: 'Subscription', price: 2000 },
-  { id: 11, name: 'Claude AI', type: 'Subscription', price: 1800 },
-  { id: 12, name: 'Midjourney', type: 'Subscription', price: 2200 },
-  { id: 13, name: 'HeyGen AI', type: 'Subscription', price: 2500 }
+  // Premium AI
+  ["ChatGPT Plus", "OpenAI", "AI", "openai", "111111", 2000],
+  ["Claude Pro", "Anthropic", "AI", "anthropic", "D97757", 1800],
+  ["Gemini Advanced", "Google Gemini", "AI", "googlegemini", "8E75B2", 1900],
+  ["Microsoft Copilot Pro", "Microsoft", "AI", "microsoftcopilot", "5E5CE6", 1950],
+  ["Perplexity Pro", "Perplexity", "AI", "perplexity", "20B2AA", 1750],
+  ["Midjourney", "Midjourney", "AI", "midjourney", "111111", 2200],
+  ["Canva Pro", "Canva", "AI", "canva", "00C4CC", 1100],
+  ["Adobe Creative Cloud", "Adobe", "AI", "adobecreativecloud", "FF0000", 3500],
+  ["Notion AI", "Notion", "AI", "notion", "000000", 1200],
+  ["Grammarly Premium", "Grammarly", "AI", "grammarly", "15C39A", 1000],
 ];
 
+const starterProducts = catalog.map(
+  ([name, brand, type, slug, color, price], index) => ({
+    id: `starter-${index}`,
+    name,
+    brand,
+    type,
+    price,
+    icon: `https://cdn.simpleicons.org/${slug}/${color}`
+  })
+);
+
 if(!data.products || data.products.length === 0) {
-  data.products = defaultProducts;
+  data.products = starterProducts;
 }
 
 let page='dashboard', reportRange='month', dashMode='current';
@@ -339,7 +347,6 @@ const expiry=(d,n)=>{let x=dateObj(d);x.setDate(x.getDate()+Number(n));return x.
 const days=d=>Math.ceil((dateObj(d)-new Date(new Date().toDateString()))/86400000);
 const status=s=>!s.expiry?'—':days(s.expiry)<0?'Expired':days(s.expiry)<=7?'Expiring':'Active';
 
-// DYNAMIC MONTH-BASED FILTERING FOR ALL FUTURE MONTHS AUTOMATICALLY
 const getFilteredSales = () => {
   const now = new Date();
   let targetYear = now.getFullYear();
@@ -386,6 +393,19 @@ const expenses=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
 function modal(html){modalBox.innerHTML=html;document.getElementById('modal').classList.add('show')}
 function closeModal(){document.getElementById('modal').classList.remove('show')}
 function go(p){page=p;document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.page===p));render()}
+
+function getProductIcon(productName) {
+  let matched = data.products.find(p => p.name.toLowerCase() === (productName || '').toLowerCase());
+  if (matched) {
+    if (matched.imageUrl) {
+      return `<img src="${esc(matched.imageUrl)}" alt="${esc(matched.name)} logo" style="width:32px;height:32px;object-fit:contain;" />`;
+    }
+    if (matched.icon) {
+      return `<img src="${esc(matched.icon)}" alt="${esc(matched.name)} logo" style="width:32px;height:32px;object-fit:contain;" />`;
+    }
+  }
+  return '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#E2E8F0"/><path d="M256 160v192M160 256h192" stroke="#64748B" stroke-width="32" stroke-linecap="round"/></svg>';
+}
 
 function dashboard(){
  const activeSales = getFilteredSales();
@@ -468,41 +488,66 @@ window.prefetchProduct = function(name, price, type, tenure) {
   document.getElementById('customProduct').value = name;
   document.getElementById('sa').value = price;
   document.getElementById('stm').value = tenure;
-  document.querySelectorAll('.prefetch-chip').forEach(c => c.style.borderColor = '#d9d0c1');
+  document.querySelectorAll('.prefetch-chip-container').forEach(c => c.style.borderColor = '#d9d0c1');
   event.currentTarget.style.borderColor = 'var(--blue)';
 }
 
+window.filterCatalogSearch = function() {
+  let query = document.getElementById('catalogSearchInput').value.toLowerCase();
+  let items = document.querySelectorAll('.prefetch-chip-container');
+  items.forEach(item => {
+    let text = item.getAttribute('data-name').toLowerCase();
+    item.style.display = text.includes(query) ? 'flex' : 'none';
+  });
+}
+
 function openSale(){
-  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<div style="text-align:left"><span>${esc(p.name)}</span><br><span class="muted">${rs(p.price)}</span></div></div>`).join('');
+  let prefetchChips = data.products.map(p => `
+    <div class="prefetch-chip-container" data-name="${esc(p.name)}" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type || 'Subscription'}', 30)" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s">
+      ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : (p.icon ? `<img src="${esc(p.icon)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : getProductIcon(p.name))}
+      <div style="text-align:left">
+        <span style="font-weight:bold;font-size:12px;color:#0f172a">${esc(p.name)}</span><br>
+        <span class="muted" style="font-size:11px">${rs(p.price)}</span>
+      </div>
+    </div>`).join('');
   
-  let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
-  modal(`<div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
-  <label class="field full"><span>⚡ Quick-Select Prefetch (Click any app):</span><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:200px;overflow-y:auto;padding:4px 0">${prefetchChips}</div></label>
-  <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
-  <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
-  <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" placeholder="Type custom product name"></label>
-  <label class="field"><span>Client Name *</span><input id="sc" required placeholder="Customer Name"></label>
-  <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
-  <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
-  <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
-  <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${today()}" required></label>
-  <label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
-  <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
-  <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
+  let opts = data.products.map(p => `<option value="${p.id}">${esc(p.name)} — ${p.type || 'Subscription'}</option>`).join('');
   
-  <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
-  <label class="field" id="partialDiv" style="display:none;background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="0"></label>
-  
-  <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 30"></label>
-  <label class="field full"><span>Notes</span><textarea id="sn" placeholder="Optional notes"></textarea></label>
-  <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div></form>`);
+  modal(`
+    <div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div>
+    <form id="sf" class="grid">
+      <label class="field full">
+        <span style="display:flex;align-items:center;gap:6px;">🔍 Quick-Select Product Catalog & Search</span>
+        <input id="catalogSearchInput" onkeyup="filterCatalogSearch()" placeholder="Type to search apps, VPNs, AI..." style="margin:6px 0 10px 0;padding:10px;border-radius:10px;border:1px solid #d9d0c1;font-size:13px;outline:none;" />
+        <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;padding:4px 0">${prefetchChips}</div>
+      </label>
+      <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
+      <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
+      <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" placeholder="Type custom product name"></label>
+      <label class="field"><span>Client Name *</span><input id="sc" required placeholder="Customer Name"></label>
+      <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
+      <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
+      <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
+      <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${today()}" required></label>
+      <label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
+      <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
+      <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
+      
+      <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
+      <label class="field" id="partialDiv" style="display:none;background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="0"></label>
+      
+      <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 30"></label>
+      <label class="field full"><span>Notes</span><textarea id="sn" placeholder="Optional notes"></textarea></label>
+      <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div>
+    </form>
+  `);
 
   document.getElementById('sp').onchange = () => {
     let p = data.products.find(x => x.id == document.getElementById('sp').value);
     if(p){
       document.getElementById('customProduct').value = p.name;
       document.getElementById('sa').value = p.price;
-      document.getElementById('stm').value = p.type === 'Subscription' ? '30' : '0';
+      document.getElementById('stm').value = '30';
     }
   };
 
@@ -535,20 +580,23 @@ function openSale(){
       partialPaid: document.getElementById('payment').value === 'Partial' ? +document.getElementById('partialPaid').value : 0,
       tenure: tenureVal,
       notes: document.getElementById('sn').value,
-      type: tenureVal ? 'Subscription' : (pMatch?.type || 'Product')
+      type: pMatch?.type || 'Subscription'
     });
     save(); closeModal(); render();
   };
 }
 
 function openProduct() {
-  modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div>
-  <form id="pf" class="grid">
-    <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix Global, Prime Video"></label>
-    <label class="field"><span>Price (Rs) *</span><input id="pp" type="number" required placeholder="1000"></label>
-    <label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label>
-    <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div>
-  </form>`);
+  modal(`
+    <div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div>
+    <form id="pf" class="grid">
+      <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix Global, Prime Video"></label>
+      <label class="field"><span>Price (Rs) *</span><input id="pp" type="number" required placeholder="1000"></label>
+      <label class="field"><span>Type</span><select id="pt"><option>OTT</option><option>VPN</option><option>AI</option><option>Subscription</option><option>Product</option></select></label>
+      <label class="field full"><span>Product Image URL (Optional)</span><input id="pimg" placeholder="https://example.com/logo.png" /></label>
+      <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div>
+    </form>
+  `);
   
   document.getElementById('pf').onsubmit = e => {
     e.preventDefault();
@@ -556,7 +604,8 @@ function openProduct() {
       id: Date.now(),
       name: document.getElementById('pn').value.trim(),
       price: +document.getElementById('pp').value,
-      type: document.getElementById('pt').value
+      type: document.getElementById('pt').value,
+      imageUrl: document.getElementById('pimg').value.trim()
     });
     save();
     closeModal();
@@ -638,7 +687,7 @@ function editSale(id){
     if(p){
       document.getElementById('customProduct').value = p.name; 
       document.getElementById('sa').value = p.price;
-      document.getElementById('stm').value = p.type === 'Subscription' ? '30' : '0';
+      document.getElementById('stm').value = '30';
     }
   };
   
@@ -667,7 +716,7 @@ function editSale(id){
     s.notes = document.getElementById('sn').value;
     
     let pMatch = data.products.find(x => x.name === name);
-    s.type = s.tenure ? 'Subscription' : (pMatch?.type || 'Product');
+    s.type = pMatch?.type || 'Subscription';
     if(s.tenure && !s.expiry) s.expiry = expiry(s.date, s.tenure);
     
     save(); closeModal(); render();
@@ -953,7 +1002,7 @@ Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage, editSale,
   productsPage, viewProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
-  openSale, delSale, delProduct, backup, restore, signOutApp, settingsPage, saveCredentials
+  openSale, delSale, delProduct, backup, restore, signOutApp, settingsPage, saveCredentials, filterCatalogSearch
 });
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
@@ -978,7 +1027,7 @@ onSnapshot(cloudRef, async (snap)=>{
     if(snap.exists() && snap.data().data){
       const incoming=snap.data().data;
       if(!incoming.sales) incoming.sales=[];
-      if(!incoming.products || incoming.products.length === 0) incoming.products = defaultProducts;
+      if(!incoming.products || incoming.products.length === 0) incoming.products = starterProducts;
       if(!incoming.expenses) incoming.expenses=[];
       if(!incoming.settings) incoming.settings={password:'admin'};
       data=incoming;
