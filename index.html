@@ -530,6 +530,16 @@ window.filterCatalogSearch = function() {
   });
 }
 
+window.onClientNameChange = function(inputEl) {
+  let val = inputEl.value.trim().toLowerCase();
+  // Find a matching record in past sales to auto-fill the phone number
+  let matchedSale = data.sales.find(s => s.client && s.client.toLowerCase() === val && s.phone);
+  if (matchedSale) {
+    let phoneInput = document.getElementById('sph');
+    if (phoneInput) phoneInput.value = matchedSale.phone;
+  }
+}
+
 function openSale(){
   let prefetchChips = data.products.map(p => `
     <div class="prefetch-chip-container" data-name="${esc(p.name)}" onclick="selectCatalogProduct('${esc(p.name)}', ${p.price}, '${p.type || 'Subscription'}')" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s">
@@ -553,7 +563,7 @@ function openSale(){
       </label>
       <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
       <label class="field"><span>Product Name (Auto-filled) *</span><input id="customProduct" required placeholder="Select from catalog or type name"></label>
-      <label class="field"><span>Client Name *</span><input id="sc" list="clientList" required placeholder="Select or type customer name"><datalist id="clientList">${clientOptions}</datalist></label>
+      <label class="field"><span>Client Name *</span><input id="sc" list="clientList" oninput="onClientNameChange(this)" onchange="onClientNameChange(this)" required placeholder="Select or type customer name"><datalist id="clientList">${clientOptions}</datalist></label>
       <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
       <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
       <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
@@ -1086,7 +1096,7 @@ Object.assign(window,{
   productsPage, viewProduct, editProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
   openSale, delSale, delProduct, backup, restore, signOutApp, settingsPage, saveCredentials, filterCatalogSearch,
-  selectCatalogProduct, resetCatalogSelection
+  selectCatalogProduct, resetCatalogSelection, onClientNameChange
 });
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
