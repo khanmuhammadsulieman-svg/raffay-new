@@ -593,23 +593,37 @@ function openProduct() {
       <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix Global, Prime Video"></label>
       <label class="field"><span>Price (Rs) *</span><input id="pp" type="number" required placeholder="1000"></label>
       <label class="field"><span>Type</span><select id="pt"><option>OTT</option><option>VPN</option><option>AI</option><option>Subscription</option><option>Product</option></select></label>
-      <label class="field full"><span>Product Image URL (Optional)</span><input id="pimg" placeholder="https://example.com/logo.png" /></label>
+      <label class="field full"><span>Product Icon / Image (Upload from Gallery)</span><input id="pfile" type="file" accept="image/*" /></label>
       <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div>
     </form>
   `);
   
   document.getElementById('pf').onsubmit = e => {
     e.preventDefault();
-    data.products.push({
-      id: Date.now(),
-      name: document.getElementById('pn').value.trim(),
-      price: +document.getElementById('pp').value,
-      type: document.getElementById('pt').value,
-      imageUrl: document.getElementById('pimg').value.trim()
-    });
-    save();
-    closeModal();
-    render();
+    const fileInput = document.getElementById('pfile');
+    
+    const saveNewProduct = (imgData = '') => {
+      data.products.push({
+        id: Date.now(),
+        name: document.getElementById('pn').value.trim(),
+        price: +document.getElementById('pp').value,
+        type: document.getElementById('pt').value,
+        imageUrl: imgData
+      });
+      save();
+      closeModal();
+      render();
+    };
+
+    if (fileInput.files && fileInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(uploadEvent) {
+        saveNewProduct(uploadEvent.target.result);
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    } else {
+      saveNewProduct('');
+    }
   };
 }
 
@@ -623,7 +637,7 @@ function editProduct(id) {
       <label class="field full"><span>Product / Service Name *</span><input id="epn" required value="${esc(p.name)}"></label>
       <label class="field"><span>Price (Rs) *</span><input id="epp" type="number" required value="${p.price}"></label>
       <label class="field"><span>Type</span><select id="ept"><option ${p.type==='OTT'?'selected':''}>OTT</option><option ${p.type==='VPN'?'selected':''}>VPN</option><option ${p.type==='AI'?'selected':''}>AI</option><option ${p.type==='Subscription'?'selected':''}>Subscription</option><option ${p.type==='Product'?'selected':''}>Product</option></select></label>
-      <label class="field full"><span>Product Image URL (Optional)</span><input id="epimg" value="${esc(p.imageUrl || p.icon || '')}" placeholder="https://example.com/logo.png" /></label>
+      <label class="field full"><span>Change Product Icon (Upload from Gallery)</span><input id="epfile" type="file" accept="image/*" /></label>
       <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Updates</button></div>
     </form>
   `);
@@ -633,13 +647,26 @@ function editProduct(id) {
     p.name = document.getElementById('epn').value.trim();
     p.price = +document.getElementById('epp').value;
     p.type = document.getElementById('ept').value;
-    let imgVal = document.getElementById('epimg').value.trim();
-    p.imageUrl = imgVal;
-    p.icon = imgVal;
     
-    save();
-    closeModal();
-    render();
+    const fileInput = document.getElementById('epfile');
+    
+    const finalizeUpdate = () => {
+      save();
+      closeModal();
+      render();
+    };
+
+    if (fileInput.files && fileInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(uploadEvent) {
+        p.imageUrl = uploadEvent.target.result;
+        p.icon = uploadEvent.target.result;
+        finalizeUpdate();
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    } else {
+      finalizeUpdate();
+    }
   };
 }
 
