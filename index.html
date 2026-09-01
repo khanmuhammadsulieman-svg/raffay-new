@@ -8,38 +8,49 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>DR Streaming Manager</title>
 <style>
-:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#687386;--blue:#2563eb;--line:#e6eaf0}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
-header{height:auto;min-height:64px;background:#101827;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;position:sticky;top:0;z-index:5;flex-wrap:wrap;gap:8px}
-.brand{font-weight:800;font-size:16px}.brand small{display:block;font-size:9px;color:#94a3b8;margin-top:2px}
-.container{max-width:1050px;margin:auto;padding:18px 16px 88px}
-h1{font-size:22px;margin:4px 0}h2{font-size:18px;margin:0}.muted{color:var(--muted);font-size:13px}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
-.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px}
-.card small{color:var(--muted)}.card b{display:block;font-size:21px;margin-top:8px}
-section{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;margin:14px 0}
-.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
-button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e9edf4;color:#243044}
-.primary{background:var(--blue);color:#fff}.danger{background:#fee2e2;color:#b91c1c}.small{padding:7px 9px;font-size:12px}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eef1f5;font-size:13px}
-th{font-size:10px;color:var(--muted);text-transform:uppercase}.table{overflow:auto}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:flex-start;gap:2px;padding:7px;z-index:6;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,7px)}
-.nav{background:transparent;color:#667085;font-size:10px;min-width:60px;flex-shrink:0;text-align:center}.nav.on{color:var(--blue)}
-.modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:15px;place-items:center}.modal.show{display:grid}
-.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:20px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:bold}
-.field input,.field select,.field textarea{width:100%;border:1px solid #dbe1ea;border-radius:8px;padding:11px;font:inherit;background:#fff}
-.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}
-.badge{padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root{--bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#64748b;--blue:#2563eb;--line:#e2e8f0;--accent-blue:#eff6ff;--accent-green:#f0fdf4;--accent-purple:#f5f3ff;--accent-orange:#fff7ed}
+*{box-sizing:border-box}body{margin:0;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+header{height:auto;min-height:64px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;position:sticky;top:0;z-index:5;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.brand{font-weight:800;font-size:16px;letter-spacing:-0.02em}.brand small{display:block;font-size:9px;color:#94a3b8;margin-top:2px;letter-spacing:0.05em}
+.container{max-width:1100px;margin:auto;padding:24px 16px 92px}
+h1{font-size:24px;margin:4px 0;font-weight:800;letter-spacing:-0.03em}h2{font-size:18px;margin:0;font-weight:700}.muted{color:var(--muted);font-size:13px;font-weight:500}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,0.02);transition:transform 0.15s ease, box-shadow 0.15s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+.card small{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:0.04em}
+.card b{display:block;font-size:22px;margin-top:8px;font-weight:800;letter-spacing:-0.02em}
+.card-blue{border-top:4px solid #2563eb;background:linear-gradient(to bottom, #ffffff, #f8fafc)}
+.card-green{border-top:4px solid #10b981;background:linear-gradient(to bottom, #ffffff, #f0fdf4)}
+.card-purple{border-top:4px solid #8b5cf6;background:linear-gradient(to bottom, #ffffff, #f5f3ff)}
+.card-orange{border-top:4px solid #f59e0b;background:linear-gradient(to bottom, #ffffff, #fffbeb)}
+section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
+button{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:#f1f5f9;color:#334155;font-family:inherit;transition:background 0.15s}
+button:hover{background:#e2e8f0}
+.primary{background:var(--blue);color:#fff}.primary:hover{background:#1d4ed8}
+.danger{background:#fee2e2;color:#b91c1c}.danger:hover{background:#fecaca}
+.small{padding:7px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #f1f5f9;font-size:13px}
+th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:700}.table{overflow:auto}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;gap:2px;padding:8px 4px;z-index:6;box-shadow:0 -4px 12px rgba(0,0,0,0.03);padding-bottom:env(safe-area-inset-bottom,8px)}
+.nav{background:transparent;color:#64748b;font-size:11px;min-width:60px;flex-shrink:0;text-align:center;font-weight:600}.nav.on{color:var(--blue)}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:10;padding:15px;place-items:center}.modal.show{display:grid}
+.box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:20px;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#334155}
+.field input,.field select,.field textarea{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:12px;font:inherit;background:#fff;color:#0f172a;outline:none;transition:border-color 0.15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
 .Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
-.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#eef2f7}.tab.on{background:#dbeafe;color:#1d4ed8}
-.empty{text-align:center;color:var(--muted);padding:25px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:#f1f5f9;color:#475569;border-radius:10px;padding:8px 14px;font-weight:700}.tab.on{background:#dbeafe;color:#1d4ed8}
+.empty{text-align:center;color:var(--muted);padding:32px;font-weight:500}
 .menu-btn{background:transparent;color:#fff;font-size:24px;padding:0 5px;line-height:1}
-.menu-content{display:none;position:absolute;right:18px;top:64px;background:#fff;color:#000;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:180px;z-index:100;flex-direction:column;overflow:hidden}
+.menu-content{display:none;position:absolute;right:18px;top:64px;background:#fff;color:#0f172a;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.1);min-width:200px;z-index:100;flex-direction:column;overflow:hidden}
 .menu-content.show{display:flex}
-.menu-content a{padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer;font-size:14px;font-weight:bold;text-decoration:none;color:#172033}
-.menu-content a:hover{background:#f5f7fb}
+.menu-content a{padding:12px 18px;border-bottom:1px solid #f1f5f9;cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;color:#334155}
+.menu-content a:hover{background:#f8fafc;color:var(--blue)}
 @media(max-width:700px){
   .cards{grid-template-columns:1fr 1fr}
   .grid{grid-template-columns:1fr}
@@ -68,12 +79,12 @@ th{font-size:10px;color:var(--muted);text-transform:uppercase}.table{overflow:au
 <body>
 
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
-  <div class="card" style="width:min(90%, 350px);box-shadow:0 8px 24px rgba(0,0,0,0.05);">
-    <h2 style="margin-bottom:16px;text-align:center">DR Streaming</h2>
+  <div class="card" style="width:min(90%, 360px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);border-radius:20px;padding:24px">
+    <h2 style="margin-bottom:20px;text-align:center;font-weight:800">DR Streaming</h2>
     <form onsubmit="instantLoginCheck(event)" class="grid">
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin"></label>
       <label class="field full"><span>Password</span><input id="loginPass" type="password" required></label>
-      <div class="full" style="margin-top:10px;">
+      <div class="full" style="margin-top:12px;">
         <button class="primary" type="submit" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button>
         <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="if(window.loginWithBiometrics) window.loginWithBiometrics();">👆 Fingerprint / Face ID</button>
       </div>
@@ -316,32 +327,44 @@ const dateObj=d=>new Date(d+'T00:00:00');
 const expiry=(d,n)=>{let x=dateObj(d);x.setDate(x.getDate()+Number(n));return x.toISOString().slice(0,10)};
 const days=d=>Math.ceil((dateObj(d)-new Date(new Date().toDateString()))/86400000);
 const status=s=>!s.expiry?'—':days(s.expiry)<0?'Expired':days(s.expiry)<=7?'Expiring':'Active';
-const income=a=>a.filter(s=>s.payment==='Paid').reduce((x,s)=>x+Number(s.amount||0),0) + a.filter(s=>s.payment==='Partial').reduce((x,s)=>x+Number(s.partialPaid||0),0);
-const grossSales=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
-const purchase=a=>a.reduce((x,s)=>x+Number(s.purchase||0),0);
-const expenses=a=>a.reduce((x,s)=>x+Number(s.amount||0),0);
+
+// CURRENT MONTH SALES FILTER FOR DASHBOARD METRICS
+const currentMonthSales = a => {
+  const now = new Date();
+  return a.filter(s => {
+    let d = dateObj(s.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+};
+
+const income=a=>currentMonthSales(a).filter(s=>s.payment==='Paid').reduce((x,s)=>x+Number(s.amount||0),0) + currentMonthSales(a).filter(s=>s.payment==='Partial').reduce((x,s)=>x+Number(s.partialPaid||0),0);
+const grossSales=a=>currentMonthSales(a).reduce((x,s)=>x+Number(s.amount||0),0);
+const purchase=a=>currentMonthSales(a).filter(s=>s.payment==='Paid' || s.payment==='Partial').reduce((x,s)=>x+Number(s.purchase||0),0);
+const expenses=a=>data.expenses.filter(e=>{let d=dateObj(e.date);let now=new Date();return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()}).reduce((x,s)=>x+Number(s.amount||0),0);
+
 function modal(html){modalBox.innerHTML=html;document.getElementById('modal').classList.add('show')}
 function closeModal(){document.getElementById('modal').classList.remove('show')}
 function go(p){page=p;document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.page===p));render()}
 
 function dashboard(){
+ const mSales = currentMonthSales(data.sales);
  const paid=income(data.sales), gross=grossSales(data.sales);
  const r=income(data.sales.filter(s=>s.owner==='Manager')), a=income(data.sales.filter(s=>s.owner==='Admin'));
- const cost=purchase(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial')), exp=expenses(data.expenses), profit=paid-cost-exp;
+ const cost=purchase(data.sales), exp=expenses(data.expenses), profit=paid-cost-exp;
  const pending=data.sales.filter(s=>s.payment!=='Paid');
  
- return `<h1>Business Overview</h1><p class="muted">Tap any card to see detailed information</p>
+ return `<h1>Business Overview</h1><p class="muted">Showing statistics for the current month • All-time recent orders below</p>
  <div class="cards">
- <div class="card" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b></div>
- <div class="card" onclick="showDetails('purchase')" style="cursor:pointer"><small>🛒 PURCHASE COST</small><b>${rs(cost)}</b></div>
- <div class="card" onclick="showDetails('expenses')" style="cursor:pointer"><small>💸 EXPENSES</small><b>${rs(exp)}</b></div>
- <div class="card" onclick="showDetails('profit')" style="cursor:pointer"><small>📈 NET PROFIT</small><b>${rs(profit)}</b></div>
- <div class="card" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b></div>
- <div class="card" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b></div>
- <div class="card" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TOTAL TRANSACTIONS</small><b>${data.sales.length}</b></div>
- <div class="card" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted">${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} remaining →</span></div>
+ <div class="card card-blue" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b></div>
+ <div class="card card-orange" onclick="showDetails('purchase')" style="cursor:pointer"><small>🛒 PURCHASE COST</small><b>${rs(cost)}</b></div>
+ <div class="card card-purple" onclick="showDetails('expenses')" style="cursor:pointer"><small>💸 EXPENSES</small><b>${rs(exp)}</b></div>
+ <div class="card card-green" onclick="showDetails('profit')" style="cursor:pointer"><small>📈 NET PROFIT</small><b>${rs(profit)}</b></div>
+ <div class="card card-blue" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b></div>
+ <div class="card card-green" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b></div>
+ <div class="card card-purple" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 MONTH TRANSACTIONS</small><b>${mSales.length}</b></div>
+ <div class="card card-orange" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted" style="font-size:11px">${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} remaining →</span></div>
  </div>
- <section><div class="sectionHead"><h2>Recent Sales</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(data.sales.slice(0,6),false)}</section>
+ <section><div class="sectionHead"><h2>Recent Orders (All-Time)</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(data.sales.slice(0,6),false)}</section>
  <section><div class="sectionHead"><h2>🔔 Expiring Soon</h2></div>${salesTable(data.sales.filter(s=>s.type==='Subscription'&&days(s.expiry)>=0&&days(s.expiry)<=14),false)}</section>`;
 }
 
@@ -369,18 +392,18 @@ function settingsPage(){
 }
 
 function showDetails(type){
- const paid=income(data.sales), cost=purchase(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial')), exp=expenses(data.expenses);
+ const paid=income(data.sales), cost=purchase(data.sales), exp=expenses(data.expenses);
  const pending=data.sales.filter(s=>s.payment!=='Paid');
  let title='',body='';
  const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}${s.payment==='Partial'?`<br><span style="font-size:10px;color:var(--muted)">Paid: ${rs(s.partialPaid)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
- if(type==='income'){title='💼 Paid Income';body=`<h2>${rs(paid)}</h2>${list(data.sales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
- if(type==='purchase'){let purchased=data.sales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title='🛒 Purchase Cost';body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
- if(type==='expenses'){title='💸 Business Expenses';body=`<h2>${rs(exp)}</h2><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
- if(type==='profit'){title='📈 Net Profit Breakdown';body=`<div class="card"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
- if(type==='manager'){let a=data.sales.filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
- if(type==='admin'){let a=data.sales.filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Transactions';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
- if(type==='transactions'){title='📦 All Transactions';body=`<p class="muted">${data.sales.length} total transactions • Gross value ${rs(grossSales(data.sales))}</p>${list(data.sales)}`;}
- if(type==='pending'){title='⏳ Pending Payments';body=`<h2>${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} Remaining</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
+ if(type==='income'){title='💼 Paid Income (This Month)';body=`<h2>${rs(paid)}</h2>${list(currentMonthSales(data.sales).filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
+ if(type==='purchase'){let purchased=currentMonthSales(data.sales).filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title='🛒 Purchase Cost (This Month)';body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
+ if(type==='expenses'){title='💸 Business Expenses (This Month)';body=`<h2>${rs(exp)}</h2><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
+ if(type==='profit'){title='📈 Net Profit Breakdown (This Month)';body=`<div class="card card-blue"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card card-orange"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card card-purple"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card card-green"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
+ if(type==='manager'){let a=currentMonthSales(data.sales).filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Sales (This Month)';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='admin'){let a=currentMonthSales(data.sales).filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Sales (This Month)';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
+ if(type==='transactions'){let mSales=currentMonthSales(data.sales);title='📦 Month Transactions';body=`<p class="muted">${mSales.length} transactions this month</p>${list(mSales)}`;}
+ if(type==='pending'){title='⏳ Pending Payments (All-Time)';body=`<h2>${rs(pending.reduce((x,s)=>x+(s.amount - (s.partialPaid||0)),0))} Remaining</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
 
@@ -388,12 +411,12 @@ window.prefetchProduct = function(name, price, type, tenure) {
   document.getElementById('customProduct').value = name;
   document.getElementById('sa').value = price;
   document.getElementById('stm').value = tenure;
-  document.querySelectorAll('.prefetch-chip').forEach(c => c.style.borderColor = '#dbe1ea');
+  document.querySelectorAll('.prefetch-chip').forEach(c => c.style.borderColor = '#e2e8f0');
   event.currentTarget.style.borderColor = 'var(--blue)';
 }
 
 function openSale(){
-  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:2px solid #dbe1ea;border-radius:12px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<div style="text-align:left"><span>${esc(p.name)}</span><br><span class="muted">${rs(p.price)}</span></div></div>`).join('');
+  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<div style="text-align:left"><span>${esc(p.name)}</span><br><span class="muted">${rs(p.price)}</span></div></div>`).join('');
   
   let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
   modal(`<div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
@@ -626,8 +649,8 @@ function productsPage(){
    <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
  </div>
  <div class="cards">
-   <div class="card"><small>TOTAL QTY SOLD</small><b>${totalQty}x</b></div>
-   <div class="card"><small>TOTAL NET PROFIT</small><b>${rs(totalProfit)}</b></div>
+   <div class="card card-blue"><small>TOTAL QTY SOLD</small><b>${totalQty}x</b></div>
+   <div class="card card-green"><small>TOTAL NET PROFIT</small><b>${rs(totalProfit)}</b></div>
  </div>
  <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product Icon</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`
 }
@@ -650,9 +673,9 @@ function viewProduct(id){
 
   modal(`<div class="sectionHead"><h2>${esc(p.name)} Analytics</h2><button onclick="closeModal()">×</button></div>
   <div class="cards">
-    <div class="card"><small>QUANTITY SOLD</small><b>${qty}x</b></div>
-    <div class="card"><small>TOTAL REVENUE</small><b>${rs(revenue)}</b></div>
-    <div class="card"><small>NET PROFIT</small><b>${rs(profit)}</b></div>
+    <div class="card card-blue"><small>QUANTITY SOLD</small><b>${qty}x</b></div>
+    <div class="card card-green"><small>TOTAL REVENUE</small><b>${rs(revenue)}</b></div>
+    <div class="card card-purple"><small>NET PROFIT</small><b>${rs(profit)}</b></div>
   </div>
   <br>
   <div class="table"><table><thead><tr><th>Date</th><th>Client</th><th>Revenue</th><th>Profit</th></tr></thead><tbody>
@@ -705,7 +728,7 @@ function pendingPage(){
  const pending=data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
  const total=pending.reduce((a,s)=>a+(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0)),0);
  return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
- <section><div class="cards"><div class="card"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
+ <section><div class="cards"><div class="card card-orange"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card card-blue"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
  ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Total Bill</th><th>Remaining</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><b style="color:#b91c1c">${rs(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0))}</b></td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td style="white-space:nowrap"><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
 }
 function markPaid(id){
@@ -751,7 +774,7 @@ function viewClient(id){
 }
 function expensesPage(){
  return `<div class="sectionHead"><div><h1>Expenses</h1><span class="muted">Business expenses and outgoing payments</span></div><button class="primary" onclick="openExpense()">＋ Add Expense</button></div>
- <section><div class="cards"><div class="card"><small>TOTAL EXPENSES</small><b>${rs(expenses(data.expenses))}</b></div></div>
+ <section><div class="cards"><div class="card card-orange"><small>TOTAL EXPENSES</small><b>${rs(expenses(data.expenses))}</b></div></div>
  ${data.expenses.length?`<div class="table"><table><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>${data.expenses.map(e=>`<tr><td>${e.date}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.category)}</td><td>${rs(e.amount)}</td><td><button class="danger small" onclick="delExpense(${e.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No expenses recorded yet.</div>'}</section>`;
 }
 function openExpense(){
@@ -803,10 +826,10 @@ function profitPage(){
    <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
  </div>
  <div class="cards">
-   <div class="card"><small>TOTAL REVENUE</small><b>${rs(totalRev)}</b></div>
-   <div class="card"><small>TOTAL PRODUCT COST</small><b>${rs(totalCost)}</b></div>
-   <div class="card"><small>TOTAL EXPENSES</small><b>${rs(totalExp)}</b></div>
-   <div class="card"><small>ULTIMATE NET PROFIT</small><b style="color:#166534">${rs(netProfit)}</b></div>
+   <div class="card card-blue"><small>TOTAL REVENUE</small><b>${rs(totalRev)}</b></div>
+   <div class="card card-orange"><small>TOTAL PRODUCT COST</small><b>${rs(totalCost)}</b></div>
+   <div class="card card-purple"><small>TOTAL EXPENSES</small><b>${rs(totalExp)}</b></div>
+   <div class="card card-green"><small>ULTIMATE NET PROFIT</small><b style="color:#166534">${rs(netProfit)}</b></div>
  </div>
  <section><h2>Detailed Product Profits</h2>
  <div class="table"><table><thead><tr><th>Product Icon</th><th>Qty Sold</th><th>Revenue</th><th>Purchase Cost</th><th>Net Profit</th></tr></thead><tbody>${productRows||'<tr><td colspan="5" class="empty">No products found.</td></tr>'}</tbody></table></div></section>`;
@@ -819,7 +842,15 @@ function reports(){
  const pc=purchase(filtered.filter(s=>s.payment==='Paid'||s.payment==='Partial')), ex=expenses(periodExpenses), net=income(filtered)-pc-ex;
  let months=Array.from({length:12},(_,i)=>({m:new Date(now.getFullYear(),i,1).toLocaleString('en',{month:'short'}),v:income(data.sales.filter(s=>{let d=dateObj(s.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===i}))}));
  return `<h1>Sales Reports</h1><div class="tabs"><button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button><button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button><button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button></div>
- <div class="cards"><div class="card"><small>PERIOD TOTAL</small><b>${rs(income(filtered))}</b></div><div class="card"><small>MANAGER</small><b>${rs(r)}</b></div><div class="card"><small>ADMIN</small><b>${rs(t)}</b></div><div class="card"><small>PURCHASE COST</small><b>${rs(pc)}</b></div><div class="card"><small>EXPENSES</small><b>${rs(ex)}</b></div><div class="card"><small>NET PROFIT</small><b>${rs(net)}</b></div><div class="card"><small>TRANSACTIONS</small><b>${filtered.length}</b></div></div>
+ <div class="cards">
+   <div class="card card-blue"><small>PERIOD TOTAL</small><b>${rs(income(filtered))}</b></div>
+   <div class="card card-blue"><small>MANAGER</small><b>${rs(r)}</b></div>
+   <div class="card card-green"><small>ADMIN</small><b>${rs(t)}</b></div>
+   <div class="card card-orange"><small>PURCHASE COST</small><b>${rs(pc)}</b></div>
+   <div class="card card-purple"><small>EXPENSES</small><b>${rs(ex)}</b></div>
+   <div class="card card-green"><small>NET PROFIT</small><b>${rs(net)}</b></div>
+   <div class="card card-blue"><small>TRANSACTIONS</small><b>${filtered.length}</b></div>
+ </div>
  ${reportRange==='year'?`<section><h2>Monthly Sales — ${now.getFullYear()}</h2><div class="table"><table><thead><tr><th>Month</th><th>Paid Sales</th><th>Action</th></tr></thead><tbody>${months.map((x,i)=>`<tr style="cursor:pointer" onclick="showMonthDetails(${i})"><td><b>${x.m}</b></td><td>${rs(x.v)}</td><td><button class="small">👁️ View</button></td></tr>`).join('')}</tbody></table></div></section>`:''}
  <section><h2>Data Backup</h2><p class="muted">Export your complete data before changing phones.</p><button class="primary" onclick="backup()">⬇ Export Backup</button> <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button><input id="importFile" type="file" accept=".json" hidden onchange="restore(this.files[0])"></section>`
 }
@@ -850,9 +881,9 @@ function showMonthDetails(mIndex){
   
   modal(`<div class="sectionHead"><h2>${monthName} ${year} Analytics</h2><button onclick="closeModal()">×</button></div>
   <div class="cards">
-    <div class="card"><small>TRANSACTIONS</small><b>${monthSales.length}</b></div>
-    <div class="card"><small>PAID INCOME</small><b>${rs(monthIncome)}</b></div>
-    <div class="card"><small>NET PROFIT</small><b>${rs(monthProfit)}</b></div>
+    <div class="card card-blue"><small>TRANSACTIONS</small><b>${monthSales.length}</b></div>
+    <div class="card card-green"><small>PAID INCOME</small><b>${rs(monthIncome)}</b></div>
+    <div class="card card-purple"><small>NET PROFIT</small><b>${rs(monthProfit)}</b></div>
   </div><br>${body}`);
 }
 
