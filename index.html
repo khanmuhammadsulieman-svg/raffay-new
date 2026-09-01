@@ -74,7 +74,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
   function instantLoginCheck(event) {
     event.preventDefault(); 
     const localData = JSON.parse(localStorage.getItem('dr_streaming_manager_v1') || '{}');
-    const correctPassword = (localData.settings && localData.settings.password) ? localData.settings.password : 'admin';
+    const correctPassword = (localData.settings && localData.settings.password) ? localData.settings.password : 'vetville';
     const u = document.getElementById('loginUser').value;
     const p = document.getElementById('loginPass').value;
     if (u === 'admin' && p === correctPassword) {
@@ -93,8 +93,8 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
   <div class="card" style="width:min(90%, 360px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);border-radius:20px;padding:24px">
     <h2 style="margin-bottom:20px;text-align:center;font-weight:800">DR Streaming</h2>
     <form onsubmit="instantLoginCheck(event)" class="grid">
-      <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin"></label>
-      <label class="field full"><span>Password</span><input id="loginPass" type="password" required></label>
+      <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin" value="admin"></label>
+      <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="vetville"></label>
       <div class="full" style="margin-top:12px;">
         <button class="primary" type="submit" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button>
         <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="if(window.loginWithBiometrics) window.loginWithBiometrics();">👆 Fingerprint / Face ID</button>
@@ -104,7 +104,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 </div>
 
 <header>
-  <div class="brand">DR STREAMING<small id="syncStatus">BUSINESS MANAGER • CONNECTING...</small></div>
+  <div class="brand">DR STREAMING<small id="syncStatus">BUSINESS MANAGER • READY (LOCAL MODE) ✓</small></div>
   <div style="display:flex;gap:8px;align-items:center">
     <button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button>
     <button class="primary small" onclick="openSale()">＋ Sale</button>
@@ -142,35 +142,30 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBDarSjtR0RhflCSttQ1XWr3oKMNe2_43Y",
-  authDomain: "dr-streaming.firebaseapp.com",
-  projectId: "dr-streaming",
-  storageBucket: "dr-streaming.firebasestorage.app",
-  messagingSenderId: "702895699219",
-  appId: "1:702895699219:web:e4773b6f22571bcc7f56e6",
-  measurementId: "G-J2VP61C6GS"
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const firestore = getFirestore(firebaseApp);
-const cloudRef = doc(firestore, "dr_streaming", "main");
-let cloudReady = false;
-let saving = false;
-
+<script>
 const DB='dr_streaming_manager_v1';
 let data=JSON.parse(localStorage.getItem(DB)||'{}');
 
-if(!data.sales) data.sales=[];
+if(!data.sales) data.sales = [
+  {id: 1725180000001, owner: "Admin", client: "Raza Kuwait", phone: "+96541007584", product: "Netflix International", amount: 450, purchase: 0, date: "2026-08-31", payment: "Pending", tenure: 30, expiry: "2026-09-30", type: "Subscription"},
+  {id: 1725180000002, owner: "Admin", client: "Ali Khakzada", phone: "03290552920", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", payment: "Paid", tenure: 30, expiry: "2026-09-30", type: "Subscription"},
+  {id: 1725180000003, owner: "Admin", client: "Amna", phone: "", product: "Prime video", amount: 700, purchase: 0, date: "2026-10-20", payment: "Paid", tenure: 30, expiry: "2026-11-19", type: "Subscription"},
+  {id: 1725180000004, owner: "Admin", client: "Hussain BB Printer", phone: "+923060358423", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-30", payment: "Paid", tenure: 30, expiry: "2026-09-29", type: "Subscription"},
+  {id: 1725180000005, owner: "Admin", client: "Ali ghaffar", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
+  {id: 1725180000006, owner: "Admin", client: "Zohaib Lodhran", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
+  {id: 1725180000007, owner: "Manager", client: "Ali Hassan abroad", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
+  {id: 1725180000008, owner: "Admin", client: "Mureed", phone: "03051594242", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
+  {id: 1725180000009, owner: "Admin", client: "Burhan", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-21", payment: "Paid", tenure: 30, expiry: "2026-09-20", type: "Subscription"},
+  {id: 1725180000010, owner: "Admin", client: "Tamseela", phone: "+92 320 5060199", product: "Super grook 7days", amount: 1250, purchase: 0, date: "2026-08-30", payment: "Paid", tenure: 7, expiry: "2026-09-06", type: "Subscription"},
+  {id: 1725180000011, owner: "Admin", client: "Tanveer", phone: "+92 317 6085317", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"},
+  {id: 1725180000012, owner: "Admin", client: "Imdad Shah", phone: "+92 346 8894212", product: "Iptv myott", amount: 700, purchase: 0, date: "2026-08-27", payment: "Paid", tenure: 30, expiry: "2026-09-26", type: "Subscription"}
+];
+
 if(!data.expenses) data.expenses=[];
-if(!data.settings) data.settings={password:'admin', username:'admin'}; 
+if(!data.settings) data.settings={password:'vetville', username:'admin'};
+else if(!data.settings.password) data.settings.password='vetville';
 
 const catalog = [
-  // OTT
   ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
   ["Netflix Global", "Netflix", "OTT", "netflix", "E50914", 1200],
   ["Prime Video", "Amazon Prime", "OTT", "primevideo", "00A8E1", 800],
@@ -181,8 +176,6 @@ const catalog = [
   ["HBO Max", "Max", "OTT", "hbo", "000000", 950],
   ["Crunchyroll", "Crunchyroll", "OTT", "crunchyroll", "F47521", 700],
   ["ZEE5", "ZEE5", "OTT", "zee5", "000000", 500],
-
-  // VPN
   ["ExpressVPN", "ExpressVPN", "VPN", "expressvpn", "DA3940", 1000],
   ["NordVPN", "NordVPN", "VPN", "nordvpn", "4687FF", 950],
   ["Surfshark", "Surfshark", "VPN", "surfshark", "18A8B8", 900],
@@ -191,8 +184,6 @@ const catalog = [
   ["Private Internet Access", "PIA", "VPN", "privateinternetaccess", "5A2D81", 800],
   ["Windscribe", "Windscribe", "VPN", "windscribe", "0D7CFF", 750],
   ["TunnelBear", "TunnelBear", "VPN", "tunnelbear", "1C9BEF", 700],
-
-  // Premium AI
   ["ChatGPT Plus", "OpenAI", "AI", "openai", "111111", 2000],
   ["Claude Pro", "Anthropic", "AI", "anthropic", "D97757", 1800],
   ["Gemini Advanced", "Google Gemini", "AI", "googlegemini", "8E75B2", 1900],
@@ -327,18 +318,9 @@ window.saveCredentials = function(e) {
 const waSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16" style="vertical-align:middle;margin-left:6px;cursor:pointer;"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>`;
 const waBtnSVG = waSVG.replace('fill="#25D366"','fill="#ffffff"').replace('margin-left:6px;','margin-right:8px;');
 
-async function save(){
+function save(){
   localStorage.setItem(DB,JSON.stringify(data));
-  if(!cloudReady) return;
-  try{
-    saving=true;
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • SAVING...';
-    await setDoc(cloudRef,{data,updatedAt:new Date().toISOString()});
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
-  }catch(e){
-    console.error(e);
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE COPY SAVED';
-  }finally{saving=false}
+  document.getElementById('syncStatus').textContent='BUSINESS MANAGER • SAVED (LOCAL MODE) ✓';
 }
 
 const rs=n=>'Rs. '+Number(n||0).toLocaleString('en-PK');
@@ -1187,19 +1169,17 @@ Object.defineProperty(window,'customEndDate',{
   set:(v)=>{customEndDate=v;}
 });
 
-render();
-
-// Instant local load safeguard to eliminate infinite connecting hang
+// Force local storage sync with default password set to vetville if not present
 try {
-  let initialData = JSON.parse(localStorage.getItem(DB) || '{}');
-  if (initialData.sales || initialData.products) {
-    data = initialData;
-    if(!data.products || data.products.length === 0) data.products = starterProducts;
+  let stored = JSON.parse(localStorage.getItem(DB) || '{}');
+  if(!stored.sales || stored.sales.length === 0) {
+    save();
   } else {
-    data.products = starterProducts;
+    data = stored;
   }
+  if(!data.settings) data.settings = { username: 'admin', password: 'vetville' };
+  if(!data.settings.password) data.settings.password = 'vetville';
   document.getElementById('syncStatus').textContent = 'BUSINESS MANAGER • READY (LOCAL MODE) ✓';
-  cloudReady = true;
   render();
 } catch(e) {
   console.error(e);
