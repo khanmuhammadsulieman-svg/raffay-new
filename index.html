@@ -484,12 +484,41 @@ function showDetails(type){
  modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
 }
 
-window.prefetchProduct = function(name, price, type, tenure) {
+window.selectCatalogProduct = function(name, price, type) {
   document.getElementById('customProduct').value = name;
   document.getElementById('sa').value = price;
-  document.getElementById('stm').value = tenure;
-  document.querySelectorAll('.prefetch-chip-container').forEach(c => c.style.borderColor = '#d9d0c1');
-  event.currentTarget.style.borderColor = 'var(--blue)';
+  document.getElementById('stm').value = '30';
+  
+  const gridContainer = document.getElementById('catalogSelectionContainer');
+  if (gridContainer) {
+    gridContainer.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #10b981;border-radius:10px;padding:10px 14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:14px;font-weight:bold;color:#166534">✅ Selected: ${esc(name)} — ${rs(price)}</span>
+        </div>
+        <button type="button" class="small" onclick="resetCatalogSelection()" style="background:#dcfce7;color:#166534;font-weight:bold;">Change Product</button>
+      </div>
+    `;
+  }
+}
+
+window.resetCatalogSelection = function() {
+  document.getElementById('customProduct').value = '';
+  document.getElementById('sa').value = '';
+  let prefetchChips = data.products.map(p => `
+    <div class="prefetch-chip-container" data-name="${esc(p.name)}" onclick="selectCatalogProduct('${esc(p.name)}', ${p.price}, '${p.type || 'Subscription'}')" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s">
+      ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : (p.icon ? `<img src="${esc(p.icon)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : getProductIcon(p.name))}
+      <div style="text-align:left">
+        <span style="font-weight:bold;font-size:12px;color:#0f172a">${esc(p.name)}</span><br>
+        <span class="muted" style="font-size:11px">${rs(p.price)}</span>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('catalogSelectionContainer').innerHTML = `
+    <span style="display:flex;align-items:center;gap:6px;">🔍 Quick-Select Product Catalog & Search</span>
+    <input id="catalogSearchInput" onkeyup="filterCatalogSearch()" placeholder="Type to search apps, VPNs, AI..." style="margin:6px 0 10px 0;padding:10px;border-radius:10px;border:1px solid #d9d0c1;font-size:13px;outline:none;" />
+    <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;padding:4px 0">${prefetchChips}</div>
+  `;
 }
 
 window.filterCatalogSearch = function() {
@@ -503,7 +532,7 @@ window.filterCatalogSearch = function() {
 
 function openSale(){
   let prefetchChips = data.products.map(p => `
-    <div class="prefetch-chip-container" data-name="${esc(p.name)}" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type || 'Subscription'}', 30)" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s">
+    <div class="prefetch-chip-container" data-name="${esc(p.name)}" onclick="selectCatalogProduct('${esc(p.name)}', ${p.price}, '${p.type || 'Subscription'}')" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s">
       ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : (p.icon ? `<img src="${esc(p.icon)}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : getProductIcon(p.name))}
       <div style="text-align:left">
         <span style="font-weight:bold;font-size:12px;color:#0f172a">${esc(p.name)}</span><br>
@@ -511,20 +540,20 @@ function openSale(){
       </div>
     </div>`).join('');
   
-  let opts = data.products.map(p => `<option value="${p.id}">${esc(p.name)} — ${p.type || 'Subscription'}</option>`).join('');
-  
+  let uniqueClients = [...new Set(data.sales.map(s => s.client).filter(Boolean))];
+  let clientOptions = uniqueClients.map(c => `<option value="${esc(c)}">`).join('');
+
   modal(`
     <div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div>
     <form id="sf" class="grid">
-      <label class="field full">
+      <label id="catalogSelectionContainer" class="field full">
         <span style="display:flex;align-items:center;gap:6px;">🔍 Quick-Select Product Catalog & Search</span>
         <input id="catalogSearchInput" onkeyup="filterCatalogSearch()" placeholder="Type to search apps, VPNs, AI..." style="margin:6px 0 10px 0;padding:10px;border-radius:10px;border:1px solid #d9d0c1;font-size:13px;outline:none;" />
         <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;padding:4px 0">${prefetchChips}</div>
       </label>
       <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
-      <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
-      <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" placeholder="Type custom product name"></label>
-      <label class="field"><span>Client Name *</span><input id="sc" required placeholder="Customer Name"></label>
+      <label class="field"><span>Product Name (Auto-filled) *</span><input id="customProduct" required placeholder="Select from catalog or type name"></label>
+      <label class="field"><span>Client Name *</span><input id="sc" list="clientList" required placeholder="Select or type customer name"><datalist id="clientList">${clientOptions}</datalist></label>
       <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
       <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
       <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
@@ -542,27 +571,14 @@ function openSale(){
     </form>
   `);
 
-  document.getElementById('sp').onchange = () => {
-    let p = data.products.find(x => x.id == document.getElementById('sp').value);
-    if(p){
-      document.getElementById('customProduct').value = p.name;
-      document.getElementById('sa').value = p.price;
-      document.getElementById('stm').value = '30';
-    }
-  };
-
   document.getElementById('sf').onsubmit = e => {
     e.preventDefault();
     let name = document.getElementById('customProduct').value.trim();
-    if(!name && document.getElementById('sp').value){
-      let p = data.products.find(x => x.id == document.getElementById('sp').value);
-      if(p) name = p.name;
-    }
     if(!name){ alert('Please provide a product name.'); return; }
     
     let tenureVal = +document.getElementById('stm').value;
     let saleDate = document.getElementById('sd').value;
-    let pMatch = data.products.find(x => x.name === name);
+    let pMatch = data.products.find(x => x.name.toLowerCase() === name.toLowerCase());
     
     data.sales.unshift({
       id: Date.now(),
@@ -1069,7 +1085,8 @@ Object.assign(window,{
   modal, closeModal, go, dashboard, showDetails, salesTable, salesPage, editSale,
   productsPage, viewProduct, editProduct, clientsPage, editClient, pendingPage, markPaid, quickPayment, viewClient,
   expensesPage, openExpense, delExpense, profitPage, reports, showMonthDetails, render, openProduct,
-  openSale, delSale, delProduct, backup, restore, signOutApp, settingsPage, saveCredentials, filterCatalogSearch
+  openSale, delSale, delProduct, backup, restore, signOutApp, settingsPage, saveCredentials, filterCatalogSearch,
+  selectCatalogProduct, resetCatalogSelection
 });
 Object.defineProperty(window,'reportRange',{
   get:()=>reportRange,
