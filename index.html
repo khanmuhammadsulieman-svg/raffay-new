@@ -972,6 +972,75 @@ function quickPayment(id, value){
     save();render();
   }
 }
+function viewClient(id){
+  let s = data.sales.find(x => x.id === id);
+  if(!s) return;
+  modal(`
+    <div class="sectionHead">
+      <h2>Client & Receipt Details</h2>
+      <div>
+        <button class="primary small" id="downloadReceiptBtn" style="margin-right:8px;background:#10b981;" onclick="captureReceiptCard()">📥 Save Receipt</button>
+        <button class="small" style="background:#fef3c7;color:#92400e;margin-right:8px" onclick="editSale(${id})">✏️ Edit</button>
+        <button onclick="closeModal()">×</button>
+      </div>
+    </div>
+    <div id="receiptCardContent" style="background:#fff;padding:16px;border-radius:12px;">
+      <div class="grid">
+        <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:inline-flex;align-items:center;font-weight:bold;">${waBtnSVG} Message on WhatsApp</a>`:''}</div>
+        <div class="card"><small>Product / Service</small><b>${esc(s.product)}</b><span class="muted">${s.type}</span></div>
+        <div class="card"><small>Total Amount</small><b>${rs(s.amount)}</b></div>
+        <div class="card"><small>Payment Status</small><b>${s.payment}</b>${s.payment==='Partial'?`<span class="muted" style="display:block;margin-top:4px">Paid: ${rs(s.partialPaid)}<br>Remaining: <b style="color:#b91c1c">${rs(s.amount-(s.partialPaid||0))}</b></span>`:''}</div>
+        <div class="card"><small>Subscription Status</small><b>${status(s)}</b></div>
+        <div class="card"><small>Sale Date</small><b>${s.date}</b></div>
+        <div class="card"><small>Expiry Date</small><b>${s.expiry||'N/A'}</b></div>
+        <div class="card full"><small>Notes</small><b>${esc(s.notes||'None')}</b></div>
+      </div>
+    </div>
+  `);
+}
+
+window.captureReceiptCard = function() {
+  const cardElement = document.getElementById('receiptCardContent');
+  if(!cardElement) return;
+
+  if (typeof html2canvas === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = () => takeSnapshot(cardElement);
+    document.head.appendChild(script);
+  } else {
+    takeSnapshot(cardElement);
+  }
+}
+
+function takeSnapshot(element) {
+  html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `receipt_${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).catch(err => {
+    console.error(err);
+    alert('Failed to save receipt image.');
+  });
+}
+
+function expensesPage(){
+ return `<div class="sectionHead"><div><h1>Expenses</h1><span class="muted">Business expenses and outgoing payments</span></div><button class="primary" onclick="openExpense()">＋ Add Expense</button></div>
+ <section><div class="cards"><div class="card card-orange"><small>TOTAL EXPENSES</small><b>${rs(expenses(data.expenses))}</b></div></div>
+ ${data.expenses.length?`<div class="table"><table><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>${data.expenses.map(e=>`<tr><td>${e.date}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.category)}</td><td>${rs(e.amount)}</td><td><button class="danger small" onclick="delExpense(${e.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No expenses recorded yet.</div>'}</section>`;
+}
+function openExpense(){
+ modal(`<div class="sectionHead"><h2>Add Expense</h2><button onclick="closeModal()">×</button></div><form id="ef" class="grid">
+ <label class="field"><span>Expense Name *</span><input id="en" required placeholder="Internet Bill"></label>
+ <label class="field"><span>Category</span><select id="ec"><option>Business</option><option>Internet</option><option>Marketing</option><option>Software</option><option>Other</option></select></label>
+ <label class="field"><span>Amount *</span><input id="ea" type="number" required></label>
+ <label class="field"><span>Date</span><input id="ed" type="date" value="${today()}" required></label>
+ <label class="field full"><span>Notes</span><textarea id="enote"></textarea></label>
+ <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Expense</button></div></form>`);
+ ef.onsubmit=e=>{e.preventDefault();data.expenses.unshift({id:Date.now(),name:en.value,category:ec.value,amount:+ea.value,date:ed.value,notes:enote.value});save();closeModal();render()}
+}
+function delExpense(id){if(confirm('Delete this expense?')){data.expenses=data.expenses.filter(e=>e.id!==id);save();render()}}
 
 function profitPage(){
   const now = new Date();
@@ -1120,39 +1189,21 @@ Object.defineProperty(window,'customEndDate',{
 
 render();
 
-// Connection timeout safeguard: Forces local/offline fallback mode if Firebase takes >3 seconds to connect
-let syncTimeout = setTimeout(() => {
-  if(!cloudReady) {
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • ONLINE (LOCAL MODE) ✓';
-    cloudReady = true;
-    render();
+// Instant local load safeguard to eliminate infinite connecting hang
+try {
+  let initialData = JSON.parse(localStorage.getItem(DB) || '{}');
+  if (initialData.sales || initialData.products) {
+    data = initialData;
+    if(!data.products || data.products.length === 0) data.products = starterProducts;
+  } else {
+    data.products = starterProducts;
   }
-}, 3000);
-
-onSnapshot(cloudRef, async (snap)=>{
-  clearTimeout(syncTimeout);
-  try{
-    if(snap.exists() && snap.data().data){
-      const incoming=snap.data().data;
-      if(!incoming.sales) incoming.sales=[];
-      if(!incoming.products || incoming.products.length === 0) incoming.products = starterProducts;
-      if(!incoming.expenses) incoming.expenses=[];
-      if(!incoming.settings) incoming.settings={password:'admin'};
-      data=incoming;
-      localStorage.setItem(DB,JSON.stringify(data));
-      cloudReady=true;
-      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
-      render();
-    }else{
-      cloudReady=true;
-      await save();
-      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • CLOUD SYNCED ✓';
-    }
-  }catch(e){console.error(e);}
-},(err)=>{
-  console.error(err);
-  document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE MODE';
-});
+  document.getElementById('syncStatus').textContent = 'BUSINESS MANAGER • READY (LOCAL MODE) ✓';
+  cloudReady = true;
+  render();
+} catch(e) {
+  console.error(e);
+}
 
 let deferredInstallPrompt;
 window.addEventListener('beforeinstallprompt',(e)=>{
