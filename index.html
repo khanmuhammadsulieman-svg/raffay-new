@@ -9,48 +9,49 @@
 <title>DR Streaming Manager</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-:root{--bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#64748b;--blue:#2563eb;--line:#e2e8f0;--accent-blue:#eff6ff;--accent-green:#f0fdf4;--accent-purple:#f5f3ff;--accent-orange:#fff7ed}
+:root{--bg:#fdfbf7;--card:#ffffff;--ink:#0f172a;--muted:#64748b;--blue:#2563eb;--line:#f0eae1;--accent-blue:#eff6ff;--accent-green:#f0fdf4;--accent-purple:#f5f3ff;--accent-orange:#fff7ed}
 *{box-sizing:border-box}body{margin:0;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
 header{height:auto;min-height:64px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;position:sticky;top:0;z-index:5;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
 .brand{font-weight:800;font-size:16px;letter-spacing:-0.02em}.brand small{display:block;font-size:9px;color:#94a3b8;margin-top:2px;letter-spacing:0.05em}
 .container{max-width:1100px;margin:auto;padding:24px 16px 92px}
 h1{font-size:24px;margin:4px 0;font-weight:800;letter-spacing:-0.03em}h2{font-size:18px;margin:0;font-weight:700}.muted{color:var(--muted);font-size:13px;font-weight:500}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,0.02);transition:transform 0.15s ease, box-shadow 0.15s ease}
-.card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.01);transition:transform 0.15s ease, box-shadow 0.15s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.04)}
 .card small{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:0.04em}
 .card b{display:block;font-size:22px;margin-top:8px;font-weight:800;letter-spacing:-0.02em}
-.card-blue{border-top:4px solid #2563eb;background:linear-gradient(to bottom, #ffffff, #f8fafc)}
-.card-green{border-top:4px solid #10b981;background:linear-gradient(to bottom, #ffffff, #f0fdf4)}
-.card-purple{border-top:4px solid #8b5cf6;background:linear-gradient(to bottom, #ffffff, #f5f3ff)}
-.card-orange{border-top:4px solid #f59e0b;background:linear-gradient(to bottom, #ffffff, #fffbeb)}
-section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+.card-blue{border-top:4px solid #2563eb;background:linear-gradient(to bottom, #ffffff, #faf7f0)}
+.card-green{border-top:4px solid #10b981;background:linear-gradient(to bottom, #ffffff, #f4fbf7)}
+.card-purple{border-top:4px solid #8b5cf6;background:linear-gradient(to bottom, #ffffff, #f7f5ff)}
+.card-orange{border-top:4px solid #f59e0b;background:linear-gradient(to bottom, #ffffff, #fbf7f0)}
+section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,0.01)}
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
-button{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:#f1f5f9;color:#334155;font-family:inherit;transition:background 0.15s}
-button:hover{background:#e2e8f0}
+button{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:#f4efe6;color:#334155;font-family:inherit;transition:background 0.15s}
+button:hover{background:#e8e1d5}
 .primary{background:var(--blue);color:#fff}.primary:hover{background:#1d4ed8}
 .danger{background:#fee2e2;color:#b91c1c}.danger:hover{background:#fecaca}
 .small{padding:7px 10px;font-size:12px}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #f1f5f9;font-size:13px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #f4efe6;font-size:13px}
 th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:700}.table{overflow:auto}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;gap:2px;padding:8px 4px;z-index:6;box-shadow:0 -4px 12px rgba(0,0,0,0.03);padding-bottom:env(safe-area-inset-bottom,8px)}
-.nav{background:transparent;color:#64748b;font-size:11px;min-width:60px;flex-shrink:0;text-align:center;font-weight:600}.nav.on{color:var(--blue)}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#ffffff;border-top:1px solid var(--line);display:flex;justify-content:flex-start;gap:6px;padding:8px 12px;z-index:6;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:env(safe-area-inset-bottom,8px);box-shadow:0 -4px 12px rgba(0,0,0,0.02)}
+.bottom::-webkit-scrollbar{display:none}
+.nav{background:transparent;color:#64748b;font-size:11px;min-width:70px;flex-shrink:0;text-align:center;font-weight:600;cursor:pointer;border:none}.nav.on{color:var(--blue)}
 .modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:10;padding:15px;place-items:center}.modal.show{display:grid}
 .box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:20px;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .field{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#334155}
-.field input,.field select,.field textarea{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:12px;font:inherit;background:#fff;color:#0f172a;outline:none;transition:border-color 0.15s}
+.field input,.field select,.field textarea{width:100%;border:1px solid #d9d0c1;border-radius:10px;padding:12px;font:inherit;background:#fff;color:#0f172a;outline:none;transition:border-color 0.15s}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
 .full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
 .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
 .Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
-.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:#f1f5f9;color:#475569;border-radius:10px;padding:8px 14px;font-weight:700}.tab.on{background:#dbeafe;color:#1d4ed8}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:#f4efe6;color:#475569;border-radius:10px;padding:8px 14px;font-weight:700}.tab.on{background:#dbeafe;color:#1d4ed8}
 .empty{text-align:center;color:var(--muted);padding:32px;font-weight:500}
 .menu-btn{background:transparent;color:#fff;font-size:24px;padding:0 5px;line-height:1}
 .menu-content{display:none;position:absolute;right:18px;top:64px;background:#fff;color:#0f172a;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.1);min-width:200px;z-index:100;flex-direction:column;overflow:hidden}
 .menu-content.show{display:flex}
-.menu-content a{padding:12px 18px;border-bottom:1px solid #f1f5f9;cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;color:#334155}
-.menu-content a:hover{background:#f8fafc;color:var(--blue)}
+.menu-content a{padding:12px 18px;border-bottom:1px solid #f4efe6;cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;color:#334155}
+.menu-content a:hover{background:#faf7f0;color:var(--blue)}
 @media(max-width:700px){
   .cards{grid-template-columns:1fr 1fr}
   .grid{grid-template-columns:1fr}
@@ -328,7 +329,6 @@ const expiry=(d,n)=>{let x=dateObj(d);x.setDate(x.getDate()+Number(n));return x.
 const days=d=>Math.ceil((dateObj(d)-new Date(new Date().toDateString()))/86400000);
 const status=s=>!s.expiry?'—':days(s.expiry)<0?'Expired':days(s.expiry)<=7?'Expiring':'Active';
 
-// CURRENT MONTH SALES FILTER FOR DASHBOARD METRICS
 const currentMonthSales = a => {
   const now = new Date();
   return a.filter(s => {
@@ -411,12 +411,12 @@ window.prefetchProduct = function(name, price, type, tenure) {
   document.getElementById('customProduct').value = name;
   document.getElementById('sa').value = price;
   document.getElementById('stm').value = tenure;
-  document.querySelectorAll('.prefetch-chip').forEach(c => c.style.borderColor = '#e2e8f0');
+  document.querySelectorAll('.prefetch-chip').forEach(c => c.style.borderColor = '#d9d0c1');
   event.currentTarget.style.borderColor = 'var(--blue)';
 }
 
 function openSale(){
-  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<div style="text-align:left"><span>${esc(p.name)}</span><br><span class="muted">${rs(p.price)}</span></div></div>`).join('');
+  let prefetchChips = data.products.map(p => `<div class="prefetch-chip" onclick="prefetchProduct('${esc(p.name)}', ${p.price}, '${p.type}', ${p.type==='Subscription'?30:0})" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:bold;transition:all 0.2s">${getProductIcon(p.name)}<div style="text-align:left"><span>${esc(p.name)}</span><br><span class="muted">${rs(p.price)}</span></div></div>`).join('');
   
   let opts=data.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.type}</option>`).join('');
   modal(`<div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
@@ -639,7 +639,7 @@ function productsPage(){
    let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?s.partialPaid:Number(s.amount||0)) - Number(s.purchase||0)), 0);
    totalQty += qty;
    totalProfit += profit;
-   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td><td>${rs(p.price)}</td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
+   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td><td>${rs(p.price)}</td><td><span style="background:#f4efe6;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td><td><b style="color:#166534">${rs(profit)}</b></td><td><button class="small" onclick="viewProduct(${p.id})">👁️ View</button> <button class="danger small" onclick="delProduct(${p.id})" title="Delete">🗑️</button></td></tr>`;
  }).join('');
 
  return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
@@ -816,7 +816,7 @@ function profitPage(){
    const pRev = pSales.reduce((sum, s) => sum + (s.payment==='Partial'?s.partialPaid:Number(s.amount||0)), 0);
    const pCost = pSales.reduce((sum, s) => sum + Number(s.purchase||0), 0);
    const pProfit = pRev - pCost;
-   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<b>${esc(p.name)}</b></div></td><td><span style="background:#eef2f7;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
+   return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<b>${esc(p.name)}</b></div></td><td><span style="background:#f4efe6;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
  }).join('');
 
  return `<div class="sectionHead"><div><h1>Profit Analytics</h1><span class="muted">Ultimate breakdown of revenue, costs, and profit</span></div></div>
