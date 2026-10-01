@@ -71,35 +71,55 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 </style>
 
 <script>
+  function checkLocalAuth(account, u, p) {
+    const key = account === 'admin' ? 'dr_streaming_manager_v1_admin' : 'dr_streaming_manager_v1_coadmin';
+    let localData = {};
+    try { 
+      localData = JSON.parse(localStorage.getItem(key) || (account === 'admin' ? localStorage.getItem('dr_streaming_manager_v1') : '{}') || '{}'); 
+    } catch(e) {}
+    const defaults = account === 'admin' ? {username:'admin', password:'vetville'} : {username:'coadmin', password:'coadmin'};
+    const storedUser = localData.settings?.username || defaults.username;
+    const storedPass = localData.settings?.password || defaults.password;
+
+    if(u === storedUser && p === storedPass) {
+      sessionStorage.setItem('auth','true');
+      sessionStorage.setItem('account',account);
+      document.getElementById('loginScreen').style.display='none';
+      if(window.activateAccount) window.activateAccount(account);
+      return true;
+    }
+    return false;
+  }
+
   async function instantLoginCheck(event) {
     event.preventDefault();
     const account = document.getElementById('loginAccount').value;
     const u = document.getElementById('loginUser').value.trim();
     const p = document.getElementById('loginPass').value;
     const btn = event.submitter || event.target.querySelector('button[type="submit"]');
-    if(btn){ btn.disabled=true; btn.textContent='Connecting to Cloud...'; }
+    if(btn){ btn.disabled=true; btn.textContent='Connecting...'; }
+
     try {
+      let loggedIn = false;
       if(window.cloudLoginAccount) {
-        const ok = await window.cloudLoginAccount(account, u, p);
-        if(ok) return;
-      } else {
-        // Fallback while Firebase module is still initializing.
-        const key = account === 'admin' ? 'dr_streaming_manager_v1_admin' : 'dr_streaming_manager_v1_coadmin';
-        let localData = {};
-        try { localData = JSON.parse(localStorage.getItem(key) || (account === 'admin' ? localStorage.getItem('dr_streaming_manager_v1') : '{}') || '{}'); } catch(e) {}
-        const defaults = account === 'admin' ? {username:'admin', password:'vetville'} : {username:'coadmin', password:'coadmin'};
-        if(u === (localData.settings?.username || defaults.username) && p === (localData.settings?.password || defaults.password)) {
-          sessionStorage.setItem('auth','true');
-          sessionStorage.setItem('account',account);
-          document.getElementById('loginScreen').style.display='none';
-          if(window.activateAccount) window.activateAccount(account);
-          return;
+        try {
+          loggedIn = await window.cloudLoginAccount(account, u, p);
+        } catch(cloudErr) {
+          console.warn("Cloud login unreachable, checking local credentials:", cloudErr);
+          loggedIn = checkLocalAuth(account, u, p);
         }
+      } else {
+        loggedIn = checkLocalAuth(account, u, p);
       }
-      alert('Incorrect Username or Password.');
+
+      if(!loggedIn) {
+        alert('Incorrect Username or Password.');
+      }
     } catch(e) {
       console.error(e);
-      alert('Cloud connection failed. Please check your internet connection and try again.');
+      if(!checkLocalAuth(account, u, p)) {
+        alert('Incorrect Username or Password.');
+      }
     } finally {
       if(btn){ btn.disabled=false; btn.textContent='Login to Dashboard'; }
     }
@@ -153,7 +173,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
         <a onclick="go('expenses');closeMenu()">💸 Expenses</a>
         <a onclick="go('profit');closeMenu()">📈 Profit</a>
         <a onclick="go('reports');closeMenu()">📊 Reports</a>
-        <a onclick="go('settings');closeMenu()">⚙️ Settings</a>
+        <a onclick="go('settings');closeMenu()">⚙️️ Settings</a>
         <a onclick="switchAccount();closeMenu()">🔄 Switch Account</a>
         <a onclick="signOutApp();closeMenu()">🚪 Sign Out</a>
       </div>
@@ -218,7 +238,7 @@ if(currentAccount === 'admin' && (!data.sales || data.sales.length === 0)) {
     {id: 1788172499069, owner: "Admin", client: "Zohaib Lodhran", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-18", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
     {id: 1788172411722, owner: "Manager", client: "Ali Hassan abroad", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-18", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
     {id: 1788169884087, owner: "Admin", client: "Mureed", phone: "03051594242", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-31", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
-    {id: 1788162143819, owner: "Admin", client: "Burhan", phone: "", product: "Netflix pakistan", type: "Subscription", amount: 370, purchase: 0, payment: "Paid", partialPaid: 0, date: "2026-08-22", purchaseDate: "", paymentDate: "2026-08-22", tenure: 30, expiry: "2026-09-20", notes: ""},
+    {id: 1788162143819, owner: "Admin", client: "Burhan", phone: "", product: "Netflix pakistan", type: "Subscription", amount: 370, purchase: 0, payment: "Paid", date: "2026-08-22", purchaseDate: "", paymentDate: "2026-08-22", tenure: 30, expiry: "2026-09-20", notes: ""},
     {id: 1788160774990, owner: "Admin", client: "Tamseela", phone: "+92 320 5060199", product: "Super grook 7days", type: "Subscription", amount: 1250, purchase: 1000, payment: "Paid", date: "2026-08-31", purchaseDate: "2026-08-30", paymentDate: "2026-08-30", tenure: 7, expiry: "2026-09-06", notes: ""},
     {id: 1788156084977, owner: "Admin", client: "Tanveer", phone: "+92 317 6085317", product: "Netflix pakistan", type: "Subscription", amount: 370, purchase: 0, payment: "Paid", date: "2026-08-31", purchaseDate: "2026-08-21", paymentDate: "2026-08-28", tenure: 27, expiry: "2026-09-26", notes: ""},
     {id: 1788154955530, owner: "Admin", client: "Imdad Shah", phone: "+92 346 8894212", product: "Iptv myott", type: "Subscription", amount: 700, purchase: 0, payment: "Paid", date: "2026-08-31", purchaseDate: "2026-08-28", paymentDate: "2026-08-31", tenure: 27, expiry: "2026-09-26", notes: "", partialPaid: 0},
@@ -447,26 +467,29 @@ window.cloudLoginAccount = async function(account, username, password){
   try { local = JSON.parse(localStorage.getItem(localKey) || (safeAccount==='admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}'); } catch(e) {}
   local = await ensureAccountShape(safeAccount, local);
 
-  const snap = await getDoc(ref);
   let cloudData = null;
-  if(snap.exists() && snap.data()?.data){
-    cloudData = await ensureAccountShape(safeAccount, snap.data().data);
-    localStorage.setItem(localKey, JSON.stringify(cloudData));
-  } else if(safeAccount === 'admin') {
-    // Migrate the original single-account Firebase document into the new Admin account.
-    const legacyRef = doc(firestore, 'dr_streaming', 'main');
-    const legacySnap = await getDoc(legacyRef);
-    if(legacySnap.exists() && legacySnap.data()?.data){
-      cloudData = await ensureAccountShape('admin', legacySnap.data().data);
+  try {
+    const snap = await getDoc(ref);
+    if(snap.exists() && snap.data()?.data){
+      cloudData = await ensureAccountShape(safeAccount, snap.data().data);
       localStorage.setItem(localKey, JSON.stringify(cloudData));
-      await setDoc(ref, {data: cloudData, updatedAt:new Date().toISOString(), account:'admin', migratedFrom:'dr_streaming/main'}, {merge:true});
+    } else if(safeAccount === 'admin') {
+      const legacyRef = doc(firestore, 'dr_streaming', 'main');
+      const legacySnap = await getDoc(legacyRef);
+      if(legacySnap.exists() && legacySnap.data()?.data){
+        cloudData = await ensureAccountShape('admin', legacySnap.data().data);
+        localStorage.setItem(localKey, JSON.stringify(cloudData));
+        await setDoc(ref, {data: cloudData, updatedAt:new Date().toISOString(), account:'admin', migratedFrom:'dr_streaming/main'}, {merge:true});
+      }
     }
-  }
-  if(!cloudData){
-    // First cloud setup: preserve the existing local account and upload it.
+    if(!cloudData){
+      cloudData = local;
+      localStorage.setItem(localKey, JSON.stringify(cloudData));
+      await setDoc(ref, {data: cloudData, updatedAt:new Date().toISOString(), account:safeAccount}, {merge:true});
+    }
+  } catch(err) {
+    console.warn("Could not sync with Firestore during login, using local data cache:", err);
     cloudData = local;
-    localStorage.setItem(localKey, JSON.stringify(cloudData));
-    await setDoc(ref, {data: cloudData, updatedAt:new Date().toISOString(), account:safeAccount}, {merge:true});
   }
 
   if(username !== cloudData.settings.username || password !== cloudData.settings.password) return false;
@@ -986,7 +1009,7 @@ function editSale(id){
 
 function salesTable(a,actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(s.amount - (s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone\vert{}\vert{}'')}</span>${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(s.amount - (s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 }
 function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
 
