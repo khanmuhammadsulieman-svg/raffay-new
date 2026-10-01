@@ -173,7 +173,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
         <a onclick="go('expenses');closeMenu()">💸 Expenses</a>
         <a onclick="go('profit');closeMenu()">📈 Profit</a>
         <a onclick="go('reports');closeMenu()">📊 Reports</a>
-        <a onclick="go('settings');closeMenu()">⚙️️ Settings</a>
+        <a onclick="go('settings');closeMenu()">⚙ Settings</a>
         <a onclick="switchAccount();closeMenu()">🔄 Switch Account</a>
         <a onclick="signOutApp();closeMenu()">🚪 Sign Out</a>
       </div>
@@ -423,7 +423,7 @@ async function save(){
     document.getElementById('syncStatus').textContent='BUSINESS MANAGER • ' + (currentAccount==='admin'?'ADMIN':'CO-ADMIN') + ' CLOUD SYNCED ✓';
   }catch(e){
     console.error(e);
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • OFFLINE COPY SAVED';
+    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
   }finally{saving=false}
 }
 
@@ -1009,7 +1009,7 @@ function editSale(id){
 
 function salesTable(a,actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone\vert{}\vert{}'')}</span>${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(s.amount - (s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone\vert{}\vert{}'')}</span>${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(s.amount - (s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 }
 function salesPage(){return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`}
 
@@ -1129,7 +1129,7 @@ function pendingPage(){
  const total=pending.reduce((a,s)=>a+(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0)),0);
  return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
  <section><div class="cards"><div class="card card-orange"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card card-blue"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
- ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Total Bill</th><th>Remaining</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><b style="color:#b91c1c">${rs(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0))}</b></td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td style="white-space:nowrap"><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
+ ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Total Bill</th><th>Remaining</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><b style="color:#b91c1c">${rs(s.amount - (s.payment==='Partial'?(s.partialPaid||0):0))}</b></td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td style="white-space:nowrap"><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
 }
 function markPaid(id){
  let sale=data.sales.find(s=>s.id===id);
@@ -1374,40 +1374,64 @@ Object.defineProperty(window,'customEndDate',{
 
 render();
 
-// Cloud Sync Connection — each account has its own Firestore document
+// Cloud Sync Connection — with immediate offline/local fallback
 function startCloudSync(){
   if(unsubscribeCloud) { unsubscribeCloud(); unsubscribeCloud=null; }
   cloudReady=false;
   const accountAtStart=currentAccount;
-  let syncTimeout=setTimeout(()=>{
-    if(accountAtStart===currentAccount && !cloudReady){
-      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • '+(currentAccount==='admin'?'ADMIN':'CO-ADMIN')+' CLOUD CONNECTING...';
+
+  // Render immediately from current local storage cache
+  render();
+
+  // If Cloud takes more than 2 seconds, flip status to local mode and keep everything visible
+  let fallbackTimer=setTimeout(()=>{
+    if(!cloudReady && accountAtStart===currentAccount){
+      console.warn("Firestore taking too long or blocked; using local data.");
+      const syncEl=document.getElementById('syncStatus');
+      if(syncEl) syncEl.textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
+      render();
     }
-  },4000);
-  unsubscribeCloud=onSnapshot(cloudRef, async (snap)=>{
-    if(accountAtStart!==currentAccount) return;
-    clearTimeout(syncTimeout);
-    try{
-      if(snap.exists() && snap.data().data){
-        const incoming=snap.data().data;
-        data=incoming;
-        localStorage.setItem(DB,JSON.stringify(data));
-        cloudReady=true;
-        document.getElementById('syncStatus').textContent='BUSINESS MANAGER • '+(currentAccount==='admin'?'ADMIN':'CO-ADMIN')+' CLOUD SYNCED ✓';
+  },2000);
+
+  try {
+    unsubscribeCloud=onSnapshot(cloudRef, async (snap)=>{
+      if(accountAtStart!==currentAccount) return;
+      clearTimeout(fallbackTimer);
+      try{
+        if(snap.exists() && snap.data()?.data){
+          const incoming=snap.data().data;
+          data=incoming;
+          localStorage.setItem(DB,JSON.stringify(data));
+          cloudReady=true;
+          const syncEl=document.getElementById('syncStatus');
+          if(syncEl) syncEl.textContent='BUSINESS MANAGER • '+(currentAccount==='admin'?'ADMIN':'CO-ADMIN')+' CLOUD SYNCED ✓';
+          render();
+        }else{
+          cloudReady=true;
+          await save();
+          render();
+        }
+      }catch(e){
+        console.error(e);
+        const syncEl=document.getElementById('syncStatus');
+        if(syncEl) syncEl.textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
         render();
-      }else{
-        cloudReady=true;
-        await save();
       }
-    }catch(e){
-      console.error(e);
-      document.getElementById('syncStatus').textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
-    }
-  },(err)=>{
-    if(accountAtStart!==currentAccount) return;
-    console.error(err);
-    document.getElementById('syncStatus').textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
-  });
+    },(err)=>{
+      clearTimeout(fallbackTimer);
+      if(accountAtStart!==currentAccount) return;
+      console.warn("Firestore snapshot error, continuing in local mode:", err);
+      const syncEl=document.getElementById('syncStatus');
+      if(syncEl) syncEl.textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
+      render();
+    });
+  } catch(err) {
+    clearTimeout(fallbackTimer);
+    console.error("Cloud sync initialization error:", err);
+    const syncEl=document.getElementById('syncStatus');
+    if(syncEl) syncEl.textContent='BUSINESS MANAGER • READY (LOCAL MODE) ✓';
+    render();
+  }
 }
 
 setAccountState(currentAccount);
