@@ -124,34 +124,33 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 <button class="nav" data-page="expenses" onclick="go('expenses')">💸<br>Expenses</button>
 <button class="nav" data-page="profit" onclick="go('profit')">📈<br>Profit</button>
 <button class="nav" data-page="reports" onclick="go('reports')">📊<br>Reports</button>
-<button class="nav" data-page="settings" onclick="go('settings')">⚙️<br>Settings</button>
+<button class="nav" data-page="settings" onclick="go('settings')">⚙️️<br>Settings</button>
 </nav>
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<!-- Core Application Engine: Guaranteed Global Availability -->
 <script>
-let currentAccount = sessionStorage.getItem('account') || 'admin';
+window.currentAccount = sessionStorage.getItem('account') || 'admin';
 const LEGACY_DB = 'dr_streaming_manager_v1';
 const ACCOUNT_DBS = { admin:'dr_streaming_manager_v1_admin', coadmin:'dr_streaming_manager_v1_coadmin' };
-let DB = ACCOUNT_DBS[currentAccount] || ACCOUNT_DBS.admin;
+window.DB = ACCOUNT_DBS[window.currentAccount] || ACCOUNT_DBS.admin;
 
-if(currentAccount === 'admin' && !localStorage.getItem(ACCOUNT_DBS.admin) && localStorage.getItem(LEGACY_DB)) {
+if(window.currentAccount === 'admin' && !localStorage.getItem(ACCOUNT_DBS.admin) && localStorage.getItem(LEGACY_DB)) {
   localStorage.setItem(ACCOUNT_DBS.admin, localStorage.getItem(LEGACY_DB));
 }
 
-let data = {};
+window.data = {};
 try {
-  data = JSON.parse(localStorage.getItem(DB) || (currentAccount === 'admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}');
-} catch(e) { data = {}; }
+  window.data = JSON.parse(localStorage.getItem(window.DB) || (window.currentAccount === 'admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}');
+} catch(e) { window.data = {}; }
 
-if(!Array.isArray(data.sales)) data.sales = [];
-if(!Array.isArray(data.expenses)) data.expenses = [];
-if(!Array.isArray(data.products)) data.products = [];
-if(!Array.isArray(data.clients)) data.clients = [];
-if(!data.settings) data.settings = currentAccount==='admin' ? {password:'vetville', username:'admin'} : {password:'coadmin', username:'coadmin'};
-if(!data.settings.password) data.settings.password = currentAccount==='admin' ? 'vetville' : 'coadmin';
-if(!data.settings.username) data.settings.username = currentAccount==='admin' ? 'admin' : 'coadmin';
+if(!Array.isArray(window.data.sales)) window.data.sales = [];
+if(!Array.isArray(window.data.expenses)) window.data.expenses = [];
+if(!Array.isArray(window.data.products)) window.data.products = [];
+if(!Array.isArray(window.data.clients)) window.data.clients = [];
+if(!window.data.settings) window.data.settings = window.currentAccount==='admin' ? {password:'vetville', username:'admin'} : {password:'coadmin', username:'coadmin'};
+if(!window.data.settings.password) window.data.settings.password = window.currentAccount==='admin' ? 'vetville' : 'coadmin';
+if(!window.data.settings.username) window.data.settings.username = window.currentAccount==='admin' ? 'admin' : 'coadmin';
 
 const catalog = [
   ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
@@ -184,8 +183,8 @@ const catalog = [
   ["Grammarly Premium", "Grammarly", "AI", "grammarly", "15C39A", 1000],
 ];
 
-if(!data.products || data.products.length === 0) {
-  data.products = catalog.map(([name, brand, type, slug, color, price], index) => ({
+if(!window.data.products || window.data.products.length === 0) {
+  window.data.products = catalog.map(([name, brand, type, slug, color, price], index) => ({
     id: `starter-${index}`,
     name,
     brand,
@@ -199,22 +198,22 @@ let page='dashboard', reportRange='month', dashMode='current';
 let customStartDate = '', customEndDate = '';
 
 function setAccountState(account){
-  currentAccount = account === 'coadmin' ? 'coadmin' : 'admin';
-  DB = ACCOUNT_DBS[currentAccount];
-  if(currentAccount === 'admin' && !localStorage.getItem(DB) && localStorage.getItem(LEGACY_DB)) {
-    localStorage.setItem(DB, localStorage.getItem(LEGACY_DB));
+  window.currentAccount = account === 'coadmin' ? 'coadmin' : 'admin';
+  window.DB = ACCOUNT_DBS[window.currentAccount];
+  if(window.currentAccount === 'admin' && !localStorage.getItem(window.DB) && localStorage.getItem(LEGACY_DB)) {
+    localStorage.setItem(window.DB, localStorage.getItem(LEGACY_DB));
   }
-  try { data = JSON.parse(localStorage.getItem(DB) || '{}'); } catch(e) { data={}; }
-  if(!Array.isArray(data.sales)) data.sales=[];
-  if(!Array.isArray(data.expenses)) data.expenses=[];
-  if(!Array.isArray(data.products)) data.products=[];
-  if(!Array.isArray(data.clients)) data.clients=[];
-  if(!data.settings) data.settings=currentAccount==='admin'?{password:'vetville',username:'admin'}:{password:'coadmin',username:'coadmin'};
-  if(!data.settings.password) data.settings.password=currentAccount==='admin'?'vetville':'coadmin';
-  if(!data.settings.username) data.settings.username=currentAccount==='admin'?'admin':'coadmin';
-  sessionStorage.setItem('account',currentAccount);
+  try { window.data = JSON.parse(localStorage.getItem(window.DB) || '{}'); } catch(e) { window.data={}; }
+  if(!Array.isArray(window.data.sales)) window.data.sales=[];
+  if(!Array.isArray(window.data.expenses)) window.data.expenses=[];
+  if(!Array.isArray(window.data.products)) window.data.products=[];
+  if(!Array.isArray(window.data.clients)) window.data.clients=[];
+  if(!window.data.settings) window.data.settings=window.currentAccount==='admin'?{password:'vetville',username:'admin'}:{password:'coadmin',username:'coadmin'};
+  if(!window.data.settings.password) window.data.settings.password=window.currentAccount==='admin'?'vetville':'coadmin';
+  if(!window.data.settings.username) window.data.settings.username=window.currentAccount==='admin'?'admin':'coadmin';
+  sessionStorage.setItem('account',window.currentAccount);
   const badge=document.getElementById('accountBadge');
-  if(badge) badge.textContent=currentAccount==='admin'?'ADMIN':'CO-ADMIN';
+  if(badge) badge.textContent=window.currentAccount==='admin'?'ADMIN':'CO-ADMIN';
 }
 
 function checkLocalAuth(account, u, p) {
@@ -272,7 +271,7 @@ window.updateLoginAccount = function() {
 };
 
 window.save = async function(){
-  localStorage.setItem(DB, JSON.stringify(data));
+  localStorage.setItem(window.DB, JSON.stringify(window.data));
   if(window.cloudSave) window.cloudSave();
 };
 
@@ -295,7 +294,7 @@ const getFilteredSales = () => {
     targetMonth -= 1;
     if(targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
   }
-  return data.sales.filter(s => {
+  return window.data.sales.filter(s => {
     let d = dateObj(s.date);
     return !isNaN(d) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
   });
@@ -309,7 +308,7 @@ const getFilteredExpenses = () => {
     targetMonth -= 1;
     if(targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
   }
-  return data.expenses.filter(e => {
+  return window.data.expenses.filter(e => {
     let d = dateObj(e.date);
     return !isNaN(d) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
   });
@@ -335,7 +334,7 @@ window.go = function(p){
 };
 
 function getProductIcon(productName) {
-  let matched = data.products.find(p => p.name.toLowerCase() === (productName || '').toLowerCase());
+  let matched = window.data.products.find(p => p.name.toLowerCase() === (productName || '').toLowerCase());
   if (matched) {
     if (matched.imageUrl) return `<img src="${esc(matched.imageUrl)}" alt="${esc(matched.name)} logo" style="width:32px;height:32px;object-fit:contain;" />`;
     if (matched.icon) return `<img src="${esc(matched.icon)}" alt="${esc(matched.name)} logo" style="width:32px;height:32px;object-fit:contain;" />`;
@@ -349,7 +348,7 @@ function dashboard(){
  const paid=income(activeSales), gross=grossSales(activeSales);
  const r=income(activeSales.filter(s=>s.owner==='Manager')), a=income(activeSales.filter(s=>s.owner==='Admin'));
  const cost=purchase(activeSales), exp=expenses(activeExpList), profit=paid-cost-exp;
- const pending=data.sales.filter(s=>s.payment!=='Paid');
+ const pending=window.data.sales.filter(s=>s.payment!=='Paid');
  
  const now = new Date();
  let prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -376,14 +375,14 @@ function dashboard(){
  <div class="card card-orange" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted" style="font-size:11px">${rs(pending.reduce((x,s)=>x+(Number(s.amount||0) - Number(s.partialPaid||0)),0))} remaining →</span></div>
  </div>
  <section><div class="sectionHead"><h2>Recent Orders</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(activeSales.slice(0,6),false)}</section>
- <section><div class="sectionHead"><h2>🔔 Expiring Soon</h2></div>${salesTable(data.sales.filter(s=>s.type==='Subscription'&&days(s.expiry)>=0&&days(s.expiry)<=14),false)}</section>`;
+ <section><div class="sectionHead"><h2>🔔 Expiring Soon</h2></div>${salesTable(window.data.sales.filter(s=>s.type==='Subscription'&&days(s.expiry)>=0&&days(s.expiry)<=14),false)}</section>`;
 }
 
 window.showDetails = function(type){
  const activeSales = getFilteredSales();
  const activeExpList = getFilteredExpenses();
  const paid=income(activeSales), cost=purchase(activeSales), exp=expenses(activeExpList);
- const pending=data.sales.filter(s=>s.payment!=='Paid');
+ const pending=window.data.sales.filter(s=>s.payment!=='Paid');
  let title='',body='';
  const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}${s.payment==='Partial'?`<br><span style="font-size:10px;color:var(--muted)">Paid: ${rs(s.partialPaid)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
  if(type==='income'){title=`💼 Paid Income (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<h2>${rs(paid)}</h2>${list(activeSales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
@@ -399,15 +398,15 @@ window.showDetails = function(type){
 
 window.salesTable = function(a, actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone\vert{}\vert{}'')}</span>${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(Number(s.amount||0) - Number(s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone \vert{}\vert{} '')}</span>${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(Number(s.amount||0) - Number(s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 };
 
 window.salesPage = function(){
-  return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(data.sales,true)}</section>`;
+  return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(window.data.sales,true)}</section>`;
 };
 
 window.openSale = function(){
-  let uniqueClients = [...new Set(data.sales.map(s => s.client).filter(Boolean))];
+  let uniqueClients = [...new Set(window.data.sales.map(s => s.client).filter(Boolean))];
   let clientOptions = uniqueClients.map(c => `<option value="${esc(c)}">`).join('');
 
   modal(`
@@ -446,9 +445,9 @@ window.openSale = function(){
     
     let tenureVal = +document.getElementById('stm').value;
     let saleDate = document.getElementById('sd').value;
-    let pMatch = data.products.find(x => x.name.toLowerCase() === name.toLowerCase());
+    let pMatch = window.data.products.find(x => x.name.toLowerCase() === name.toLowerCase());
     
-    data.sales.unshift({
+    window.data.sales.unshift({
       id: Date.now(),
       owner: document.getElementById('so').value,
       client: document.getElementById('sc').value,
@@ -489,7 +488,7 @@ window.renderCatalogChips = function() {
   });
 
   let grid = document.getElementById('catalogGrid');
-  data.products.forEach(p => {
+  window.data.products.forEach(p => {
     let chip = document.createElement('div');
     chip.className = 'prefetch-chip-container';
     chip.setAttribute('data-name', p.name);
@@ -523,7 +522,7 @@ window.renderCatalogChips = function() {
 
 window.onClientNameChange = function(inputEl) {
   let val = inputEl.value.trim().toLowerCase();
-  let matchedSale = data.sales.find(s => s.client && s.client.toLowerCase() === val && s.phone);
+  let matchedSale = window.data.sales.find(s => s.client && s.client.toLowerCase() === val && s.phone);
   if (matchedSale) {
     let phoneInput = document.getElementById('sph');
     if (phoneInput) phoneInput.value = matchedSale.phone;
@@ -534,8 +533,8 @@ window.productsPage = function(){
  const now=new Date();
  let totalQty=0; let totalProfit=0;
  
- const rows = data.products.map(p=>{
-   let pSales = data.sales.filter(s => {
+ const rows = window.data.products.map(p=>{
+   let pSales = window.data.sales.filter(s => {
      if(s.product !== p.name || s.payment === 'Pending') return false;
      let d = dateObj(s.date);
      if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
@@ -569,12 +568,12 @@ window.productsPage = function(){
    <div class="card card-blue"><small>TOTAL QTY SOLD</small><b>${totalQty}x</b></div>
    <div class="card card-green"><small>TOTAL NET PROFIT</small><b>${rs(totalProfit)}</b></div>
  </div>
- <section>${data.products.length?`<div class="table"><table><thead><tr><th>Product Icon</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`;
+ <section>${window.data.products.length?`<div class="table"><table><thead><tr><th>Product Icon</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`;
 };
 
 window.clientsPage = function(){
  let map={};
- data.sales.forEach(s=>{
+ window.data.sales.forEach(s=>{
    if(!s.client)return;
    let k=s.client+'|'+(s.phone||'');
    if(!map[k])map[k]={name:s.client,phone:s.phone,total:0,count:0};
@@ -586,7 +585,7 @@ window.clientsPage = function(){
 };
 
 window.pendingPage = function(){
- const pending=data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
+ const pending=window.data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
  const total=pending.reduce((a,s)=>a+(Number(s.amount||0) - (s.payment==='Partial'?(Number(s.partialPaid||0)):0)),0);
  return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
  <section><div class="cards"><div class="card card-orange"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card card-blue"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
@@ -595,13 +594,13 @@ window.pendingPage = function(){
 
 window.expensesPage = function(){
  return `<div class="sectionHead"><div><h1>Expenses</h1><span class="muted">Business expenses and outgoing payments</span></div><button class="primary" onclick="openExpense()">＋ Add Expense</button></div>
- <section><div class="cards"><div class="card card-orange"><small>TOTAL EXPENSES</small><b>${rs(expenses(data.expenses))}</b></div></div>
- ${data.expenses.length?`<div class="table"><table><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>${data.expenses.map(e=>`<tr><td>${e.date}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.category)}</td><td>${rs(e.amount)}</td><td><button class="danger small" onclick="delExpense(${e.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No expenses recorded yet.</div>'}</section>`;
+ <section><div class="cards"><div class="card card-orange"><small>TOTAL EXPENSES</small><b>${rs(expenses(window.data.expenses))}</b></div></div>
+ ${window.data.expenses.length?`<div class="table"><table><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>${window.data.expenses.map(e=>`<tr><td>${e.date}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.category)}</td><td>${rs(e.amount)}</td><td><button class="danger small" onclick="delExpense(${e.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No expenses recorded yet.</div>'}</section>`;
 };
 
 window.profitPage = function(){
   const now = new Date();
-  const filteredSales = data.sales.filter(s => {
+  const filteredSales = window.data.sales.filter(s => {
     if(s.payment === 'Pending') return false; 
     let d = dateObj(s.date);
     if(reportRange === 'custom') {
@@ -613,7 +612,7 @@ window.profitPage = function(){
     return true;
   });
 
-  const periodExpenses = data.expenses.filter(e => {
+  const periodExpenses = window.data.expenses.filter(e => {
     let d = dateObj(e.date);
     if(reportRange === 'custom') {
       if(!customStartDate || !customEndDate) return true;
@@ -629,7 +628,7 @@ window.profitPage = function(){
   const totalExp = periodExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const netProfit = totalRev - totalCost - totalExp;
   
-  const productRows = data.products.map(p => {
+  const productRows = window.data.products.map(p => {
     const pSales = filteredSales.filter(s => s.product === p.name);
     const pQty = pSales.length;
     const pRev = pSales.reduce((sum, s) => sum + (s.payment === 'Partial' ? Number(s.partialPaid||0) : Number(s.amount || 0)), 0);
@@ -664,11 +663,11 @@ window.profitPage = function(){
 };
 
 window.reports = function(){
- const now=new Date(), filtered=data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
+ const now=new Date(), filtered=window.data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
  const r=income(filtered.filter(s=>s.owner==='Manager')),t=income(filtered.filter(s=>s.owner==='Admin'));
- const periodExpenses=data.expenses.filter(e=>{let d=dateObj(e.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
+ const periodExpenses=window.data.expenses.filter(e=>{let d=dateObj(e.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
  const pc=purchase(filtered.filter(s=>s.payment==='Paid'||s.payment==='Partial')), ex=expenses(periodExpenses), net=income(filtered)-pc-ex;
- let months=Array.from({length:12},(_,i)=>({m:new Date(now.getFullYear(),i,1).toLocaleString('en',{month:'short'}),v:income(data.sales.filter(s=>{let d=dateObj(s.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===i}))}));
+ let months=Array.from({length:12},(_,i)=>({m:new Date(now.getFullYear(),i,1).toLocaleString('en',{month:'short'}),v:income(window.data.sales.filter(s=>{let d=dateObj(s.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===i}))}));
  return `<h1>Sales Reports</h1><div class="tabs"><button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button><button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button><button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button></div>
  <div class="cards">
    <div class="card card-blue"><small>PERIOD TOTAL</small><b>${rs(income(filtered))}</b></div>
@@ -686,9 +685,9 @@ window.reports = function(){
 window.settingsPage = function(){
  return `<h1>Settings & Security</h1><p class="muted">Manage your security credentials and sign out</p>
  <section>
-   <h2>Account Credentials — ${currentAccount==='admin'?'Admin':'Co-Admin'}</h2>
+   <h2>Account Credentials — ${window.currentAccount==='admin'?'Admin':'Co-Admin'}</h2>
    <form onsubmit="saveCredentials(event)" class="grid" style="margin-top:12px;max-width:500px">
-     <label class="field full"><span>Username</span><input id="settingsUser" value="${esc(data.settings.username || 'admin')}" required></label>
+     <label class="field full"><span>Username</span><input id="settingsUser" value="${esc(window.data.settings.username || 'admin')}" required></label>
      <label class="field full"><span>Current Password</span><input id="settingsCurr" type="password" required></label>
      <label class="field full"><span>New Password</span><input id="settingsNew" type="password" placeholder="Leave blank to keep current"></label>
      <div class="full actions"><button class="primary" type="submit">Save Changes</button></div>
@@ -713,7 +712,7 @@ window.render = function() {
 };
 
 window.markPaid = function(id){
- let sale=data.sales.find(s=>s.id===id);
+ let sale=window.data.sales.find(s=>s.id===id);
  if(sale){
    sale.payment='Paid';
    sale.partialPaid=0;
@@ -723,7 +722,7 @@ window.markPaid = function(id){
 };
 
 window.quickPayment = function(id, value){
-  let sale=data.sales.find(s=>s.id===id);
+  let sale=window.data.sales.find(s=>s.id===id);
   if(sale){
     if(value === 'Partial') {
       let p = prompt(`Enter amount paid so far (Total Bill: Rs. ${sale.amount}):`, sale.partialPaid || 0);
@@ -741,7 +740,7 @@ window.quickPayment = function(id, value){
 };
 
 window.viewClient = function(id){
-  let s = data.sales.find(x => x.id === id);
+  let s = window.data.sales.find(x => x.id === id);
   if(!s) return;
   modal(`
     <div class="sectionHead">
@@ -768,9 +767,9 @@ window.viewClient = function(id){
 };
 
 window.editSale = function(id){
-  let s = data.sales.find(x => x.id === id);
+  let s = window.data.sales.find(x => x.id === id);
   if(!s) return;
-  let opts=data.products.map(p=>`<option value="${p.id}" ${s.product===p.name?'selected':''}>${esc(p.name)} — ${p.type}</option>`).join('');
+  let opts=window.data.products.map(p=>`<option value="${p.id}" ${s.product===p.name?'selected':''}>${esc(p.name)} — ${p.type}</option>`).join('');
   
   modal(`<div class="sectionHead"><h2>Edit Full Record</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
   <label class="field"><span>Sold By *</span><select id="so"><option ${s.owner==='Admin'?'selected':''}>Admin</option><option ${s.owner==='Manager'?'selected':''}>Manager</option></select></label>
@@ -793,7 +792,7 @@ window.editSale = function(id){
   <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary" style="background:#fef3c7;color:#92400e">Save Updates</button></div></form>`);
   
   document.getElementById('sp').onchange = () => {
-    let p = data.products.find(x => x.id == document.getElementById('sp').value);
+    let p = window.data.products.find(x => x.id == document.getElementById('sp').value);
     if(p){
       document.getElementById('customProduct').value = p.name; 
       document.getElementById('sa').value = p.price;
@@ -805,7 +804,7 @@ window.editSale = function(id){
     e.preventDefault();
     let name = document.getElementById('customProduct').value.trim();
     if(!name && document.getElementById('sp').value){
-      let p = data.products.find(x => x.id == document.getElementById('sp').value);
+      let p = window.data.products.find(x => x.id == document.getElementById('sp').value);
       if(p) name = p.name;
     }
     if(!name){ alert('Add product name'); return; }
@@ -825,7 +824,7 @@ window.editSale = function(id){
     s.expiry = document.getElementById('sexpiry').value; 
     s.notes = document.getElementById('sn').value;
     
-    let pMatch = data.products.find(x => x.name === name);
+    let pMatch = window.data.products.find(x => x.name === name);
     s.type = pMatch?.type || 'Subscription';
     if(s.tenure && !s.expiry) s.expiry = expiry(s.date, s.tenure);
     
@@ -835,21 +834,21 @@ window.editSale = function(id){
 
 window.delSale = function(id){
   if(confirm('Are you sure you want to delete this sale?')) {
-    data.sales = data.sales.filter(s => s.id !== id);
+    window.data.sales = window.data.sales.filter(s => s.id !== id);
     save(); render();
   }
 };
 
 window.delProduct = function(id){
   if(confirm('Are you sure you want to delete this product?')) {
-    data.products = data.products.filter(p => p.id !== id);
+    window.data.products = window.data.products.filter(p => p.id !== id);
     save(); render();
   }
 };
 
 window.delExpense = function(id){
   if(confirm('Delete this expense?')) {
-    data.expenses = data.expenses.filter(e => e.id !== id);
+    window.data.expenses = window.data.expenses.filter(e => e.id !== id);
     save(); render();
   }
 };
@@ -870,7 +869,7 @@ window.openProduct = function() {
     e.preventDefault();
     const fileInput = document.getElementById('pfile');
     const saveNewProduct = (imgData = '') => {
-      data.products.push({
+      window.data.products.push({
         id: Date.now(),
         name: document.getElementById('pn').value.trim(),
         price: +document.getElementById('pp').value,
@@ -891,7 +890,7 @@ window.openProduct = function() {
 };
 
 window.editProduct = function(id) {
-  let p = data.products.find(x => String(x.id) === String(id));
+  let p = window.data.products.find(x => String(x.id) === String(id));
   if(!p) return;
   
   modal(`
@@ -911,7 +910,6 @@ window.editProduct = function(id) {
     p.price = +document.getElementById('epp').value;
     p.type = document.getElementById('ept').value;
     const fileInput = document.getElementById('epfile');
-    
     if (fileInput.files && fileInput.files[0]) {
       const reader = new FileReader();
       reader.onload = uploadEvent => {
@@ -927,10 +925,10 @@ window.editProduct = function(id) {
 };
 
 window.viewProduct = function(id){
-  let p = data.products.find(x => String(x.id) === String(id));
+  let p = window.data.products.find(x => String(x.id) === String(id));
   if(!p) return;
   const now = new Date();
-  let pSales = data.sales.filter(s => {
+  let pSales = window.data.sales.filter(s => {
      if(s.product !== p.name || s.payment === 'Pending') return false;
      let d = dateObj(s.date);
      if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
@@ -976,7 +974,7 @@ window.editClient = function(oldName, oldPhone){
     const newPhone = document.getElementById('editCPhone').value.trim();
     if(!newName) return;
 
-    data.sales.forEach(s => {
+    window.data.sales.forEach(s => {
       if(s.client === oldName && (s.phone || '') === oldPhone) {
         s.client = newName;
         s.phone = newPhone;
@@ -997,14 +995,14 @@ window.openExpense = function(){
  <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Expense</button></div></form>`);
  ef.onsubmit=e=>{
    e.preventDefault();
-   data.expenses.unshift({id:Date.now(),name:en.value,category:ec.value,amount:+ea.value,date:ed.value,notes:enote.value});
+   window.data.expenses.unshift({id:Date.now(),name:en.value,category:ec.value,amount:+ea.value,date:ed.value,notes:enote.value});
    save();closeModal();render();
  };
 };
 
 window.showMonthDetails = function(mIndex){
   const year = new Date().getFullYear();
-  const monthSales = data.sales.filter(s => {
+  const monthSales = window.data.sales.filter(s => {
     let d = dateObj(s.date);
     return d.getFullYear() === year && d.getMonth() === mIndex;
   });
@@ -1057,7 +1055,7 @@ window.captureReceiptCard = function() {
 };
 
 window.backup = function(){
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const blob = new Blob([JSON.stringify(window.data, null, 2)], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1072,7 +1070,7 @@ window.restore = function(file){
     try {
       const parsed = JSON.parse(e.target.result);
       if(parsed.sales && parsed.products) {
-        data = parsed;
+        window.data = parsed;
         save(); render();
         alert('Data restored successfully!');
       } else { alert('Invalid backup file format.'); }
@@ -1090,7 +1088,7 @@ window.signOutApp = function() {
 window.switchAccount = function(){
   sessionStorage.removeItem('auth');
   sessionStorage.removeItem('account');
-  currentAccount='admin';
+  window.currentAccount='admin';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('loginAccount').value='admin';
   updateLoginAccount();
@@ -1101,9 +1099,9 @@ window.saveCredentials = function(e) {
   let u = document.getElementById('settingsUser').value.trim();
   let c = document.getElementById('settingsCurr').value;
   let n = document.getElementById('settingsNew').value;
-  if(c !== data.settings.password) { alert('Current password incorrect!'); return; }
-  data.settings.username = u;
-  if(n) data.settings.password = n;
+  if(c !== window.data.settings.password) { alert('Current password incorrect!'); return; }
+  window.data.settings.username = u;
+  if(n) window.data.settings.password = n;
   save();
   alert('Credentials updated successfully!');
   render();
@@ -1129,14 +1127,14 @@ window.setupBiometrics = async function() {
       }
     });
     const credId = Array.from(new Uint8Array(cred.rawId));
-    localStorage.setItem('bioCredId_' + currentAccount, JSON.stringify(credId));
+    localStorage.setItem('bioCredId_' + window.currentAccount, JSON.stringify(credId));
     alert("Fingerprint / Face ID setup successful!");
     document.getElementById('bioLoginBtn').style.display = 'block';
   } catch(e) { alert("Biometric setup canceled or failed."); }
 };
 
 window.loginWithBiometrics = async function() {
-  const selectedAccount = document.getElementById('loginAccount')?.value || currentAccount;
+  const selectedAccount = document.getElementById('loginAccount')?.value || window.currentAccount;
   const storedId = JSON.parse(localStorage.getItem('bioCredId_' + selectedAccount) || 'null');
   if(!storedId) return alert("Biometrics not set up yet. Log in with password first.");
   try {
@@ -1160,7 +1158,6 @@ window.loginWithBiometrics = async function() {
   } catch(e) { alert("Biometric verification failed."); }
 };
 
-// Immediate DOM Setup
 window.addEventListener('DOMContentLoaded', () => {
   const account = sessionStorage.getItem('account') || 'admin';
   document.getElementById('loginAccount').value = account;
@@ -1190,7 +1187,6 @@ if('serviceWorker' in navigator){
 }
 </script>
 
-<!-- Non-Blocking Firebase Module (Safely Wrapped) -->
 <script type="module">
   async function setupCloud() {
     try {
@@ -1213,10 +1209,10 @@ if('serviceWorker' in navigator){
 
       window.cloudSave = async function() {
         try {
-          const ref = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[currentAccount]);
-          await setDoc(ref, { data, updatedAt: new Date().toISOString(), account: currentAccount }, { merge: true });
+          const ref = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[window.currentAccount]);
+          await setDoc(ref, { data: window.data, updatedAt: new Date().toISOString(), account: window.currentAccount }, { merge: true });
           const syncEl = document.getElementById('syncStatus');
-          if(syncEl) syncEl.textContent = 'BUSINESS MANAGER • ' + currentAccount.toUpperCase() + ' SYNCED ✓';
+          if(syncEl) syncEl.textContent = 'BUSINESS MANAGER • ' + window.currentAccount.toUpperCase() + ' SYNCED ✓';
         } catch(err) {
           console.warn("Cloud save failed, local copy intact:", err);
         }
@@ -1224,13 +1220,13 @@ if('serviceWorker' in navigator){
 
       window.initCloudSync = function() {
         if(unsubscribe) { unsubscribe(); unsubscribe = null; }
-        const ref = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[currentAccount]);
+        const ref = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[window.currentAccount]);
         unsubscribe = onSnapshot(ref, snap => {
           if(snap.exists() && snap.data()?.data) {
-            data = snap.data().data;
-            localStorage.setItem(DB, JSON.stringify(data));
+            window.data = snap.data().data;
+            localStorage.setItem(window.DB, JSON.stringify(window.data));
             const syncEl = document.getElementById('syncStatus');
-            if(syncEl) syncEl.textContent = 'BUSINESS MANAGER • ' + currentAccount.toUpperCase() + ' SYNCED ✓';
+            if(syncEl) syncEl.textContent = 'BUSINESS MANAGER • ' + window.currentAccount.toUpperCase() + ' SYNCED ✓';
             render();
           }
         }, err => {
@@ -1250,8 +1246,8 @@ if('serviceWorker' in navigator){
               sessionStorage.setItem('auth','true');
               sessionStorage.setItem('account',account);
               setAccountState(account);
-              data = cloudData;
-              localStorage.setItem(DB, JSON.stringify(data));
+              window.data = cloudData;
+              localStorage.setItem(window.DB, JSON.stringify(window.data));
               document.getElementById('loginScreen').style.display='none';
               render();
               window.initCloudSync();
