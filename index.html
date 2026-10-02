@@ -124,7 +124,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 <button class="nav" data-page="expenses" onclick="go('expenses')">💸<br>Expenses</button>
 <button class="nav" data-page="profit" onclick="go('profit')">📈<br>Profit</button>
 <button class="nav" data-page="reports" onclick="go('reports')">📊<br>Reports</button>
-<button class="nav" data-page="settings" onclick="go('settings')">⚙️️<br>Settings</button>
+<button class="nav" data-page="settings" onclick="go('settings')">⚙<br>Settings</button>
 </nav>
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
@@ -552,7 +552,7 @@ window.productsPage = function(){
      <td><b style="color:#166534">${rs(profit)}</b></td>
      <td style="white-space:nowrap">
        <button class="small" onclick="viewProduct('${p.id}')">👁️ View</button>
-       <button class="small" style="background:#fef3c7;color:#92400e;margin:0 4px;" onclick="editProduct('${p.id}')" title="Edit Product">✏️ Edit</button>
+       <button class="small" style="background:#fef3c7;color:#92400e;margin-0 4px;" onclick="editProduct('${p.id}')" title="Edit Product">✏️ Edit</button>
        <button class="danger small" onclick="delProduct('${p.id}')" title="Delete">🗑️</button>
      </td>
    </tr>`;
