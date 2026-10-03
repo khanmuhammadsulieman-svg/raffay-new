@@ -76,15 +76,15 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <div class="card" style="width:min(90%, 360px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);border-radius:20px;padding:24px">
     <h2 style="margin-bottom:20px;text-align:center;font-weight:800">DR Streaming</h2>
-    <form onsubmit="instantLoginCheck(event)" class="grid">
+    <div class="grid">
       <label class="field full"><span>Account</span><select id="loginAccount" onchange="updateLoginAccount()"><option value="admin">👑 Admin</option><option value="coadmin">👤 Co-Admin</option></select></label>
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin" value="admin"></label>
-      <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="Enter password"></label>
+      <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="Enter password" onkeydown="if(event.key==='Enter') doLogin()"></label>
       <div class="full" style="margin-top:12px;">
-        <button class="primary" type="submit" style="width:100%;padding:12px;font-size:14px">Login to Dashboard</button>
+        <button class="primary" id="loginBtn" type="button" style="width:100%;padding:12px;font-size:14px" onclick="doLogin()">Login to Dashboard</button>
         <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="loginWithBiometrics()">👆 Fingerprint / Face ID</button>
       </div>
-    </form>
+    </div>
   </div>
 </div>
 
@@ -124,7 +124,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 <button class="nav" data-page="expenses" onclick="go('expenses')">💸<br>Expenses</button>
 <button class="nav" data-page="profit" onclick="go('profit')">📈<br>Profit</button>
 <button class="nav" data-page="reports" onclick="go('reports')">📊<br>Reports</button>
-<button class="nav" data-page="settings" onclick="go('settings')">⚙<br>Settings</button>
+<button class="nav" data-page="settings" onclick="go('settings')">⚙️<br>Settings</button>
 </nav>
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
@@ -135,22 +135,39 @@ const LEGACY_DB = 'dr_streaming_manager_v1';
 const ACCOUNT_DBS = { admin:'dr_streaming_manager_v1_admin', coadmin:'dr_streaming_manager_v1_coadmin' };
 window.DB = ACCOUNT_DBS[window.currentAccount] || ACCOUNT_DBS.admin;
 
-if(window.currentAccount === 'admin' && !localStorage.getItem(ACCOUNT_DBS.admin) && localStorage.getItem(LEGACY_DB)) {
-  localStorage.setItem(ACCOUNT_DBS.admin, localStorage.getItem(LEGACY_DB));
-}
+const defaultSales = [
+  {id: 1788253153051, owner: "Admin", client: "Raza Kuwait", phone: "+96541007584", product: "Netflix International", amount: 450, purchase: 0, date: "2026-09-01", purchaseDate: "", paymentDate: "", expiry: "2026-09-30", payment: "Pending", partialPaid: 0, tenure: 30, notes: "7-Sep-26 Payment", type: "Subscription"},
+  {id: 1788252916657, owner: "Admin", client: "Ali Khakzada", phone: "03290552920", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-09-01", purchaseDate: "2026-09-01", paymentDate: "", expiry: "2026-09-30", payment: "Paid", partialPaid: 0, tenure: 30, notes: "", type: "Subscription"},
+  {id: 1788251672432, owner: "Admin", client: "Amna", phone: "", product: "Prime video", amount: 700, purchase: 0, date: "2026-09-01", purchaseDate: "2026-09-01", paymentDate: "", expiry: "2026-11-19", payment: "Paid", partialPaid: 0, tenure: 80, notes: "3 Month Prime", type: "Subscription"},
+  {id: 1788172647160, owner: "Admin", client: "Hussain BB Printer", phone: "+923060358423", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-18", paymentDate: "", expiry: "2026-09-29", payment: "Paid", partialPaid: 0, tenure: 30, notes: "", type: "Subscription"},
+  {id: 1788172534633, owner: "Admin", client: "Ali ghaffar", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-21", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
+  {id: 1788172499069, owner: "Admin", client: "Zohaib Lodhran", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-18", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
+  {id: 1788172411722, owner: "Manager", client: "Ali Hassan abroad", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-18", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
+  {id: 1788169884087, owner: "Admin", client: "Mureed", phone: "03051594242", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-31", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
+  {id: 1788162143819, owner: "Admin", client: "Burhan", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-22", purchaseDate: "", paymentDate: "2026-08-22", expiry: "2026-09-20", payment: "Paid", partialPaid: 0, tenure: 30, notes: "", type: "Subscription"},
+  {id: 1788160774990, owner: "Admin", client: "Tamseela", phone: "+92 320 5060199", product: "Super grook 7days", amount: 1250, purchase: 1000, date: "2026-08-31", purchaseDate: "2026-08-30", paymentDate: "2026-08-30", expiry: "2026-09-06", payment: "Paid", partialPaid: 0, tenure: 7, notes: "", type: "Subscription"},
+  {id: 1788156084977, owner: "Admin", client: "Tanveer", phone: "+92 317 6085317", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-21", paymentDate: "2026-08-28", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
+  {id: 1788154955530, owner: "Admin", client: "Imdad Shah", phone: "+92 346 8894212", product: "Iptv myott", amount: 700, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-28", paymentDate: "2026-08-31", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
+  {id: 1788154736170, owner: "Admin", client: "Usman ", phone: "", product: "Netflix International ", amount: 450, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-30", paymentDate: "2026-08-30", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "j22492173@gmail.com \nScreen 1", type: "Subscription"},
+  {id: 1788154536567, owner: "Admin", client: "Huzaifa ", phone: "+92 329 6713859", product: "Netflix pakistan", amount: 350, purchase: 0, date: "2026-08-27", purchaseDate: "", paymentDate: "2026-08-31", expiry: "2026-09-22", payment: "Pending", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"}
+];
 
 window.data = {};
 try {
   window.data = JSON.parse(localStorage.getItem(window.DB) || (window.currentAccount === 'admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}');
 } catch(e) { window.data = {}; }
 
-if(!Array.isArray(window.data.sales)) window.data.sales = [];
+if(!Array.isArray(window.data.sales) || window.data.sales.length === 0) {
+  window.data.sales = defaultSales;
+}
 if(!Array.isArray(window.data.expenses)) window.data.expenses = [];
 if(!Array.isArray(window.data.products)) window.data.products = [];
 if(!Array.isArray(window.data.clients)) window.data.clients = [];
 if(!window.data.settings) window.data.settings = window.currentAccount==='admin' ? {password:'vetville', username:'admin'} : {password:'coadmin', username:'coadmin'};
 if(!window.data.settings.password) window.data.settings.password = window.currentAccount==='admin' ? 'vetville' : 'coadmin';
 if(!window.data.settings.username) window.data.settings.username = window.currentAccount==='admin' ? 'admin' : 'coadmin';
+
+localStorage.setItem(window.DB, JSON.stringify(window.data));
 
 const catalog = [
   ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
@@ -194,23 +211,18 @@ if(!window.data.products || window.data.products.length === 0) {
   }));
 }
 
-let page='dashboard', reportRange='month', dashMode='current';
+let page='dashboard', reportRange='month', dashMode='all';
 let customStartDate = '', customEndDate = '';
 
 function setAccountState(account){
   window.currentAccount = account === 'coadmin' ? 'coadmin' : 'admin';
   window.DB = ACCOUNT_DBS[window.currentAccount];
-  if(window.currentAccount === 'admin' && !localStorage.getItem(window.DB) && localStorage.getItem(LEGACY_DB)) {
-    localStorage.setItem(window.DB, localStorage.getItem(LEGACY_DB));
-  }
   try { window.data = JSON.parse(localStorage.getItem(window.DB) || '{}'); } catch(e) { window.data={}; }
-  if(!Array.isArray(window.data.sales)) window.data.sales=[];
+  if(!Array.isArray(window.data.sales) || window.data.sales.length===0) window.data.sales = defaultSales;
   if(!Array.isArray(window.data.expenses)) window.data.expenses=[];
   if(!Array.isArray(window.data.products)) window.data.products=[];
   if(!Array.isArray(window.data.clients)) window.data.clients=[];
   if(!window.data.settings) window.data.settings=window.currentAccount==='admin'?{password:'vetville',username:'admin'}:{password:'coadmin',username:'coadmin'};
-  if(!window.data.settings.password) window.data.settings.password=window.currentAccount==='admin'?'vetville':'coadmin';
-  if(!window.data.settings.username) window.data.settings.username=window.currentAccount==='admin'?'admin':'coadmin';
   sessionStorage.setItem('account',window.currentAccount);
   const badge=document.getElementById('accountBadge');
   if(badge) badge.textContent=window.currentAccount==='admin'?'ADMIN':'CO-ADMIN';
@@ -236,12 +248,11 @@ function checkLocalAuth(account, u, p) {
   return false;
 }
 
-window.instantLoginCheck = async function(event) {
-  event.preventDefault();
+window.doLogin = async function() {
   const account = document.getElementById('loginAccount').value;
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
-  const btn = event.submitter || event.target.querySelector('button[type="submit"]');
+  const btn = document.getElementById('loginBtn');
   if(btn){ btn.disabled=true; btn.textContent='Connecting...'; }
 
   try {
@@ -283,34 +294,46 @@ const expiry = (d,n) => { let x=dateObj(d); x.setDate(x.getDate()+Number(n)); re
 const days = d => Math.ceil((dateObj(d) - new Date(new Date().toDateString())) / 86400000);
 const status = s => !s.expiry ? '—' : days(s.expiry)<0 ? 'Expired' : days(s.expiry)<=7 ? 'Expiring' : 'Active';
 
+const parseYearMonth = (dateStr) => {
+  if (!dateStr) return { year: 0, month: -1 };
+  const p = dateStr.split('-');
+  return { year: parseInt(p[0], 10), month: parseInt(p[1], 10) - 1 };
+};
+
 const waSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16" style="vertical-align:middle;margin-left:6px;cursor:pointer;"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>`;
 const waBtnSVG = waSVG.replace('fill="#25D366"','fill="#ffffff"').replace('margin-left:6px;','margin-right:8px;');
 
 const getFilteredSales = () => {
+  if (dashMode === 'all') return window.data.sales;
   const now = new Date();
   let targetYear = now.getFullYear();
   let targetMonth = now.getMonth();
-  if(dashMode === 'prev') {
+  if (dashMode === 'prev') {
     targetMonth -= 1;
-    if(targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
+    if (targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
+  } else if (dashMode === 'august') {
+    targetMonth = 7;
   }
   return window.data.sales.filter(s => {
-    let d = dateObj(s.date);
-    return !isNaN(d) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+    const { year, month } = parseYearMonth(s.date);
+    return year === targetYear && month === targetMonth;
   });
 };
 
 const getFilteredExpenses = () => {
+  if (dashMode === 'all') return window.data.expenses;
   const now = new Date();
   let targetYear = now.getFullYear();
   let targetMonth = now.getMonth();
-  if(dashMode === 'prev') {
+  if (dashMode === 'prev') {
     targetMonth -= 1;
-    if(targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
+    if (targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
+  } else if (dashMode === 'august') {
+    targetMonth = 7;
   }
   return window.data.expenses.filter(e => {
-    let d = dateObj(e.date);
-    return !isNaN(d) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+    const { year, month } = parseYearMonth(e.date);
+    return year === targetYear && month === targetMonth;
   });
 };
 
@@ -351,18 +374,19 @@ function dashboard(){
  const pending=window.data.sales.filter(s=>s.payment!=='Paid');
  
  const now = new Date();
- let prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
- const prevMonthName = prevDate.toLocaleString('default', { month: 'long' });
- const currMonthName = now.toLocaleString('default', { month: 'long' });
  const currentDateTimeStr = now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
  return `<h1>Business Overview</h1>
  <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px;flex-wrap:wrap;gap:8px;">
    <div>
-     <p class="muted" style="margin:0;">📅 Date: <b>${currentDateTimeStr}</b></p>
-     <p class="muted" style="margin:2px 0 0 0;">${dashMode==='prev'?'Showing statistics for '+prevMonthName+' (Previous Month)':'Showing statistics for '+currMonthName+' (Current Month)'}</p>
+     <p class="muted" style="margin:0;">📅 System Date: <b>${currentDateTimeStr}</b></p>
+     <p class="muted" style="margin:2px 0 0 0;">Showing: <b>${dashMode==='all'?'All Recent Records':dashMode==='prev'?'September 2026':dashMode==='august'?'August 2026':'October 2026'}</b> (${activeSales.length} items)</p>
    </div>
-   <button class="small ${dashMode==='prev'?'primary':''}" onclick="dashMode=dashMode==='prev'?'current':'prev';render()" style="font-weight:700">⏮️ ${dashMode==='prev'?'Switch to Current Month ('+currMonthName+')':'View Previous Month ('+prevMonthName+')'}</button>
+   <div style="display:flex;gap:6px;flex-wrap:wrap">
+     <button class="small ${dashMode==='all'?'primary':''}" onclick="dashMode='all';render()">All Records</button>
+     <button class="small ${dashMode==='prev'?'primary':''}" onclick="dashMode='prev';render()">September</button>
+     <button class="small ${dashMode==='august'?'primary':''}" onclick="dashMode='august';render()">August</button>
+   </div>
  </div>
  <div class="cards">
  <div class="card card-blue" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b></div>
@@ -385,10 +409,10 @@ window.showDetails = function(type){
  const pending=window.data.sales.filter(s=>s.payment!=='Paid');
  let title='',body='';
  const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}${s.payment==='Partial'?`<br><span style="font-size:10px;color:var(--muted)">Paid: ${rs(s.partialPaid)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
- if(type==='income'){title=`💼 Paid Income (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<h2>${rs(paid)}</h2>${list(activeSales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
- if(type==='purchase'){let purchased=activeSales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title=`🛒 Purchase Cost (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
- if(type==='expenses'){title=`💸 Business Expenses (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<h2>${rs(exp)}</h2>${list(activeExpList)}<br><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
- if(type==='profit'){title=`📈 Net Profit Breakdown (${dashMode==='prev'?'Previous Month':'Current Month'})`;body=`<div class="card card-blue"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card card-orange"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card card-purple"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card card-green"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
+ if(type==='income'){title=`💼 Paid Income`;body=`<h2>${rs(paid)}</h2>${list(activeSales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
+ if(type==='purchase'){let purchased=activeSales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title=`🛒 Purchase Cost`;body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
+ if(type==='expenses'){title=`💸 Business Expenses`;body=`<h2>${rs(exp)}</h2>${list(activeExpList)}<br><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
+ if(type==='profit'){title=`📈 Net Profit Breakdown`;body=`<div class="card card-blue"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card card-orange"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card card-purple"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card card-green"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
  if(type==='manager'){let a=activeSales.filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
  if(type==='admin'){let a=activeSales.filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
  if(type==='transactions'){title='📦 Transactions';body=`<p class="muted">${activeSales.length} records</p>${list(activeSales)}`;}
@@ -398,7 +422,7 @@ window.showDetails = function(type){
 
 window.salesTable = function(a, actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone \vert{}\vert{} '')}</span>${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(Number(s.amount||0) - Number(s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone || '')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(Number(s.amount||0) - Number(s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 };
 
 window.salesPage = function(){
@@ -552,7 +576,7 @@ window.productsPage = function(){
      <td><b style="color:#166534">${rs(profit)}</b></td>
      <td style="white-space:nowrap">
        <button class="small" onclick="viewProduct('${p.id}')">👁️ View</button>
-       <button class="small" style="background:#fef3c7;color:#92400e;margin-0 4px;" onclick="editProduct('${p.id}')" title="Edit Product">✏️ Edit</button>
+       <button class="small" style="background:#fef3c7;color:#92400e;margin:0 4px;" onclick="editProduct('${p.id}')" title="Edit Product">✏️ Edit</button>
        <button class="danger small" onclick="delProduct('${p.id}')" title="Delete">🗑️</button>
      </td>
    </tr>`;
