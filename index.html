@@ -135,39 +135,18 @@ const LEGACY_DB = 'dr_streaming_manager_v1';
 const ACCOUNT_DBS = { admin:'dr_streaming_manager_v1_admin', coadmin:'dr_streaming_manager_v1_coadmin' };
 window.DB = ACCOUNT_DBS[window.currentAccount] || ACCOUNT_DBS.admin;
 
-const defaultSales = [
-  {id: 1788253153051, owner: "Admin", client: "Raza Kuwait", phone: "+96541007584", product: "Netflix International", amount: 450, purchase: 0, date: "2026-09-01", purchaseDate: "", paymentDate: "", expiry: "2026-09-30", payment: "Pending", partialPaid: 0, tenure: 30, notes: "7-Sep-26 Payment", type: "Subscription"},
-  {id: 1788252916657, owner: "Admin", client: "Ali Khakzada", phone: "03290552920", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-09-01", purchaseDate: "2026-09-01", paymentDate: "", expiry: "2026-09-30", payment: "Paid", partialPaid: 0, tenure: 30, notes: "", type: "Subscription"},
-  {id: 1788251672432, owner: "Admin", client: "Amna", phone: "", product: "Prime video", amount: 700, purchase: 0, date: "2026-09-01", purchaseDate: "2026-09-01", paymentDate: "", expiry: "2026-11-19", payment: "Paid", partialPaid: 0, tenure: 80, notes: "3 Month Prime", type: "Subscription"},
-  {id: 1788172647160, owner: "Admin", client: "Hussain BB Printer", phone: "+923060358423", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-18", paymentDate: "", expiry: "2026-09-29", payment: "Paid", partialPaid: 0, tenure: 30, notes: "", type: "Subscription"},
-  {id: 1788172534633, owner: "Admin", client: "Ali ghaffar", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-21", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
-  {id: 1788172499069, owner: "Admin", client: "Zohaib Lodhran", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-18", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
-  {id: 1788172411722, owner: "Manager", client: "Ali Hassan abroad", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-18", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
-  {id: 1788169884087, owner: "Admin", client: "Mureed", phone: "03051594242", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-31", paymentDate: "", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
-  {id: 1788162143819, owner: "Admin", client: "Burhan", phone: "", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-22", purchaseDate: "", paymentDate: "2026-08-22", expiry: "2026-09-20", payment: "Paid", partialPaid: 0, tenure: 30, notes: "", type: "Subscription"},
-  {id: 1788160774990, owner: "Admin", client: "Tamseela", phone: "+92 320 5060199", product: "Super grook 7days", amount: 1250, purchase: 1000, date: "2026-08-31", purchaseDate: "2026-08-30", paymentDate: "2026-08-30", expiry: "2026-09-06", payment: "Paid", partialPaid: 0, tenure: 7, notes: "", type: "Subscription"},
-  {id: 1788156084977, owner: "Admin", client: "Tanveer", phone: "+92 317 6085317", product: "Netflix pakistan", amount: 370, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-21", paymentDate: "2026-08-28", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
-  {id: 1788154955530, owner: "Admin", client: "Imdad Shah", phone: "+92 346 8894212", product: "Iptv myott", amount: 700, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-28", paymentDate: "2026-08-31", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"},
-  {id: 1788154736170, owner: "Admin", client: "Usman ", phone: "", product: "Netflix International ", amount: 450, purchase: 0, date: "2026-08-31", purchaseDate: "2026-08-30", paymentDate: "2026-08-30", expiry: "2026-09-26", payment: "Paid", partialPaid: 0, tenure: 27, notes: "j22492173@gmail.com \nScreen 1", type: "Subscription"},
-  {id: 1788154536567, owner: "Admin", client: "Huzaifa ", phone: "+92 329 6713859", product: "Netflix pakistan", amount: 350, purchase: 0, date: "2026-08-27", purchaseDate: "", paymentDate: "2026-08-31", expiry: "2026-09-22", payment: "Pending", partialPaid: 0, tenure: 27, notes: "", type: "Subscription"}
-];
-
 window.data = {};
 try {
   window.data = JSON.parse(localStorage.getItem(window.DB) || (window.currentAccount === 'admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}');
 } catch(e) { window.data = {}; }
 
-if(!Array.isArray(window.data.sales) || window.data.sales.length === 0) {
-  window.data.sales = defaultSales;
-}
+if(!Array.isArray(window.data.sales)) window.data.sales = [];
 if(!Array.isArray(window.data.expenses)) window.data.expenses = [];
 if(!Array.isArray(window.data.products)) window.data.products = [];
 if(!Array.isArray(window.data.clients)) window.data.clients = [];
 if(!window.data.settings) window.data.settings = window.currentAccount==='admin' ? {password:'vetville', username:'admin'} : {password:'coadmin', username:'coadmin'};
 if(!window.data.settings.password) window.data.settings.password = window.currentAccount==='admin' ? 'vetville' : 'coadmin';
 if(!window.data.settings.username) window.data.settings.username = window.currentAccount==='admin' ? 'admin' : 'coadmin';
-
-localStorage.setItem(window.DB, JSON.stringify(window.data));
 
 const catalog = [
   ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
@@ -197,7 +176,7 @@ const catalog = [
   ["Canva Pro", "Canva", "AI", "canva", "00C4CC", 1100],
   ["Adobe Creative Cloud", "Adobe", "AI", "adobecreativecloud", "FF0000", 3500],
   ["Notion AI", "Notion", "AI", "notion", "000000", 1200],
-  ["Grammarly Premium", "Grammarly", "AI", "grammarly", "15C39A", 1000],
+  ["Grammarly Premium", "Grammarly", "AI", "grammarly", "15C39A", 1000]
 ];
 
 if(!window.data.products || window.data.products.length === 0) {
@@ -218,7 +197,7 @@ function setAccountState(account){
   window.currentAccount = account === 'coadmin' ? 'coadmin' : 'admin';
   window.DB = ACCOUNT_DBS[window.currentAccount];
   try { window.data = JSON.parse(localStorage.getItem(window.DB) || '{}'); } catch(e) { window.data={}; }
-  if(!Array.isArray(window.data.sales) || window.data.sales.length===0) window.data.sales = defaultSales;
+  if(!Array.isArray(window.data.sales)) window.data.sales=[];
   if(!Array.isArray(window.data.expenses)) window.data.expenses=[];
   if(!Array.isArray(window.data.products)) window.data.products=[];
   if(!Array.isArray(window.data.clients)) window.data.clients=[];
@@ -308,12 +287,16 @@ const getFilteredSales = () => {
   const now = new Date();
   let targetYear = now.getFullYear();
   let targetMonth = now.getMonth();
-  if (dashMode === 'prev') {
+
+  if (dashMode === 'current') {
+    targetMonth = now.getMonth();
+  } else if (dashMode === 'prev') {
     targetMonth -= 1;
     if (targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
   } else if (dashMode === 'august') {
     targetMonth = 7;
   }
+
   return window.data.sales.filter(s => {
     const { year, month } = parseYearMonth(s.date);
     return year === targetYear && month === targetMonth;
@@ -325,12 +308,16 @@ const getFilteredExpenses = () => {
   const now = new Date();
   let targetYear = now.getFullYear();
   let targetMonth = now.getMonth();
-  if (dashMode === 'prev') {
+
+  if (dashMode === 'current') {
+    targetMonth = now.getMonth();
+  } else if (dashMode === 'prev') {
     targetMonth -= 1;
     if (targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
   } else if (dashMode === 'august') {
     targetMonth = 7;
   }
+
   return window.data.expenses.filter(e => {
     const { year, month } = parseYearMonth(e.date);
     return year === targetYear && month === targetMonth;
@@ -374,16 +361,26 @@ function dashboard(){
  const pending=window.data.sales.filter(s=>s.payment!=='Paid');
  
  const now = new Date();
+ const currMonthName = now.toLocaleString('default', { month: 'long' });
  const currentDateTimeStr = now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+ const showingLabel = dashMode === 'all' 
+   ? 'All Recent Records' 
+   : dashMode === 'current' 
+     ? `${currMonthName} ${now.getFullYear()} (This Month)` 
+     : dashMode === 'prev' 
+       ? 'September 2026' 
+       : 'August 2026';
 
  return `<h1>Business Overview</h1>
  <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px;flex-wrap:wrap;gap:8px;">
    <div>
      <p class="muted" style="margin:0;">📅 System Date: <b>${currentDateTimeStr}</b></p>
-     <p class="muted" style="margin:2px 0 0 0;">Showing: <b>${dashMode==='all'?'All Recent Records':dashMode==='prev'?'September 2026':dashMode==='august'?'August 2026':'October 2026'}</b> (${activeSales.length} items)</p>
+     <p class="muted" style="margin:2px 0 0 0;">Showing: <b>${showingLabel}</b> (${activeSales.length} items)</p>
    </div>
    <div style="display:flex;gap:6px;flex-wrap:wrap">
      <button class="small ${dashMode==='all'?'primary':''}" onclick="dashMode='all';render()">All Records</button>
+     <button class="small ${dashMode==='current'?'primary':''}" onclick="dashMode='current';render()">This Month (${currMonthName})</button>
      <button class="small ${dashMode==='prev'?'primary':''}" onclick="dashMode='prev';render()">September</button>
      <button class="small ${dashMode==='august'?'primary':''}" onclick="dashMode='august';render()">August</button>
    </div>
@@ -422,7 +419,7 @@ window.showDetails = function(type){
 
 window.salesTable = function(a, actions=true){
  if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone || '')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(Number(s.amount||0) - Number(s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone || '')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(Number(s.amount||0) - Number(s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 };
 
 window.salesPage = function(){
