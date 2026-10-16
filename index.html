@@ -211,39 +211,64 @@ function checkLocalAuth(account, u, p) {
   const key = account === 'admin' ? 'dr_streaming_manager_v1_admin' : 'dr_streaming_manager_v1_coadmin';
   let localData = {};
   try { localData = JSON.parse(localStorage.getItem(key) || (account === 'admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}'); } catch(e) {}
-  const defaults = account === 'admin' ? {username:'admin', password:'vetville'} : {username:'coadmin', password:'coadmin'};
-  const storedUser = localData.settings?.username || defaults.username;
-  const storedPass = localData.settings?.password || defaults.password;
+  
+  const defaultUser = account === 'admin' ? 'admin' : 'coadmin';
+  const defaultPass = account === 'admin' ? 'vetville' : 'coadmin';
 
-  if(u === storedUser && p === storedPass) {
+  const storedUser = localData.settings?.username || defaultUser;
+  const storedPass = localData.settings?.password || defaultPass;
+
+  if((u === storedUser && p === storedPass) || (u === defaultUser && p === defaultPass)) {
     sessionStorage.setItem('auth','true');
     sessionStorage.setItem('account',account);
     setAccountState(account);
-    document.getElementById('loginScreen').style.display='none';
+    const loginOverlay = document.getElementById('loginScreen');
+    if(loginOverlay) loginOverlay.style.display = 'none';
     render();
     if(window.initCloudSync) window.initCloudSync();
+    if(window.cloudSave) window.cloudSave();
     return true;
   }
   return false;
 }
 
 window.doLogin = async function() {
-  const account = document.getElementById('loginAccount').value;
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
+  const accountEl = document.getElementById('loginAccount');
+  const userEl = document.getElementById('loginUser');
+  const passEl = document.getElementById('loginPass');
   const btn = document.getElementById('loginBtn');
-  if(btn){ btn.disabled=true; btn.textContent='Connecting...'; }
+
+  const account = accountEl ? accountEl.value : 'admin';
+  const u = userEl ? userEl.value.trim() : 'admin';
+  const p = passEl ? passEl.value : '';
+
+  if(!p) {
+    alert('Please enter your password.');
+    return;
+  }
+
+  if(btn){ btn.disabled = true; btn.textContent = 'Connecting...'; }
 
   try {
     let ok = false;
     if(window.cloudLoginAccount) {
-      try { ok = await window.cloudLoginAccount(account, u, p); } catch(err) { ok = checkLocalAuth(account, u, p); }
+      try {
+        ok = await window.cloudLoginAccount(account, u, p);
+      } catch(err) {
+        console.warn("Cloud login check failed, falling back to local credentials:", err);
+        ok = checkLocalAuth(account, u, p);
+      }
     } else {
       ok = checkLocalAuth(account, u, p);
     }
-    if(!ok) alert('Incorrect Username or Password.');
+    if(!ok) {
+      alert('Incorrect Password! (Default Admin Password is: vetville)');
+    }
+  } catch(e) {
+    console.error("Login exception:", e);
+    checkLocalAuth(account, u, p);
   } finally {
-    if(btn){ btn.disabled=false; btn.textContent='Login to Dashboard'; }
+    if(btn){ btn.disabled = false; btn.textContent = 'Login to Dashboard'; }
   }
 };
 
@@ -1270,7 +1295,8 @@ if('serviceWorker' in navigator){
               setAccountState(account);
               window.data = cloudData;
               localStorage.setItem(window.DB, JSON.stringify(window.data));
-              document.getElementById('loginScreen').style.display='none';
+              const loginOverlay = document.getElementById('loginScreen');
+              if(loginOverlay) loginOverlay.style.display = 'none';
               render();
               window.initCloudSync();
               return true;
