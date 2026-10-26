@@ -33,7 +33,6 @@ h2{font-size:18px;margin:0;font-weight:800}
 
 .exec-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#2563eb;background:#dbeafe;padding:4px 10px;border-radius:99px;margin-bottom:4px}
 
-/* Colorful Outlined Cards */
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:18px 0}
 .card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;transition:transform 0.15s ease,box-shadow 0.15s ease;box-shadow:0 2px 6px rgba(0,0,0,0.02)}
 .card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,0.06)}
@@ -58,7 +57,6 @@ button:hover{background:#e5dec9}
 .danger{background:#fee2e2;color:#b91c1c}.danger:hover{background:#fecaca}
 .small{padding:7px 11px;font-size:12px}
 
-/* Modern Beautiful Table */
 .table{overflow-x:auto}
 table{width:100%;border-collapse:separate;border-spacing:0}
 th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #f1ece1;font-size:13px;vertical-align:middle}
@@ -72,7 +70,6 @@ tbody tr:hover{background:#fcfaf5}
 .product-img{width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid #e2d9c8;background:#f1ece1;flex-shrink:0}
 .cred-pill{display:inline-block;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#f8f5ee;border:1px solid #e5dec9;padding:2px 7px;border-radius:6px;font-size:11px;color:#475569;margin-top:3px;font-family:monospace}
 
-/* Interactive Payment Status Dropdown */
 .status-wrap{position:relative;display:inline-block}
 .status-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;font-size:11px;font-weight:800;cursor:pointer;border:1.5px solid transparent;transition:transform 0.1s}
 .status-pill:active{transform:scale(0.96)}
@@ -89,13 +86,11 @@ tbody tr:hover{background:#fcfaf5}
 .dot.yellow{background:#eab308}
 .dot.red{background:#dc2626}
 
-/* Expiry Badges */
 .badge{padding:4px 9px;border-radius:99px;font-size:10.5px;font-weight:800;display:inline-block}
 .Active{background:#dcfce7;color:#166534;border:1px solid #86efac}
 .Expiring{background:#ffedd5;color:#c2410c;border:1px solid #fdba74}
 .Expired{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
 
-/* Action Icon Buttons */
 .act-group{display:inline-flex;align-items:center;gap:5px}
 .icon-btn{width:31px;height:31px;border-radius:9px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid #e2d9c8;background:#fff;color:#334155;cursor:pointer;transition:all 0.15s}
 .icon-btn:hover{transform:translateY(-1px);box-shadow:0 3px 6px rgba(0,0,0,0.06)}
@@ -105,13 +100,11 @@ tbody tr:hover{background:#fcfaf5}
 .icon-btn.wa:hover{background:#16a34a;color:#fff}
 .icon-btn.trash:hover{background:#fee2e2;color:#dc2626;border-color:#fca5a5}
 
-/* Filter Tabs */
 .tabs{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .tab{background:#f1ece1;color:#475569;border-radius:10px;padding:8px 13px;font-size:12px;font-weight:800;border:1.5px solid transparent}
 .tab.on{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
 .date-input{border:1.5px solid #d8cfc0;border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;background:#fff}
 
-/* POS Profit Chart */
 .chart-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;align-items:end;height:190px;padding:24px 8px 8px;border-bottom:2px solid #f1ece1}
 .bar-col{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;cursor:pointer}
 .bar-fill{width:100%;max-width:34px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#3b82f6 0%,#1d4ed8 100%);transition:height 0.3s ease,background 0.2s;min-height:4px;position:relative}
@@ -128,11 +121,17 @@ tbody tr:hover{background:#fcfaf5}
 .modal.show{display:grid}
 .box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:18px;padding:22px;border:2px solid #e6dfd3}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:800}
+.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:800;position:relative}
 .field input,.field select,.field textarea{width:100%;border:1.5px solid #dbe1ea;border-radius:9px;padding:10px;font:inherit;background:#fff}
 .full{grid-column:1/-1}
 .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}
 .empty{text-align:center;color:var(--muted);padding:28px;font-weight:600}
+
+/* Suggestions Dropdown */
+.suggestions-box{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1.5px solid #dbe1ea;border-radius:9px;box-shadow:0 8px 20px rgba(0,0,0,0.1);max-height:160px;overflow-y:auto;z-index:99;display:none}
+.suggestions-box.show{display:block}
+.suggestion-item{padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;border-bottom:1px solid #f1ece1}
+.suggestion-item:hover{background:#f8f5ee;color:#2563eb}
 
 .menu-btn{background:transparent;color:#fff;font-size:22px;padding:4px 8px;line-height:1}
 .menu-content{display:none;position:absolute;right:18px;top:58px;background:#fff;color:#172033;border:1.5px solid var(--line);border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.12);min-width:190px;z-index:100;flex-direction:column;overflow:hidden}
@@ -245,7 +244,8 @@ const ICONS = {
   eye: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
   pencil: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
   trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
-  whatsapp: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg>`
+  whatsapp: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg>`,
+  contact: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
 };
 
 function getSupabaseCredentials() {
@@ -463,6 +463,8 @@ function toggleStatusDropdown(e, saleId) {
 window.onclick = () => {
   closeMenu();
   document.querySelectorAll('.status-menu').forEach(el => el.classList.remove('open'));
+  const sBox = document.getElementById('clientSuggestions');
+  if (sBox) sBox.classList.remove('show');
 };
 
 function go(p) {
@@ -765,9 +767,6 @@ function expensesPage() {
   ${data.expenses.length ? `<div class="table"><table><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>${data.expenses.map(e => `<tr><td>${e.date}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.category)}</td><td>${rs(e.amount)}</td><td><button class="danger small" onclick="delExpense('${e.id}')">Delete</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">No expenses recorded yet.</div>'}</section>`;
 }
 
-// ==========================================
-// 5. MODERN POS PROFIT & ANALYTICS VIEW
-// ==========================================
 function profitPage() {
   const monthSet = new Set();
   const curYear = new Date().getFullYear();
@@ -1085,10 +1084,79 @@ async function delProduct(id) {
   }
 }
 
+// Unique clients list for suggestions
+function getUniqueClients() {
+  const map = new Map();
+  data.sales.forEach(s => {
+    if (s.client) {
+      const name = s.client.trim();
+      if (!map.has(name)) map.has(name, s.phone || '');
+      map.set(name, s.phone || map.get(name));
+    }
+  });
+  return Array.from(map.entries()).map(([name, phone]) => ({ name, phone }));
+}
+
+function filterClientSuggestions(val) {
+  const box = document.getElementById('clientSuggestions');
+  if (!box) return;
+  const q = (val || '').trim().toLowerCase();
+  if (!q) {
+    box.classList.remove('show');
+    return;
+  }
+  const clients = getUniqueClients();
+  // Exact or prefix spelling match
+  const matches = clients.filter(c => c.name.toLowerCase().startsWith(q));
+  if (matches.length === 0) {
+    box.classList.remove('show');
+    return;
+  }
+  box.innerHTML = matches.map(m => `
+    <div class="suggestion-item" onclick="selectClientSuggestion('${esc(m.name)}', '${esc(m.phone)}')">
+      <b>${esc(m.name)}</b> ${m.phone ? `<span class="muted">(${m.phone})</span>` : ''}
+    </div>
+  `).join('');
+  box.classList.add('show');
+}
+
+function selectClientSuggestion(name, phone) {
+  document.getElementById('sc').value = name;
+  if (phone) {
+    const pEl = document.getElementById('sph');
+    if (pEl) pEl.value = phone;
+  }
+  const box = document.getElementById('clientSuggestions');
+  if (box) box.classList.remove('show');
+}
+
+async function pickContactFromDevice() {
+  if ('contacts' in navigator && 'select' in navigator.contacts) {
+    try {
+      const props = ['name', 'tel'];
+      const opts = { multiple: false };
+      const results = await navigator.contacts.select(props, opts);
+      if (results && results.length > 0) {
+        const contact = results[0];
+        const name = contact.name && contact.name[0] ? contact.name[0] : '';
+        const phone = contact.tel && contact.tel[0] ? contact.tel[0] : '';
+        if (name) document.getElementById('sc').value = name;
+        if (phone) document.getElementById('sph').value = phone;
+      }
+    } catch (ex) {
+      console.log('Contact picker error or cancelled:', ex);
+    }
+  } else {
+    alert('Contact Picker API is not supported on this browser/device. Please type client name directly.');
+  }
+}
+
 function openSale(editId = null) {
   const existing = editId ? data.sales.find(s => String(s.id) === String(editId)) : null;
-  let opts = data.products.map(p => `<option value="${p.id}" ${existing && existing.product === p.name ? 'selected' : ''}>${esc(p.name)} (${rs(p.price)})</option>`).join('');
   
+  // Products sorted alphabetically with search filter
+  const sortedProds = data.products.slice().sort((a, b) => a.name.localeCompare(b.name));
+
   modal(`
     <div class="sectionHead">
       <div>
@@ -1104,36 +1172,55 @@ function openSale(editId = null) {
           <option ${existing?.owner === 'Manager' ? 'selected' : ''}>Manager</option>
         </select>
       </label>
-      <label class="field"><span>Select Product / Service</span>
-        <select id="sp">
-          <option value="">-- Choose from Catalog --</option>
-          ${opts}
+
+      <label class="field">
+        <span>Select Product / Service (Filter Search)</span>
+        <input id="prodFilterInput" placeholder="🔍 Type to filter products..." oninput="filterProductDropdown(this.value)" style="margin-bottom:4px">
+        <select id="sp" size="1" style="height:42px" onchange="onProductSelect(this.value)">
+          <option value="">-- Choose from Catalog (${sortedProds.length}) --</option>
+          ${sortedProds.map(p => `<option value="${p.id}" ${existing && existing.product === p.name ? 'selected' : ''}>${esc(p.name)} (${rs(p.price)})</option>`).join('')}
         </select>
       </label>
+
       <label class="field full"><span>Or Custom Product Name *</span>
         <input id="customProduct" value="${existing ? esc(existing.product) : ''}" placeholder="Type service if not in catalog">
       </label>
-      <label class="field"><span>Client Name *</span>
-        <input id="sc" value="${existing ? esc(existing.client) : ''}" required placeholder="Subhan Ch">
+
+      <label class="field" style="position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>Client Name *</span>
+          <button type="button" class="small" onclick="pickContactFromDevice()" title="Pick from device contacts" style="padding:2px 8px;font-size:11px;background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe;display:flex;align-items:center;gap:3px">
+            ${ICONS.contact} Pick Contact
+          </button>
+        </div>
+        <input id="sc" value="${existing ? esc(existing.client) : ''}" required placeholder="Subhan Ch" oninput="filterClientSuggestions(this.value)" autocomplete="off">
+        <div id="clientSuggestions" class="suggestions-box"></div>
       </label>
+
       <label class="field"><span>Phone / WhatsApp</span>
         <input id="sph" value="${existing ? esc(existing.phone || '') : ''}" placeholder="03097313903">
       </label>
+
       <label class="field"><span>Sale Amount (Rs) *</span>
         <input id="sa" type="number" value="${existing ? existing.amount : ''}" required placeholder="1000">
       </label>
+
       <label class="field"><span>Purchase Cost (Rs)</span>
         <input id="spurchase" type="number" value="${existing ? existing.purchase : 0}" placeholder="0">
       </label>
+
       <label class="field"><span>Sale Date</span>
         <input id="sd" type="date" value="${existing ? existing.date : today()}" required>
       </label>
+
       <label class="field"><span>Tenure (Days)</span>
         <input id="stm" type="number" min="0" value="${existing ? existing.tenure : 30}" oninput="updateModalExpiry()">
       </label>
+
       <label class="field"><span>Expiry Date</span>
         <input id="sexpiry" type="date" value="${existing ? (existing.expiry || '') : expiry(today(), 30)}">
       </label>
+
       <label class="field"><span>Payment Status</span>
         <select id="payment">
           <option ${existing?.payment === 'Paid' ? 'selected' : ''}>Paid</option>
@@ -1141,12 +1228,15 @@ function openSale(editId = null) {
           <option ${existing?.payment === 'Partial' ? 'selected' : ''}>Partial</option>
         </select>
       </label>
+
       <label class="field full"><span>Account Details / Credentials (Email | Screen | PIN / IPTV)</span>
         <input id="screds" value="${existing ? esc(existing.accountDetails || '') : ''}" placeholder="user@mail.com | Screen 1 | PIN: 1234">
       </label>
+
       <label class="field full"><span>Notes / Remarks</span>
         <textarea id="sn" placeholder="Optional notes...">${existing ? esc(existing.notes || '') : ''}</textarea>
       </label>
+
       <div class="full actions">
         <button type="button" onclick="closeModal()">Cancel</button>
         <button class="primary">${existing ? 'Update Transaction' : 'Complete Sale'}</button>
@@ -1154,40 +1244,29 @@ function openSale(editId = null) {
     </form>
   `);
 
-  sp.onchange = () => {
-    let p = data.products.find(x => String(x.id) === String(sp.value));
-    if (p) {
-      sa.value = p.price;
-      spurchase.value = p.cost || 0;
-      stm.value = p.tenure || 30;
-      customProduct.value = p.name;
-      updateModalExpiry();
-    }
-  };
-
   sf.onsubmit = async e => {
     e.preventDefault();
-    let p = data.products.find(x => String(x.id) === String(sp.value));
-    let name = customProduct.value.trim() || (p && p.name);
+    let p = data.products.find(x => String(x.id) === String(document.getElementById('sp').value));
+    let name = document.getElementById('customProduct').value.trim() || (p && p.name);
     if (!name) { alert('Please enter or select a product name.'); return; }
-    let tenure = +stm.value || 0;
+    let tenure = +document.getElementById('stm').value || 0;
     const saleObj = {
       id: existing ? String(existing.id) : String(Date.now()),
-      owner: so.value,
-      client: sc.value.trim(),
-      phone: sph.value.trim(),
+      owner: document.getElementById('so').value,
+      client: document.getElementById('sc').value.trim(),
+      phone: document.getElementById('sph').value.trim(),
       product: name,
       type: tenure ? 'Subscription' : (p?.type || 'Product'),
-      amount: +sa.value,
-      purchase: +spurchase.value,
-      payment: payment.value,
-      date: sd.value,
-      purchaseDate: sd.value,
-      paymentDate: payment.value === 'Paid' ? sd.value : '',
+      amount: +document.getElementById('sa').value,
+      purchase: +document.getElementById('spurchase').value,
+      payment: document.getElementById('payment').value,
+      date: document.getElementById('sd').value,
+      purchaseDate: document.getElementById('sd').value,
+      paymentDate: document.getElementById('payment').value === 'Paid' ? document.getElementById('sd').value : '',
       tenure,
-      expiry: sexpiry.value || (tenure ? expiry(sd.value, tenure) : ''),
-      accountDetails: screds.value.trim(),
-      notes: sn.value.trim()
+      expiry: document.getElementById('sexpiry').value || (tenure ? expiry(document.getElementById('sd').value, tenure) : ''),
+      accountDetails: document.getElementById('screds').value.trim(),
+      notes: document.getElementById('sn').value.trim()
     };
 
     if (existing) {
@@ -1203,6 +1282,28 @@ function openSale(editId = null) {
       if (!error) updateSyncBadge(`SUPABASE CLOUD • SAVED ✓`, '#34d399');
     }
   };
+}
+
+function filterProductDropdown(query) {
+  const sel = document.getElementById('sp');
+  if (!sel) return;
+  const q = (query || '').toLowerCase().trim();
+  const sortedProds = data.products.slice().sort((a, b) => a.name.localeCompare(b.name));
+  const filtered = sortedProds.filter(p => p.name.toLowerCase().includes(q));
+
+  sel.innerHTML = `<option value="">-- Choose from Catalog (${filtered.length}) --</option>` +
+    filtered.map(p => `<option value="${p.id}">${esc(p.name)} (${rs(p.price)})</option>`).join('');
+}
+
+function onProductSelect(prodId) {
+  let p = data.products.find(x => String(x.id) === String(prodId));
+  if (p) {
+    document.getElementById('sa').value = p.price;
+    document.getElementById('spurchase').value = p.cost || 0;
+    document.getElementById('stm').value = p.tenure || 30;
+    document.getElementById('customProduct').value = p.name;
+    updateModalExpiry();
+  }
 }
 
 function updateModalExpiry() {
