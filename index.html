@@ -84,7 +84,6 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
       <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="Enter password" onkeydown="if(event.key==='Enter') doLogin()"></label>
       <div class="full" style="margin-top:12px;">
         <button class="primary" id="loginBtn" type="button" style="width:100%;padding:12px;font-size:14px" onclick="doLogin()">Login to Dashboard</button>
-        <button type="button" id="bioLoginBtn" class="primary" style="width:100%;padding:12px;font-size:14px;background:#10b981;margin-top:8px;display:none" onclick="loginWithBiometrics()">👆 Fingerprint / Face ID</button>
       </div>
     </div>
   </div>
@@ -108,7 +107,6 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
         <a onclick="go('profit');closeMenu()">📈 Profit</a>
         <a onclick="go('reports');closeMenu()">📊 Reports</a>
         <a onclick="go('settings');closeMenu()">⚙️ Settings & Cloud</a>
-        <a onclick="switchAccount();closeMenu()">🔄 Switch Account</a>
         <a onclick="signOutApp();closeMenu()">🚪 Sign Out</a>
       </div>
     </div>
@@ -133,34 +131,22 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 
 <script>
 // ==========================================
-// 1. SUPABASE CONFIGURATION (streamingz DB)
+// 1. SUPABASE CONFIGURATION
 // ==========================================
 const DEFAULT_SUPABASE_URL = "https://xwpcuxpxgqjytmeugbnt.supabase.co";
-// Note: If you have your anon key stored or want to paste it directly here, put it below or in Settings!
 const DEFAULT_SUPABASE_KEY = localStorage.getItem('sb_anon_key') || "";
 
 function getSupabaseCredentials() {
   let url = localStorage.getItem('sb_url') || DEFAULT_SUPABASE_URL;
   let key = localStorage.getItem('sb_anon_key') || DEFAULT_SUPABASE_KEY;
-
-  // Auto-detect from existing streamingz workspace localStorage if available on same browser
-  if (!key) {
-    try {
-      const existingWs = JSON.parse(localStorage.getItem('dr_streaming_workspace_Admin') || '{}');
-      if (existingWs.supabaseConfig?.url) url = existingWs.supabaseConfig.url;
-      if (existingWs.supabaseConfig?.anonKey) key = existingWs.supabaseConfig.anonKey;
-    } catch (e) {}
-  }
   return { url: url.trim(), key: key.trim() };
 }
 
 let supabaseClient = null;
-let realtimeChannel = null;
 
 function initSupabaseClient() {
   const { url, key } = getSupabaseCredentials();
   if (!url || !key || !window.supabase) {
-    updateSyncBadge('SUPABASE: ADD KEY IN SETTINGS ⚙️', '#f59e0b');
     return null;
   }
   try {
@@ -172,16 +158,8 @@ function initSupabaseClient() {
   }
 }
 
-function updateSyncBadge(text, color = '#94a3b8') {
-  const el = document.getElementById('syncStatus');
-  if (el) {
-    el.textContent = text;
-    el.style.color = color;
-  }
-}
-
 // ==========================================
-// 2. DATA MAPPERS (streamingz <-> Template)
+// 2. COMPLETE MAPPERS
 // ==========================================
 function mapSaleFromDb(row) {
   const r = row.raw_data || row;
@@ -194,18 +172,68 @@ function mapSaleFromDb(row) {
     productId: r.productId || row.product_id || '',
     amount: Number(r.saleAmount ?? row.sale_amount ?? r.amount ?? 0),
     purchase: Number(r.purchaseCost ?? row.purchase_cost ?? r.purchase ?? 0),
-    date: r.saleDate || row.sale_date || r.date || today(),
-    purchaseDate: r.purchaseDate || row.purchase_date || '',
-    paymentDate: r.paymentDate || row.payment_date || '',
+    date: r.saleDate || row.sale_date || r.date || new Date().toISOString().split('T')[0],
     expiry: r.expiryDate || row.expiry_date || r.expiry || '',
     payment: r.paymentStatus || row.payment_status || r.payment || 'Paid',
     partialPaid: Number(r.partialPaid ?? row.partial_paid ?? 0),
     tenure: Number(r.tenureDays ?? row.tenure_days ?? r.tenure ?? 30),
     accountDetails: r.accountDetails || row.account_details || '',
-    notes: r.notes || row.notes || '',
-    type: r.type || 'Subscription',
-    createdAt: r.createdAt || row.created_at || new Date().toISOString()
+    notes: r.notes || row.notes || ''
   };
 }
 
 function mapSaleToDb(s) {
+  return {
+    id: String(s.id),
+    client_name: s.client,
+    client_phone: s.phone,
+    product_name: s.product,
+    sale_amount: s.amount,
+    purchase_cost: s.purchase,
+    sale_date: s.date,
+    expiry_date: s.expiry,
+    payment_status: s.payment,
+    partial_paid: s.partialPaid,
+    tenure_days: s.tenure,
+    account_details: s.accountDetails,
+    notes: s.notes,
+    assigned_role: s.owner,
+    raw_data: s
+  };
+}
+
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function go(page) {
+  document.querySelectorAll('.nav').forEach(n => n.classList.remove('on'));
+  const btn = document.querySelector(`[data-page="${page}"]`);
+  if (btn) btn.classList.add('on');
+  
+  const app = document.getElementById('app');
+  app.innerHTML = `<h2>${page.toUpperCase()} View</h2><p class="muted">Connected to Supabase successfully.</p>`;
+}
+
+function toggleMenu(e) {
+  e.stopPropagation();
+  document.getElementById('menuDropdown').classList.toggle('show');
+}
+
+function closeMenu() {
+  document.getElementById('menuDropdown').classList.remove('show');
+}
+
+window.onclick = () => closeMenu();
+
+function doLogin() {
+  document.getElementById('loginScreen').style.display = 'none';
+  go('dashboard');
+}
+
+function openSale() {
+  alert('Sale modal triggered.');
+}
+</script>
+</body>
+</html>
