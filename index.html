@@ -69,6 +69,7 @@ tbody tr:hover{background:#fcfaf5}
 
 .client-cell{display:flex;align-items:center;gap:10px}
 .avatar{width:34px;height:34px;border-radius:10px;background:#dbeafe;color:#1e40af;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;border:1px solid #bfdbfe}
+.product-img{width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid #e2d9c8;background:#f1ece1;flex-shrink:0}
 .cred-pill{display:inline-block;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#f8f5ee;border:1px solid #e5dec9;padding:2px 7px;border-radius:6px;font-size:11px;color:#475569;margin-top:3px;font-family:monospace}
 
 /* Interactive Payment Status Dropdown */
@@ -205,12 +206,12 @@ if (!data.products) data.products = [];
 if (!data.sales) data.sales = [];
 
 let page = 'dashboard';
-let dashRange = 'all'; // 'current_month', 'prev_month', 'custom', 'all'
+let dashRange = 'all';
 let dashCustomFrom = '';
 let dashCustomTo = '';
-let expiryFilter = 'expiring'; // 'expiring' (0 to 7 days) or 'expired' (< 0 days)
+let expiryFilter = 'expiring';
 let reportRange = 'month';
-let selectedProfitMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+let selectedProfitMonth = new Date().toISOString().slice(0, 7);
 let salesSearch = '';
 
 let supabaseClient = null;
@@ -240,7 +241,6 @@ const grossSales = a => a.reduce((x, s) => x + Number(s.amount || 0), 0);
 const purchase = a => a.reduce((x, s) => x + Number(s.purchase || 0), 0);
 const expenses = a => a.reduce((x, s) => x + Number(s.amount || 0), 0);
 
-// SVG Icons for Action Buttons
 const ICONS = {
   eye: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
   pencil: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
@@ -348,7 +348,30 @@ function mapProductFromDb(row) {
     name: r.name || row.name || 'Service',
     type: r.type || r.category || 'Subscription',
     price: Number(r.defaultSalePrice ?? row.default_sale_price ?? r.price ?? 0),
-    cost: Number(r.defaultPurchaseCost ?? row.default_purchase_cost ?? r.cost ?? 0)
+    cost: Number(r.defaultPurchaseCost ?? row.default_purchase_cost ?? r.cost ?? 0),
+    tenure: Number(r.defaultTenure ?? row.default_tenure ?? r.tenure ?? 30),
+    image: r.imageUrl || row.image_url || r.image || ''
+  };
+}
+
+function mapProductToDb(p) {
+  const rawPayload = {
+    id: String(p.id),
+    name: p.name,
+    type: p.type || 'Subscription',
+    defaultSalePrice: Number(p.price || 0),
+    defaultPurchaseCost: Number(p.cost || 0),
+    defaultTenure: Number(p.tenure || 30),
+    imageUrl: p.image || '',
+    updatedAt: new Date().toISOString()
+  };
+  return {
+    id: String(p.id),
+    name: p.name,
+    default_sale_price: Number(p.price || 0),
+    default_purchase_cost: Number(p.cost || 0),
+    image_url: p.image || '',
+    raw_data: rawPayload
   };
 }
 
@@ -386,7 +409,6 @@ async function fetchAllFromSupabase() {
       data.expenses = expsRes.data.map(mapExpenseFromDb).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     }
 
-    // Set default profit month to latest sale month if available
     if (data.sales.length > 0 && data.sales[0].date) {
       selectedProfitMonth = data.sales[0].date.slice(0, 7);
     }
@@ -449,7 +471,6 @@ function go(p) {
   render();
 }
 
-// Filter helper for Executive Dashboard period buttons
 function filterByDashPeriod(list) {
   const now = new Date();
   const curY = now.getFullYear(), curM = now.getMonth();
@@ -467,7 +488,7 @@ function filterByDashPeriod(list) {
       if (dashCustomTo && dStr > dashCustomTo) return false;
       return true;
     }
-    return true; // 'all'
+    return true;
   });
 }
 
@@ -478,7 +499,7 @@ function getWhatsAppLinkForSale(s) {
 }
 
 // ==========================================
-// 4. EXECUTIVE DASHBOARD & TABLE RENDERERS
+// 4. EXECUTIVE DASHBOARD & RENDERERS
 // ==========================================
 function salesTable(a, showCountdown = false) {
   if (!a.length) return '<div class="empty">No records found for this view.</div>';
@@ -498,6 +519,8 @@ function salesTable(a, showCountdown = false) {
         const initials = (s.client || 'W').trim().slice(0, 2).toUpperCase();
         const st = status(s);
         const waHref = getWhatsAppLinkForSale(s);
+        const prodObj = data.products.find(p => p.name.toLowerCase() === (s.product || '').toLowerCase());
+        const imgTag = prodObj && prodObj.image ? `<img src="${esc(prodObj.image)}" class="product-img" alt="">` : `<div class="avatar" style="width:32px;height:32px;font-size:11px">📦</div>`;
         return `<tr>
           <td>
             <div class="client-cell">
@@ -509,8 +532,13 @@ function salesTable(a, showCountdown = false) {
             </div>
           </td>
           <td>
-            <b>${esc(s.product)}</b><br>
-            ${s.accountDetails ? `<span class="cred-pill" title="${esc(s.accountDetails)}">${esc(s.accountDetails)}</span>` : `<span class="muted">${esc(s.type)}</span>`}
+            <div style="display:flex;align-items:center;gap:8px">
+              ${imgTag}
+              <div>
+                <b>${esc(s.product)}</b><br>
+                ${s.accountDetails ? `<span class="cred-pill" title="${esc(s.accountDetails)}">${esc(s.accountDetails)}</span>` : `<span class="muted">${esc(s.type)}</span>`}
+              </div>
+            </div>
           </td>
           <td><b>${s.owner === 'Manager' ? '👤 Manager' : '👑 Admin'}</b></td>
           <td>
@@ -556,7 +584,6 @@ function dashboard() {
   const cost = purchase(fSales), exp = expenses(fExpenses), profit = paid - cost - exp;
   const pending = fSales.filter(s => s.payment !== 'Paid');
 
-  // Expiring vs Expired lists
   const expiringList = data.sales.filter(s => s.type === 'Subscription' && s.expiry && days(s.expiry) >= 0 && days(s.expiry) <= 7)
                                  .sort((x, y) => days(x.expiry) - days(y.expiry));
   const expiredList = data.sales.filter(s => s.type === 'Subscription' && s.expiry && days(s.expiry) < 0)
@@ -657,15 +684,57 @@ function salesPage() {
     <div><h1>Sales Directory</h1><span class="muted">Subscriptions & products (${filtered.length} records)</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <input placeholder="🔍 Search client, service, email..." value="${esc(salesSearch)}" oninput="salesSearch=this.value;render()" style="border:1.5px solid #d8cfc0;border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;background:#fff">
-      <button class="primary" onclick="openSale()">＋ Add Sale</button>
+      <button class="primary" onclick="openSale()">＋ Sale</button>
     </div>
   </div>
   <section>${salesTable(filtered, true)}</section>`;
 }
 
 function productsPage() {
-  return `<div class="sectionHead"><div><h1>Products</h1><span class="muted">Create products and services</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
-  <section>${data.products.length ? `<div class="table"><table><thead><tr><th>Product</th><th>Type</th><th>Default Price</th><th></th></tr></thead><tbody>${data.products.map(p => `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.type)}</td><td>${rs(p.price)}</td><td><button class="danger small" onclick="delProduct('${p.id}')">Delete</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">Add your first product or subscription service.</div>'}</section>`;
+  return `<div class="sectionHead">
+    <div><h1>Products Catalog</h1><span class="muted">Manage services, prices, images & tenure</span></div>
+    <button class="primary" onclick="openProduct()">＋ Add Product</button>
+  </div>
+  <section>
+    ${data.products.length ? `
+      <div class="table">
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Product Name</th>
+              <th>Type</th>
+              <th>Sale Price</th>
+              <th>Cost</th>
+              <th>Tenure</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.products.map(p => {
+              const imgHtml = p.image ? `<img src="${esc(p.image)}" class="product-img" alt="">` : `<div class="avatar" style="width:36px;height:36px;font-size:12px">📦</div>`;
+              return `
+                <tr>
+                  <td>${imgHtml}</td>
+                  <td><b>${esc(p.name)}</b></td>
+                  <td>${esc(p.type || 'Subscription')}</td>
+                  <td><b>${rs(p.price)}</b></td>
+                  <td>${rs(p.cost || 0)}</td>
+                  <td>${p.tenure || 30} Days</td>
+                  <td>
+                    <div class="act-group">
+                      <button class="icon-btn edit" title="Edit Product" onclick="openProduct('${p.id}')">${ICONS.pencil}</button>
+                      <button class="icon-btn trash" title="Delete Product" onclick="delProduct('${p.id}')">${ICONS.trash}</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : '<div class="empty">No products found. Click "+ Add Product" to create one.</div>'}
+  </section>`;
 }
 
 function clientsPage() {
@@ -700,7 +769,6 @@ function expensesPage() {
 // 5. MODERN POS PROFIT & ANALYTICS VIEW
 // ==========================================
 function profitPage() {
-  // Collect all unique YYYY-MM months from sales & expenses + current year months
   const monthSet = new Set();
   const curYear = new Date().getFullYear();
   for (let m = 1; m <= 12; m++) {
@@ -714,7 +782,6 @@ function profitPage() {
     selectedProfitMonth = allMonths[allMonths.length - 1];
   }
 
-  // Last 12 months for bar graph
   const chartMonths = allMonths.slice(-12);
   const monthlyStats = chartMonths.map(ym => {
     const mSales = data.sales.filter(s => (s.date || '').startsWith(ym));
@@ -730,7 +797,6 @@ function profitPage() {
 
   const maxVal = Math.max(1000, ...monthlyStats.map(x => Math.max(x.rev, x.net, 0)));
 
-  // Selected Month Breakdown
   const selSales = data.sales.filter(s => (s.date || '').startsWith(selectedProfitMonth));
   const selExps = data.expenses.filter(e => (e.date || '').startsWith(selectedProfitMonth));
   const selPaid = income(selSales);
@@ -740,7 +806,6 @@ function profitPage() {
   const selNet = selPaid - selCost - selExp;
   const marginPct = selPaid > 0 ? Math.round((selNet / selPaid) * 100) : 0;
 
-  // Products Sold in Selected Month
   const prodMap = {};
   selSales.forEach(s => {
     const pName = (s.product || 'Other').trim();
@@ -854,9 +919,6 @@ function profitPage() {
   </section>`;
 }
 
-// ==========================================
-// 6. REPORTS & SETTINGS (EXACT TEMPLATE)
-// ==========================================
 function reports() {
   const now = new Date();
   const filtered = data.sales.filter(s => {
@@ -924,7 +986,7 @@ function render() {
 }
 
 // ==========================================
-// 7. CRUD ACTIONS & SUPABASE PERSISTENCE
+// 7. MODERN POS CRUD & SUPABASE ACTIONS
 // ==========================================
 async function quickSetPayment(id, statusVal) {
   let sale = data.sales.find(s => String(s.id) === String(id));
@@ -969,60 +1031,145 @@ async function delExpense(id) {
   }
 }
 
-function openProduct() {
-  modal(`<div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div><form id="pf" class="grid"><label class="field"><span>Name *</span><input id="pn" required placeholder="ChatGPT Plus"></label><label class="field"><span>Type</span><select id="pt"><option>Subscription</option><option>Product</option></select></label><label class="field"><span>Default Sale Price</span><input id="pp" type="number" value="0"></label><div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div></form>`);
+function openProduct(editId = null) {
+  const existing = editId ? data.products.find(p => String(p.id) === String(editId)) : null;
+  modal(`<div class="sectionHead"><h2>${existing ? 'Edit Product' : 'Add Product / Service'}</h2><button onclick="closeModal()">×</button></div>
+  <form id="pf" class="grid">
+    <label class="field full"><span>Product Name *</span><input id="pn" value="${existing ? esc(existing.name) : ''}" required placeholder="e.g. Netflix 4K"></label>
+    <label class="field"><span>Type</span><select id="pt"><option ${existing?.type === 'Subscription' ? 'selected' : ''}>Subscription</option><option ${existing?.type === 'Product' ? 'selected' : ''}>Product</option></select></label>
+    <label class="field"><span>Default Sale Price (Rs)</span><input id="pp" type="number" value="${existing ? existing.price : 1000}" required></label>
+    <label class="field"><span>Default Purchase Cost (Rs)</span><input id="pcost" type="number" value="${existing ? (existing.cost || 0) : 0}"></label>
+    <label class="field"><span>Default Tenure (Days)</span><input id="ptenure" type="number" value="${existing ? (existing.tenure || 30) : 30}"></label>
+    <label class="field full"><span>Product Image URL (Supabase / Direct Link)</span><input id="pimg" value="${existing ? esc(existing.image || '') : ''}" placeholder="https://example.com/logo.png"></label>
+    <div class="full actions">
+      <button type="button" onclick="closeModal()">Cancel</button>
+      <button class="primary">${existing ? 'Update Product' : 'Save Product'}</button>
+    </div>
+  </form>`);
+
   pf.onsubmit = async e => {
     e.preventDefault();
-    const prod = { id: 'prod-' + Date.now(), name: pn.value, type: pt.value, price: +pp.value };
-    data.products.push(prod);
+    const prod = {
+      id: existing ? String(existing.id) : 'prod-' + Date.now(),
+      name: pn.value.trim(),
+      type: pt.value,
+      price: +pp.value || 0,
+      cost: +pcost.value || 0,
+      tenure: +ptenure.value || 30,
+      image: pimg.value.trim()
+    };
+
+    if (existing) {
+      data.products = data.products.map(p => String(p.id) === String(existing.id) ? prod : p);
+    } else {
+      data.products.push(prod);
+    }
     save(); closeModal(); render();
+
     if (supabaseClient) {
-      await supabaseClient.from('products').upsert({
-        id: prod.id, name: prod.name, default_sale_price: prod.price, default_purchase_cost: 0, raw_data: prod
-      }, { onConflict: 'id' });
+      updateSyncBadge('SAVING PRODUCT...', '#60a5fa');
+      const { error } = await supabaseClient.from('products').upsert(mapProductToDb(prod), { onConflict: 'id' });
+      if (!error) updateSyncBadge(`SUPABASE CLOUD • SAVED ✓`, '#34d399');
     }
   };
 }
 
 async function delProduct(id) {
-  if (confirm('Delete this product?')) {
+  if (confirm('Delete this product permanently?')) {
     data.products = data.products.filter(p => String(p.id) !== String(id));
     save(); render();
-    if (supabaseClient) await supabaseClient.from('products').delete().eq('id', String(id));
+    if (supabaseClient) {
+      await supabaseClient.from('products').delete().eq('id', String(id));
+      updateSyncBadge('SUPABASE CLOUD • DELETED ✓', '#34d399');
+    }
   }
 }
 
 function openSale(editId = null) {
   const existing = editId ? data.sales.find(s => String(s.id) === String(editId)) : null;
-  let opts = data.products.map(p => `<option value="${p.id}" ${existing && existing.product === p.name ? 'selected' : ''}>${esc(p.name)} — ${p.type}</option>`).join('');
-  modal(`<div class="sectionHead"><h2>${existing ? 'Edit Sale' : 'Add New Sale'}</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
-  <label class="field"><span>Sold By *</span><select id="so"><option ${existing?.owner === 'Admin' ? 'selected' : ''}>Admin</option><option ${existing?.owner === 'Manager' ? 'selected' : ''}>Manager</option></select></label>
-  <label class="field"><span>Product / Service *</span><select id="sp">${opts || '<option value="">No products yet — type below</option>'}</select></label>
-  <label class="field full"><span>Or Product Name</span><input id="customProduct" value="${existing ? esc(existing.product) : ''}" placeholder="Use if product is not in list"></label>
-  <label class="field"><span>Client Name *</span><input id="sc" value="${existing ? esc(existing.client) : ''}" required></label>
-  <label class="field"><span>Phone / WhatsApp</span><input id="sph" value="${existing ? esc(existing.phone || '') : ''}"></label>
-  <label class="field"><span>Sale Amount *</span><input id="sa" type="number" value="${existing ? existing.amount : ''}" required></label>
-  <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="${existing ? existing.purchase : 0}" placeholder="What you paid"></label>
-  <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${existing ? existing.date : today()}" required></label>
-  <label class="field"><span>Purchase Date</span><input id="spdate" type="date" value="${existing ? (existing.purchaseDate || '') : ''}"></label>
-  <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date" value="${existing ? (existing.paymentDate || '') : ''}"></label>
-  <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date" value="${existing ? (existing.expiry || '') : ''}"></label>
-  <label class="field"><span>Payment</span><select id="payment"><option ${existing?.payment === 'Paid' ? 'selected' : ''}>Paid</option><option ${existing?.payment === 'Pending' ? 'selected' : ''}>Pending</option><option ${existing?.payment === 'Partial' ? 'selected' : ''}>Partial</option></select></label>
-  <label class="field"><span>Tenure in Days (editable)</span><input id="stm" type="number" min="0" value="${existing ? existing.tenure : 30}" placeholder="e.g. 7, 25, 27, 30"></label>
-  <label class="field full"><span>Account Details (Email | Screen | PIN / IPTV)</span><input id="screds" value="${existing ? esc(existing.accountDetails || '') : ''}" placeholder="user@mail.com | Screen 1 | PIN: 1234"></label>
-  <label class="field full"><span>Notes</span><textarea id="sn">${existing ? esc(existing.notes || '') : ''}</textarea></label>
-  <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">${existing ? 'Update Sale' : 'Save Sale'}</button></div></form>`);
+  let opts = data.products.map(p => `<option value="${p.id}" ${existing && existing.product === p.name ? 'selected' : ''}>${esc(p.name)} (${rs(p.price)})</option>`).join('');
+  
+  modal(`
+    <div class="sectionHead">
+      <div>
+        <h2>${existing ? '✏️ Edit Transaction' : '✨ New POS Sale'}</h2>
+        <span class="muted">Enter client & subscription credentials</span>
+      </div>
+      <button onclick="closeModal()">×</button>
+    </div>
+    <form id="sf" class="grid">
+      <label class="field"><span>Sold By *</span>
+        <select id="so">
+          <option ${existing?.owner === 'Admin' ? 'selected' : ''}>Admin</option>
+          <option ${existing?.owner === 'Manager' ? 'selected' : ''}>Manager</option>
+        </select>
+      </label>
+      <label class="field"><span>Select Product / Service</span>
+        <select id="sp">
+          <option value="">-- Choose from Catalog --</option>
+          ${opts}
+        </select>
+      </label>
+      <label class="field full"><span>Or Custom Product Name *</span>
+        <input id="customProduct" value="${existing ? esc(existing.product) : ''}" placeholder="Type service if not in catalog">
+      </label>
+      <label class="field"><span>Client Name *</span>
+        <input id="sc" value="${existing ? esc(existing.client) : ''}" required placeholder="Subhan Ch">
+      </label>
+      <label class="field"><span>Phone / WhatsApp</span>
+        <input id="sph" value="${existing ? esc(existing.phone || '') : ''}" placeholder="03097313903">
+      </label>
+      <label class="field"><span>Sale Amount (Rs) *</span>
+        <input id="sa" type="number" value="${existing ? existing.amount : ''}" required placeholder="1000">
+      </label>
+      <label class="field"><span>Purchase Cost (Rs)</span>
+        <input id="spurchase" type="number" value="${existing ? existing.purchase : 0}" placeholder="0">
+      </label>
+      <label class="field"><span>Sale Date</span>
+        <input id="sd" type="date" value="${existing ? existing.date : today()}" required>
+      </label>
+      <label class="field"><span>Tenure (Days)</span>
+        <input id="stm" type="number" min="0" value="${existing ? existing.tenure : 30}" oninput="updateModalExpiry()">
+      </label>
+      <label class="field"><span>Expiry Date</span>
+        <input id="sexpiry" type="date" value="${existing ? (existing.expiry || '') : expiry(today(), 30)}">
+      </label>
+      <label class="field"><span>Payment Status</span>
+        <select id="payment">
+          <option ${existing?.payment === 'Paid' ? 'selected' : ''}>Paid</option>
+          <option ${existing?.payment === 'Pending' ? 'selected' : ''}>Pending</option>
+          <option ${existing?.payment === 'Partial' ? 'selected' : ''}>Partial</option>
+        </select>
+      </label>
+      <label class="field full"><span>Account Details / Credentials (Email | Screen | PIN / IPTV)</span>
+        <input id="screds" value="${existing ? esc(existing.accountDetails || '') : ''}" placeholder="user@mail.com | Screen 1 | PIN: 1234">
+      </label>
+      <label class="field full"><span>Notes / Remarks</span>
+        <textarea id="sn" placeholder="Optional notes...">${existing ? esc(existing.notes || '') : ''}</textarea>
+      </label>
+      <div class="full actions">
+        <button type="button" onclick="closeModal()">Cancel</button>
+        <button class="primary">${existing ? 'Update Transaction' : 'Complete Sale'}</button>
+      </div>
+    </form>
+  `);
 
   sp.onchange = () => {
     let p = data.products.find(x => String(x.id) === String(sp.value));
-    if (p) { sa.value = p.price; stm.value = p.type === 'Subscription' ? '30' : '0'; customProduct.value = p.name; }
+    if (p) {
+      sa.value = p.price;
+      spurchase.value = p.cost || 0;
+      stm.value = p.tenure || 30;
+      customProduct.value = p.name;
+      updateModalExpiry();
+    }
   };
 
   sf.onsubmit = async e => {
     e.preventDefault();
     let p = data.products.find(x => String(x.id) === String(sp.value));
     let name = customProduct.value.trim() || (p && p.name);
-    if (!name) { alert('Add product name'); return; }
+    if (!name) { alert('Please enter or select a product name.'); return; }
     let tenure = +stm.value || 0;
     const saleObj = {
       id: existing ? String(existing.id) : String(Date.now()),
@@ -1035,8 +1182,8 @@ function openSale(editId = null) {
       purchase: +spurchase.value,
       payment: payment.value,
       date: sd.value,
-      purchaseDate: spdate.value,
-      paymentDate: spaymentdate.value,
+      purchaseDate: sd.value,
+      paymentDate: payment.value === 'Paid' ? sd.value : '',
       tenure,
       expiry: sexpiry.value || (tenure ? expiry(sd.value, tenure) : ''),
       accountDetails: screds.value.trim(),
@@ -1056,6 +1203,12 @@ function openSale(editId = null) {
       if (!error) updateSyncBadge(`SUPABASE CLOUD • SAVED ✓`, '#34d399');
     }
   };
+}
+
+function updateModalExpiry() {
+  const d = document.getElementById('sd').value || today();
+  const t = Number(document.getElementById('stm').value || 30);
+  document.getElementById('sexpiry').value = expiry(d, t);
 }
 
 function openReceipt(id) {
