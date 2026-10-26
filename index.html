@@ -79,7 +79,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
     <h2 style="margin-bottom:6px;text-align:center;font-weight:800">DR Streaming</h2>
     <p class="muted" style="text-align:center;margin:0 0 18px 0;font-size:12px;">Connected to Supabase Cloud</p>
     <div class="grid">
-      <label class="field full"><span>Account</span><select id="loginAccount" onchange="updateLoginAccount()"><option value="admin">👑 Admin</option><option value="coadmin">👤 Manager / Co-Admin</option></select></label>
+      <label class="field full"><span>Account</span><select id="loginAccount"><option value="admin">👑 Admin</option><option value="coadmin">👤 Manager / Co-Admin</option></select></label>
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin" value="admin"></label>
       <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="Enter password" onkeydown="if(event.key==='Enter') doLogin()"></label>
       <div class="full" style="margin-top:12px;">
@@ -93,7 +93,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
   <div class="brand">DR STREAMING <span id="accountBadge" style="font-size:10px;padding:3px 7px;border-radius:8px;background:rgba(16,185,129,.2);color:#34d399;margin-left:6px;vertical-align:middle">ADMIN</span><small id="syncStatus">SUPABASE CLOUD • READY ✓</small></div>
   <div style="display:flex;gap:8px;align-items:center">
     <button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button>
-    <button class="primary small" onclick="openSale()">＋ Sale</button>
+    <button class="primary small" onclick="openSaleModal()">＋ Sale</button>
     
     <div style="position:relative;">
       <button class="menu-btn" onclick="toggleMenu(event)">⋮</button>
@@ -131,7 +131,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 
 <script>
 // ==========================================
-// 1. SUPABASE CONFIGURATION
+// 1. SUPABASE CONFIGURATION & INIT
 // ==========================================
 const DEFAULT_SUPABASE_URL = "https://xwpcuxpxgqjytmeugbnt.supabase.co";
 const DEFAULT_SUPABASE_KEY = localStorage.getItem('sb_anon_key') || "";
@@ -146,9 +146,7 @@ let supabaseClient = null;
 
 function initSupabaseClient() {
   const { url, key } = getSupabaseCredentials();
-  if (!url || !key || !window.supabase) {
-    return null;
-  }
+  if (!url || !key || !window.supabase) return null;
   try {
     supabaseClient = window.supabase.createClient(url, key);
     return supabaseClient;
@@ -159,7 +157,7 @@ function initSupabaseClient() {
 }
 
 // ==========================================
-// 2. COMPLETE MAPPERS
+// 2. DATA MAPPERS
 // ==========================================
 function mapSaleFromDb(row) {
   const r = row.raw_data || row;
@@ -178,7 +176,7 @@ function mapSaleFromDb(row) {
     partialPaid: Number(r.partialPaid ?? row.partial_paid ?? 0),
     tenure: Number(r.tenureDays ?? row.tenure_days ?? r.tenure ?? 30),
     accountDetails: r.accountDetails || row.account_details || '',
-    notes: r.notes || row.notes || ''
+    notes: r.notes || r.notes || ''
   };
 }
 
@@ -206,13 +204,90 @@ function today() {
   return new Date().toISOString().split('T')[0];
 }
 
+// ==========================================
+// 3. ROUTING & VIEWS
+// ==========================================
+let currentTab = 'dashboard';
+
 function go(page) {
+  currentTab = page;
   document.querySelectorAll('.nav').forEach(n => n.classList.remove('on'));
   const btn = document.querySelector(`[data-page="${page}"]`);
   if (btn) btn.classList.add('on');
   
   const app = document.getElementById('app');
-  app.innerHTML = `<h2>${page.toUpperCase()} View</h2><p class="muted">Connected to Supabase successfully.</p>`;
+  
+  if (page === 'dashboard') {
+    app.innerHTML = `
+      <h1>Dashboard</h1>
+      <p class="muted">Overview of your streaming business & active subscriptions.</p>
+      <div class="cards">
+        <div class="card card-blue"><small>TOTAL SALES</small><b>0</b></div>
+        <div class="card card-green"><small>REVENUE</small><b>Rs. 0</b></div>
+        <div class="card card-purple"><small>ACTIVE CLIENTS</small><b>0</b></div>
+        <div class="card card-orange"><small>EXPIRING SOON</small><b>0</b></div>
+      </div>
+      <section>
+        <div class="sectionHead"><h2>Recent Activity</h2><button class="small primary" onclick="openSaleModal()">+ Add Sale</button></div>
+        <div class="empty">No recent sales recorded yet.</div>
+      </section>
+    `;
+  } else if (page === 'sales') {
+    app.innerHTML = `
+      <h1>Sales History</h1>
+      <p class="muted">Manage and track all customer subscription sales.</p>
+      <section>
+        <div class="sectionHead"><h2>All Transactions</h2><button class="small primary" onclick="openSaleModal()">+ New Sale</button></div>
+        <div class="empty">No sales records found in database.</div>
+      </section>
+    `;
+  } else if (page === 'products') {
+    app.innerHTML = `
+      <h1>Products Catalog</h1>
+      <p class="muted">Manage available streaming packages and pricing.</p>
+      <section><div class="empty">No products configured.</div></section>
+    `;
+  } else if (page === 'clients') {
+    app.innerHTML = `
+      <h1>Clients Directory</h1>
+      <p class="muted">View customer records and active plans.</p>
+      <section><div class="empty">No clients found.</div></section>
+    `;
+  } else if (page === 'pending') {
+    app.innerHTML = `
+      <h1>Pending Dues</h1>
+      <p class="muted">Track unpaid or partial payment accounts.</p>
+      <section><div class="empty">All accounts are fully paid!</div></section>
+    `;
+  } else if (page === 'expenses') {
+    app.innerHTML = `
+      <h1>Business Expenses</h1>
+      <p class="muted">Track operational costs and purchases.</p>
+      <section><div class="empty">No expenses logged.</div></section>
+    `;
+  } else if (page === 'profit') {
+    app.innerHTML = `
+      <h1>Profit & Loss</h1>
+      <p class="muted">Financial summary and net earnings.</p>
+      <section><div class="empty">No data available for profit calculation.</div></section>
+    `;
+  } else if (page === 'reports') {
+    app.innerHTML = `
+      <h1>Reports & Analytics</h1>
+      <p class="muted">Detailed performance reports.</p>
+      <section><div class="empty">No analytics to display yet.</div></section>
+    `;
+  } else if (page === 'settings') {
+    app.innerHTML = `
+      <h1>Settings & Cloud Sync</h1>
+      <p class="muted">Configure Supabase Database credentials.</p>
+      <section class="grid">
+        <label class="field"><span>Supabase URL</span><input id="cfgUrl" value="${localStorage.getItem('sb_url') || DEFAULT_SUPABASE_URL}"></label>
+        <label class="field"><span>Supabase Anon Key</span><input id="cfgKey" type="password" value="${localStorage.getItem('sb_anon_key') || ''}" placeholder="Paste anon key here"></label>
+        <div class="full"><button class="primary" onclick="saveSettings()">Save Configuration</button></div>
+      </section>
+    `;
+  }
 }
 
 function toggleMenu(e) {
@@ -231,9 +306,45 @@ function doLogin() {
   go('dashboard');
 }
 
-function openSale() {
-  alert('Sale modal triggered.');
+function signOutApp() {
+  document.getElementById('loginScreen').style.display = 'flex';
 }
+
+function openSaleModal() {
+  const modal = document.getElementById('modal');
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `
+    <h2>Create New Sale</h2>
+    <p class="muted">Add customer subscription details.</p>
+    <div class="grid" style="margin-top:14px;">
+      <label class="field"><span>Client Name</span><input id="mClient" placeholder="e.g. Subhan"></label>
+      <label class="field"><span>Phone Number</span><input id="mPhone" placeholder="03001234567"></label>
+      <label class="field"><span>Service / Product</span><input id="mProduct" placeholder="Netflix / Capcut"></label>
+      <label class="field"><span>Amount (Rs)</span><input id="mAmount" type="number" placeholder="1000"></label>
+      <div class="full actions">
+        <button onclick="closeModal()">Cancel</button>
+        <button class="primary" onclick="alert('Sale saved locally!')">Save Sale</button>
+      </div>
+    </div>
+  `;
+  modal.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+function saveSettings() {
+  const url = document.getElementById('cfgUrl').value;
+  const key = document.getElementById('cfgKey').value;
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_anon_key', key);
+  initSupabaseClient();
+  alert('Supabase configuration saved successfully!');
+}
+
+// Initial load check
+initSupabaseClient();
 </script>
 </body>
 </html>
