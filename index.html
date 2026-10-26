@@ -55,8 +55,8 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 .field input,.field select,.field textarea{width:100%;border:1px solid #d9d0c1;border-radius:10px;padding:12px;font:inherit;background:#fff;color:#0f172a;outline:none;transition:border-color 0.15s}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
 .full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
-.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.Active{background:#dcfce7;color:#166534}.Expiring{background:#ffedd5;color:#c2410c}.Expired{background:#fee2e2;color:#b91c1c}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+.Active,.Paid{background:#dcfce7;color:#166534}.Expiring,.Partial{background:#ffedd5;color:#c2410c}.Expired,.Pending{background:#fee2e2;color:#b91c1c}
 .tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:#f4efe6;color:#475569;border-radius:10px;padding:8px 14px;font-weight:700}.tab.on{background:#dbeafe;color:#1d4ed8}
 .empty{text-align:center;color:var(--muted);padding:32px;font-weight:500}
 .menu-btn{background:transparent;color:#fff;font-size:24px;padding:0 5px;line-height:1}
@@ -64,6 +64,8 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 .menu-content.show{display:flex}
 .menu-content a{padding:12px 18px;border-bottom:1px solid #f4efe6;cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;color:#334155}
 .menu-content a:hover{background:#faf7f0;color:var(--blue)}
+.search-bar{width:100%;max-width:320px;border:1px solid #d9d0c1;border-radius:10px;padding:9px 14px;font:inherit;font-size:13px;outline:none}
+.search-bar:focus{border-color:var(--blue)}
 @media(max-width:700px){
   .cards{grid-template-columns:1fr 1fr}
   .grid{grid-template-columns:1fr}
@@ -74,12 +76,12 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 </head>
 <body>
 
-<div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+<div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <div class="card" style="width:min(90%, 360px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);border-radius:20px;padding:24px">
     <h2 style="margin-bottom:6px;text-align:center;font-weight:800">DR Streaming</h2>
     <p class="muted" style="text-align:center;margin:0 0 18px 0;font-size:12px;">Connected to Supabase Cloud</p>
     <div class="grid">
-      <label class="field full"><span>Account</span><select id="loginAccount"><option value="admin">👑 Admin</option><option value="coadmin">👤 Manager / Co-Admin</option></select></label>
+      <label class="field full"><span>Account</span><select id="loginAccount"><option value="Admin">👑 Admin</option><option value="Manager">👤 Manager / Co-Admin</option></select></label>
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin" value="admin"></label>
       <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="Enter password" onkeydown="if(event.key==='Enter') doLogin()"></label>
       <div class="full" style="margin-top:12px;">
@@ -90,9 +92,9 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 </div>
 
 <header>
-  <div class="brand">DR STREAMING <span id="accountBadge" style="font-size:10px;padding:3px 7px;border-radius:8px;background:rgba(16,185,129,.2);color:#34d399;margin-left:6px;vertical-align:middle">ADMIN</span><small id="syncStatus">SUPABASE CLOUD • READY ✓</small></div>
+  <div class="brand">DR STREAMING <span id="accountBadge" style="font-size:10px;padding:3px 7px;border-radius:8px;background:rgba(16,185,129,.2);color:#34d399;margin-left:6px;vertical-align:middle">ADMIN</span><small id="syncStatus">CONNECTING TO SUPABASE...</small></div>
   <div style="display:flex;gap:8px;align-items:center">
-    <button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button>
+    <button class="small" style="background:#1e293b;color:#cbd5e1" onclick="fetchAllFromSupabase()">🔄 Sync</button>
     <button class="primary small" onclick="openSaleModal()">＋ Sale</button>
     
     <div style="position:relative;">
@@ -107,7 +109,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
         <a onclick="go('profit');closeMenu()">📈 Profit</a>
         <a onclick="go('reports');closeMenu()">📊 Reports</a>
         <a onclick="go('settings');closeMenu()">⚙️ Settings & Cloud</a>
-        <a onclick="signOutApp();closeMenu()">🚪 Sign Out</a>
+        <a onclick="signOutApp();closeMenu()">🚪 Lock / Sign Out</a>
       </div>
     </div>
   </div>
@@ -131,10 +133,22 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 
 <script>
 // ==========================================
-// 1. SUPABASE CONFIGURATION & INIT
+// 1. SUPABASE CONFIGURATION & STATE
 // ==========================================
 const DEFAULT_SUPABASE_URL = "https://xwpcuxpxgqjytmeugbnt.supabase.co";
-const DEFAULT_SUPABASE_KEY = localStorage.getItem('sb_anon_key') || "";
+const DEFAULT_SUPABASE_KEY = "sb_publishable_iIZXQWcHjMQjTEw9Enk9ug_rUBCVRVa";
+
+let supabaseClient = null;
+let realtimeChannel = null;
+let currentRole = localStorage.getItem('dr_role') || 'Admin';
+let currentTab = 'dashboard';
+let searchQuery = '';
+
+let state = {
+  sales: JSON.parse(localStorage.getItem('dr_cache_sales') || '[]'),
+  products: JSON.parse(localStorage.getItem('dr_cache_products') || '[]'),
+  expenses: JSON.parse(localStorage.getItem('dr_cache_expenses') || '[]')
+};
 
 function getSupabaseCredentials() {
   let url = localStorage.getItem('sb_url') || DEFAULT_SUPABASE_URL;
@@ -142,23 +156,59 @@ function getSupabaseCredentials() {
   return { url: url.trim(), key: key.trim() };
 }
 
-let supabaseClient = null;
+function updateSyncBadge(text, color = '#34d399') {
+  const el = document.getElementById('syncStatus');
+  if (el) {
+    el.textContent = text;
+    el.style.color = color;
+  }
+}
 
 function initSupabaseClient() {
   const { url, key } = getSupabaseCredentials();
-  if (!url || !key || !window.supabase) return null;
+  if (!url || !key || !window.supabase) {
+    updateSyncBadge('SUPABASE: KEY MISSING ⚙️', '#f59e0b');
+    return null;
+  }
   try {
     supabaseClient = window.supabase.createClient(url, key);
     return supabaseClient;
   } catch (err) {
     console.error("Supabase init error:", err);
+    updateSyncBadge('SUPABASE: INIT ERROR ❌', '#f87171');
     return null;
   }
 }
 
 // ==========================================
-// 2. DATA MAPPERS
+// 2. DATA MAPPERS & HELPERS
 // ==========================================
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function addDays(dateStr, days) {
+  const d = new Date(dateStr || today());
+  d.setDate(d.getDate() + Number(days || 30));
+  return d.toISOString().split('T')[0];
+}
+
+function fmtCurrency(val) {
+  return 'Rs. ' + Number(val || 0).toLocaleString('en-PK');
+}
+
+function getSubStatus(expiryDate) {
+  if (!expiryDate) return 'Active';
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const exp = new Date(expiryDate);
+  exp.setHours(0,0,0,0);
+  const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return 'Expired';
+  if (diffDays <= 3) return 'Expiring';
+  return 'Active';
+}
+
 function mapSaleFromDb(row) {
   const r = row.raw_data || row;
   return {
@@ -166,128 +216,760 @@ function mapSaleFromDb(row) {
     owner: r.assignedRole || row.assigned_role || r.owner || 'Admin',
     client: r.clientName || row.client_name || r.client || 'Walk-in',
     phone: r.clientPhone || row.client_phone || r.phone || '',
-    product: r.productName || row.product_name || r.product || '',
+    product: r.productName || row.product_name || r.product || 'Subscription',
     productId: r.productId || row.product_id || '',
     amount: Number(r.saleAmount ?? row.sale_amount ?? r.amount ?? 0),
     purchase: Number(r.purchaseCost ?? row.purchase_cost ?? r.purchase ?? 0),
-    date: r.saleDate || row.sale_date || r.date || new Date().toISOString().split('T')[0],
+    date: r.saleDate || row.sale_date || r.date || today(),
+    paymentDate: r.paymentDate || row.payment_date || r.saleDate || today(),
     expiry: r.expiryDate || row.expiry_date || r.expiry || '',
     payment: r.paymentStatus || row.payment_status || r.payment || 'Paid',
     partialPaid: Number(r.partialPaid ?? row.partial_paid ?? 0),
     tenure: Number(r.tenureDays ?? row.tenure_days ?? r.tenure ?? 30),
     accountDetails: r.accountDetails || row.account_details || '',
-    notes: r.notes || r.notes || ''
+    notes: r.notes || row.notes || '',
+    createdAt: r.createdAt || row.created_at || new Date().toISOString()
   };
 }
 
 function mapSaleToDb(s) {
+  const rawPayload = {
+    id: String(s.id),
+    clientName: s.client,
+    clientPhone: s.phone,
+    productName: s.product,
+    productId: s.productId || '',
+    saleAmount: Number(s.amount || 0),
+    purchaseCost: Number(s.purchase || 0),
+    saleDate: s.date,
+    paymentDate: s.paymentDate || s.date,
+    expiryDate: s.expiry,
+    paymentStatus: s.payment,
+    partialPaid: Number(s.partialPaid || 0),
+    tenureDays: Number(s.tenure || 30),
+    accountDetails: s.accountDetails || '',
+    notes: s.notes || '',
+    assignedRole: s.owner || currentRole,
+    updatedAt: new Date().toISOString()
+  };
   return {
     id: String(s.id),
     client_name: s.client,
     client_phone: s.phone,
     product_name: s.product,
-    sale_amount: s.amount,
-    purchase_cost: s.purchase,
+    sale_amount: Number(s.amount || 0),
+    purchase_cost: Number(s.purchase || 0),
     sale_date: s.date,
     expiry_date: s.expiry,
     payment_status: s.payment,
-    partial_paid: s.partialPaid,
-    tenure_days: s.tenure,
-    account_details: s.accountDetails,
-    notes: s.notes,
-    assigned_role: s.owner,
-    raw_data: s
+    partial_paid: Number(s.partialPaid || 0),
+    tenure_days: Number(s.tenure || 30),
+    account_details: s.accountDetails || '',
+    notes: s.notes || '',
+    assigned_role: s.owner || currentRole,
+    raw_data: rawPayload
   };
 }
 
-function today() {
-  return new Date().toISOString().split('T')[0];
+function mapProductFromDb(row) {
+  const r = row.raw_data || row;
+  return {
+    id: String(row.id ?? r.id ?? Date.now()),
+    name: r.name || row.name || 'Service',
+    defaultSalePrice: Number(r.defaultSalePrice ?? row.default_sale_price ?? r.price ?? 1000),
+    defaultPurchaseCost: Number(r.defaultPurchaseCost ?? row.default_purchase_cost ?? r.cost ?? 0),
+    category: r.category || row.category || 'Streaming'
+  };
+}
+
+function mapExpenseFromDb(row) {
+  const r = row.raw_data || row;
+  return {
+    id: String(row.id ?? r.id ?? Date.now()),
+    title: r.title || row.title || r.description || 'Expense',
+    amount: Number(r.amount ?? row.amount ?? 0),
+    category: r.category || row.category || 'General',
+    date: r.date || row.date || today(),
+    notes: r.notes || row.notes || ''
+  };
+}
+
+function saveLocalCache() {
+  localStorage.setItem('dr_cache_sales', JSON.stringify(state.sales));
+  localStorage.setItem('dr_cache_products', JSON.stringify(state.products));
+  localStorage.setItem('dr_cache_expenses', JSON.stringify(state.expenses));
 }
 
 // ==========================================
-// 3. ROUTING & VIEWS
+// 3. SUPABASE CLOUD FETCH & SYNC
 // ==========================================
-let currentTab = 'dashboard';
+async function fetchAllFromSupabase() {
+  if (!supabaseClient) initSupabaseClient();
+  if (!supabaseClient) return;
 
+  updateSyncBadge('SYNCING FROM SUPABASE...', '#60a5fa');
+
+  try {
+    const [salesRes, prodsRes, expsRes] = await Promise.all([
+      supabaseClient.from('sales').select('*'),
+      supabaseClient.from('products').select('*'),
+      supabaseClient.from('expenses').select('*')
+    ]);
+
+    if (salesRes.error) throw salesRes.error;
+
+    if (Array.isArray(salesRes.data)) {
+      state.sales = salesRes.data.map(mapSaleFromDb).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    }
+    if (Array.isArray(prodsRes.data) && prodsRes.data.length > 0) {
+      state.products = prodsRes.data.map(mapProductFromDb);
+    }
+    if (Array.isArray(expsRes.data)) {
+      state.expenses = expsRes.data.map(mapExpenseFromDb).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    }
+
+    saveLocalCache();
+    updateSyncBadge(`SUPABASE CLOUD • LIVE (${state.sales.length} SALES) ✓`, '#34d399');
+    renderCurrentTab();
+  } catch (err) {
+    console.error("Error fetching from Supabase:", err);
+    updateSyncBadge('SYNC ERROR: ' + (err.message || 'Check Console'), '#f87171');
+  }
+}
+
+function setupRealtimeSubscription() {
+  if (!supabaseClient) return;
+  if (realtimeChannel) {
+    supabaseClient.removeChannel(realtimeChannel);
+  }
+  realtimeChannel = supabaseClient
+    .channel('public-db-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => fetchAllFromSupabase())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => fetchAllFromSupabase())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => fetchAllFromSupabase())
+    .subscribe();
+}
+
+// ==========================================
+// 4. ROUTING & VIEWS RENDERER
+// ==========================================
 function go(page) {
   currentTab = page;
+  searchQuery = '';
   document.querySelectorAll('.nav').forEach(n => n.classList.remove('on'));
   const btn = document.querySelector(`[data-page="${page}"]`);
   if (btn) btn.classList.add('on');
-  
+  renderCurrentTab();
+}
+
+function renderCurrentTab() {
   const app = document.getElementById('app');
-  
-  if (page === 'dashboard') {
+  if (!app) return;
+
+  const sales = state.sales;
+  const products = state.products;
+  const expenses = state.expenses;
+
+  // Global Metrics Calculation
+  const totalSalesCount = sales.length;
+  const totalRevenue = sales.reduce((sum, s) => sum + (s.payment === 'Paid' ? s.amount : s.partialPaid), 0);
+  const totalBilled = sales.reduce((sum, s) => sum + s.amount, 0);
+  const totalPurchaseCost = sales.reduce((sum, s) => sum + s.purchase, 0);
+  const totalExpensesAmt = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const netProfit = totalRevenue - totalPurchaseCost - totalExpensesAmt;
+
+  const activeClientsSet = new Set();
+  let expiringSoonCount = 0;
+  sales.forEach(s => {
+    const st = getSubStatus(s.expiry);
+    if (st === 'Active' || st === 'Expiring') activeClientsSet.add(s.client.toLowerCase().trim());
+    if (st === 'Expiring') expiringSoonCount++;
+  });
+
+  if (currentTab === 'dashboard') {
+    const recentSales = sales.slice(0, 12);
     app.innerHTML = `
       <h1>Dashboard</h1>
       <p class="muted">Overview of your streaming business & active subscriptions.</p>
       <div class="cards">
-        <div class="card card-blue"><small>TOTAL SALES</small><b>0</b></div>
-        <div class="card card-green"><small>REVENUE</small><b>Rs. 0</b></div>
-        <div class="card card-purple"><small>ACTIVE CLIENTS</small><b>0</b></div>
-        <div class="card card-orange"><small>EXPIRING SOON</small><b>0</b></div>
+        <div class="card card-blue"><small>TOTAL SALES</small><b>${totalSalesCount}</b></div>
+        <div class="card card-green"><small>COLLECTED REVENUE</small><b>${fmtCurrency(totalRevenue)}</b></div>
+        <div class="card card-purple"><small>ACTIVE CLIENTS</small><b>${activeClientsSet.size}</b></div>
+        <div class="card card-orange"><small>EXPIRING (≤3 DAYS)</small><b>${expiringSoonCount}</b></div>
       </div>
       <section>
-        <div class="sectionHead"><h2>Recent Activity</h2><button class="small primary" onclick="openSaleModal()">+ Add Sale</button></div>
-        <div class="empty">No recent sales recorded yet.</div>
+        <div class="sectionHead">
+          <h2>Recent Transactions</h2>
+          <div style="display:flex;gap:8px;">
+            <button class="small" onclick="go('sales')">View All (${totalSalesCount})</button>
+            <button class="small primary" onclick="openSaleModal()">+ Add Sale</button>
+          </div>
+        </div>
+        ${recentSales.length === 0 ? `<div class="empty">No sales found in Supabase. Click "+ Add Sale" to create one.</div>` : `
+          <div class="table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Client</th>
+                  <th>Service</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
+                  <th>Expiry</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${recentSales.map(s => {
+                  const subSt = getSubStatus(s.expiry);
+                  return `
+                    <tr>
+                      <td>${s.date}</td>
+                      <td><b>${s.client}</b><br><small class="muted">${s.phone || ''}</small></td>
+                      <td><b>${s.product}</b><br><small class="muted">${s.accountDetails ? s.accountDetails.slice(0,28) : ''}</small></td>
+                      <td><b>${fmtCurrency(s.amount)}</b></td>
+                      <td><span class="badge ${s.payment}">${s.payment}</span></td>
+                      <td><span class="badge ${subSt}">${s.expiry || 'N/A'}</span></td>
+                      <td>
+                        <button class="small" onclick="openReceiptModal('${s.id}')">🧾</button>
+                        <button class="small" onclick="openSaleModal('${s.id}')">✏️</button>
+                        <button class="small danger" onclick="deleteSale('${s.id}')">🗑️</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
       </section>
     `;
-  } else if (page === 'sales') {
+  } else if (currentTab === 'sales') {
+    const filtered = sales.filter(s => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (s.client || '').toLowerCase().includes(q) ||
+             (s.phone || '').toLowerCase().includes(q) ||
+             (s.product || '').toLowerCase().includes(q) ||
+             (s.accountDetails || '').toLowerCase().includes(q);
+    });
     app.innerHTML = `
       <h1>Sales History</h1>
-      <p class="muted">Manage and track all customer subscription sales.</p>
+      <p class="muted">Manage and track all ${sales.length} customer subscription sales.</p>
       <section>
-        <div class="sectionHead"><h2>All Transactions</h2><button class="small primary" onclick="openSaleModal()">+ New Sale</button></div>
-        <div class="empty">No sales records found in database.</div>
+        <div class="sectionHead">
+          <input class="search-bar" placeholder="🔍 Search client, phone, service, email..." value="${searchQuery}" oninput="searchQuery=this.value;renderCurrentTab()">
+          <button class="small primary" onclick="openSaleModal()">+ New Sale</button>
+        </div>
+        ${filtered.length === 0 ? `<div class="empty">No matching sales records found.</div>` : `
+          <div class="table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Client</th>
+                  <th>Service & Credentials</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Expiry</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filtered.map(s => {
+                  const subSt = getSubStatus(s.expiry);
+                  return `
+                    <tr>
+                      <td>${s.date}</td>
+                      <td><b>${s.client}</b><br><small class="muted">${s.phone || '-'}</small></td>
+                      <td><b>${s.product}</b><br><small class="muted">${s.accountDetails || ''}</small></td>
+                      <td><b>${fmtCurrency(s.amount)}</b><br><small class="muted">Cost: ${fmtCurrency(s.purchase)}</small></td>
+                      <td><span class="badge ${s.payment}">${s.payment}</span></td>
+                      <td><span class="badge ${subSt}">${s.expiry || '-'}</span></td>
+                      <td>
+                        <button class="small" onclick="openReceiptModal('${s.id}')">🧾</button>
+                        <button class="small" onclick="openSaleModal('${s.id}')">✏️</button>
+                        <button class="small danger" onclick="deleteSale('${s.id}')">🗑️</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
       </section>
     `;
-  } else if (page === 'products') {
+  } else if (currentTab === 'products') {
     app.innerHTML = `
       <h1>Products Catalog</h1>
-      <p class="muted">Manage available streaming packages and pricing.</p>
-      <section><div class="empty">No products configured.</div></section>
+      <p class="muted">Manage available streaming packages and default pricing.</p>
+      <section>
+        <div class="sectionHead">
+          <h2>Available Services (${products.length})</h2>
+          <button class="small primary" onclick="openProductModal()">+ Add Product</button>
+        </div>
+        ${products.length === 0 ? `<div class="empty">No products found. Add a product to speed up sales entry.</div>` : `
+          <div class="table">
+            <table>
+              <thead>
+                <tr><th>Service Name</th><th>Category</th><th>Default Sale Price</th><th>Default Cost</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                ${products.map(p => `
+                  <tr>
+                    <td><b>${p.name}</b></td>
+                    <td>${p.category || 'Streaming'}</td>
+                    <td><b>${fmtCurrency(p.defaultSalePrice)}</b></td>
+                    <td>${fmtCurrency(p.defaultPurchaseCost)}</td>
+                    <td><button class="small danger" onclick="deleteProduct('${p.id}')">🗑️ Delete</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </section>
     `;
-  } else if (page === 'clients') {
+  } else if (currentTab === 'clients') {
+    const clientMap = new Map();
+    sales.forEach(s => {
+      const key = (s.client || 'Walk-in').trim();
+      if (!clientMap.has(key)) {
+        clientMap.set(key, { name: key, phone: s.phone || '', count: 0, spent: 0, lastDate: s.date });
+      }
+      const c = clientMap.get(key);
+      c.count++;
+      c.spent += Number(s.amount || 0);
+      if (!c.phone && s.phone) c.phone = s.phone;
+    });
+    const clientList = Array.from(clientMap.values()).sort((a, b) => b.spent - a.spent);
+
     app.innerHTML = `
       <h1>Clients Directory</h1>
-      <p class="muted">View customer records and active plans.</p>
-      <section><div class="empty">No clients found.</div></section>
+      <p class="muted">View all ${clientList.length} customers and their total spending.</p>
+      <section>
+        ${clientList.length === 0 ? `<div class="empty">No clients found.</div>` : `
+          <div class="table">
+            <table>
+              <thead>
+                <tr><th>Client Name</th><th>Phone</th><th>Subscriptions</th><th>Total Billed</th><th>Last Order</th></tr>
+              </thead>
+              <tbody>
+                ${clientList.map(c => `
+                  <tr>
+                    <td><b>${c.name}</b></td>
+                    <td>${c.phone || '-'}</td>
+                    <td><b>${c.count}</b> orders</td>
+                    <td><b>${fmtCurrency(c.spent)}</b></td>
+                    <td>${c.lastDate}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </section>
     `;
-  } else if (page === 'pending') {
+  } else if (currentTab === 'pending') {
+    const pendingSales = sales.filter(s => s.payment !== 'Paid');
+    const totalPendingAmt = pendingSales.reduce((sum, s) => sum + Math.max(0, s.amount - s.partialPaid), 0);
+
     app.innerHTML = `
       <h1>Pending Dues</h1>
-      <p class="muted">Track unpaid or partial payment accounts.</p>
-      <section><div class="empty">All accounts are fully paid!</div></section>
+      <p class="muted">Track unpaid or partial payment accounts. Total Receivable: <b>${fmtCurrency(totalPendingAmt)}</b></p>
+      <section>
+        ${pendingSales.length === 0 ? `<div class="empty">🎉 All accounts are settled and fully paid!</div>` : `
+          <div class="table">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Client</th><th>Service</th><th>Total</th><th>Paid</th><th>Balance Due</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                ${pendingSales.map(s => {
+                  const due = Math.max(0, s.amount - s.partialPaid);
+                  return `
+                    <tr>
+                      <td>${s.date}</td>
+                      <td><b>${s.client}</b><br><small class="muted">${s.phone || ''}</small></td>
+                      <td>${s.product}</td>
+                      <td>${fmtCurrency(s.amount)}</td>
+                      <td>${fmtCurrency(s.partialPaid)}</td>
+                      <td><b style="color:#b91c1c">${fmtCurrency(due)}</b></td>
+                      <td>
+                        <button class="small primary" onclick="markSalePaid('${s.id}')">✓ Mark Paid</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </section>
     `;
-  } else if (page === 'expenses') {
+  } else if (currentTab === 'expenses') {
     app.innerHTML = `
       <h1>Business Expenses</h1>
-      <p class="muted">Track operational costs and purchases.</p>
-      <section><div class="empty">No expenses logged.</div></section>
+      <p class="muted">Track operational costs, server renewals, and ad spend.</p>
+      <section>
+        <div class="sectionHead">
+          <h2>Logged Expenses (${fmtCurrency(totalExpensesAmt)})</h2>
+          <button class="small primary" onclick="openExpenseModal()">+ Add Expense</button>
+        </div>
+        ${expenses.length === 0 ? `<div class="empty">No expenses logged yet.</div>` : `
+          <div class="table">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Title / Description</th><th>Category</th><th>Amount</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                ${expenses.map(e => `
+                  <tr>
+                    <td>${e.date}</td>
+                    <td><b>${e.title}</b></td>
+                    <td>${e.category}</td>
+                    <td><b>${fmtCurrency(e.amount)}</b></td>
+                    <td><button class="small danger" onclick="deleteExpense('${e.id}')">🗑️</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </section>
     `;
-  } else if (page === 'profit') {
+  } else if (currentTab === 'profit') {
     app.innerHTML = `
       <h1>Profit & Loss</h1>
-      <p class="muted">Financial summary and net earnings.</p>
-      <section><div class="empty">No data available for profit calculation.</div></section>
+      <p class="muted">Financial breakdown of revenue, costs, and net earnings.</p>
+      <div class="cards">
+        <div class="card card-blue"><small>TOTAL BILLED</small><b>${fmtCurrency(totalBilled)}</b></div>
+        <div class="card card-green"><small>COLLECTED CASH</small><b>${fmtCurrency(totalRevenue)}</b></div>
+        <div class="card card-orange"><small>PURCHASE + EXPENSES</small><b>${fmtCurrency(totalPurchaseCost + totalExpensesAmt)}</b></div>
+        <div class="card card-purple"><small>NET PROFIT</small><b>${fmtCurrency(netProfit)}</b></div>
+      </div>
     `;
-  } else if (page === 'reports') {
+  } else if (currentTab === 'reports') {
+    const expiringList = sales.filter(s => getSubStatus(s.expiry) === 'Expiring' || getSubStatus(s.expiry) === 'Expired');
     app.innerHTML = `
-      <h1>Reports & Analytics</h1>
-      <p class="muted">Detailed performance reports.</p>
-      <section><div class="empty">No analytics to display yet.</div></section>
+      <h1>Reports & Renewals</h1>
+      <p class="muted">Subscriptions expiring soon or recently expired (${expiringList.length} accounts).</p>
+      <section>
+        ${expiringList.length === 0 ? `<div class="empty">No expiring or expired subscriptions right now.</div>` : `
+          <div class="table">
+            <table>
+              <thead>
+                <tr><th>Client</th><th>Service</th><th>Expiry Date</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                ${expiringList.map(s => {
+                  const st = getSubStatus(s.expiry);
+                  return `
+                    <tr>
+                      <td><b>${s.client}</b><br><small class="muted">${s.phone || ''}</small></td>
+                      <td>${s.product}</td>
+                      <td><b>${s.expiry}</b></td>
+                      <td><span class="badge ${st}">${st}</span></td>
+                      <td><button class="small primary" onclick="openSaleModal('${s.id}')">🔄 Renew / Edit</button></td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </section>
     `;
-  } else if (page === 'settings') {
+  } else if (currentTab === 'settings') {
+    const { url, key } = getSupabaseCredentials();
     app.innerHTML = `
       <h1>Settings & Cloud Sync</h1>
-      <p class="muted">Configure Supabase Database credentials.</p>
+      <p class="muted">Connected to your Supabase project.</p>
       <section class="grid">
-        <label class="field"><span>Supabase URL</span><input id="cfgUrl" value="${localStorage.getItem('sb_url') || DEFAULT_SUPABASE_URL}"></label>
-        <label class="field"><span>Supabase Anon Key</span><input id="cfgKey" type="password" value="${localStorage.getItem('sb_anon_key') || ''}" placeholder="Paste anon key here"></label>
-        <div class="full"><button class="primary" onclick="saveSettings()">Save Configuration</button></div>
+        <label class="field full"><span>Supabase Project URL</span><input id="cfgUrl" value="${url}"></label>
+        <label class="field full"><span>Supabase Publishable / Anon Key</span><input id="cfgKey" value="${key}"></label>
+        <div class="full" style="display:flex;gap:10px;">
+          <button class="primary" onclick="saveSettings()">Save & Reconnect</button>
+          <button onclick="fetchAllFromSupabase()">Force Refresh Data</button>
+        </div>
       </section>
     `;
   }
+}
+
+// ==========================================
+// 5. CRUD OPERATIONS & MODALS
+// ==========================================
+function openSaleModal(saleId = null) {
+  const existing = saleId ? state.sales.find(s => String(s.id) === String(saleId)) : null;
+  const modal = document.getElementById('modal');
+  const box = document.getElementById('modalBox');
+
+  const prodOptions = state.products.map(p => `<option value="${p.name}" data-price="${p.defaultSalePrice}" data-cost="${p.defaultPurchaseCost}" ${existing && existing.product === p.name ? 'selected' : ''}>${p.name} (${fmtCurrency(p.defaultSalePrice)})</option>`).join('');
+
+  box.innerHTML = `
+    <h2>${existing ? 'Edit Sale' : 'Create New Sale'}</h2>
+    <p class="muted">Save subscription directly to Supabase Cloud.</p>
+    <div class="grid" style="margin-top:14px;">
+      <label class="field"><span>Client Name *</span><input id="mClient" value="${existing ? existing.client : ''}" placeholder="e.g. Subhan Ch"></label>
+      <label class="field"><span>Phone Number</span><input id="mPhone" value="${existing ? existing.phone : ''}" placeholder="03001234567"></label>
+      <label class="field">
+        <span>Service / Product *</span>
+        <input id="mProduct" list="prodList" value="${existing ? existing.product : ''}" placeholder="Type or select service" oninput="autoFillProductPrice(this.value)">
+        <datalist id="prodList">${prodOptions}</datalist>
+      </label>
+      <label class="field"><span>Tenure (Days)</span><input id="mTenure" type="number" value="${existing ? existing.tenure : 30}" oninput="updateModalExpiry()"></label>
+      <label class="field"><span>Sale Amount (Rs) *</span><input id="mAmount" type="number" value="${existing ? existing.amount : 1000}"></label>
+      <label class="field"><span>Purchase Cost (Rs)</span><input id="mPurchase" type="number" value="${existing ? existing.purchase : 0}"></label>
+      <label class="field"><span>Sale Date</span><input id="mDate" type="date" value="${existing ? existing.date : today()}" onchange="updateModalExpiry()"></label>
+      <label class="field"><span>Expiry Date</span><input id="mExpiry" type="date" value="${existing ? existing.expiry : addDays(today(), 30)}"></label>
+      <label class="field">
+        <span>Payment Status</span>
+        <select id="mPayment">
+          <option value="Paid" ${existing?.payment === 'Paid' ? 'selected' : ''}>Paid</option>
+          <option value="Pending" ${existing?.payment === 'Pending' ? 'selected' : ''}>Pending</option>
+          <option value="Partial" ${existing?.payment === 'Partial' ? 'selected' : ''}>Partial</option>
+        </select>
+      </label>
+      <label class="field"><span>Partial Paid (if any)</span><input id="mPartial" type="number" value="${existing ? existing.partialPaid : 0}"></label>
+      <label class="field full"><span>Account Credentials (Email | Screen | PIN or IPTV Portal | User | Pass)</span><input id="mCreds" value="${existing ? (existing.accountDetails || '') : ''}" placeholder="email@domain.com | Screen 1 | PIN: 1234"></label>
+      <label class="field full"><span>Notes</span><input id="mNotes" value="${existing ? (existing.notes || '') : ''}" placeholder="Optional notes"></label>
+      <div class="full actions">
+        <button onclick="closeModal()">Cancel</button>
+        <button class="primary" onclick="saveSale('${existing ? existing.id : ''}')">${existing ? 'Update Sale' : 'Save Sale'}</button>
+      </div>
+    </div>
+  `;
+  modal.classList.add('show');
+}
+
+function autoFillProductPrice(val) {
+  const match = state.products.find(p => p.name.toLowerCase() === (val || '').toLowerCase());
+  if (match) {
+    document.getElementById('mAmount').value = match.defaultSalePrice;
+    document.getElementById('mPurchase').value = match.defaultPurchaseCost;
+  }
+}
+
+function updateModalExpiry() {
+  const d = document.getElementById('mDate').value || today();
+  const t = Number(document.getElementById('mTenure').value || 30);
+  document.getElementById('mExpiry').value = addDays(d, t);
+}
+
+async function saveSale(existingId = '') {
+  const client = document.getElementById('mClient').value.trim();
+  const product = document.getElementById('mProduct').value.trim();
+  if (!client || !product) {
+    alert('Please enter Client Name and Service/Product.');
+    return;
+  }
+
+  const amount = Number(document.getElementById('mAmount').value || 0);
+  const payment = document.getElementById('mPayment').value;
+  const partialPaid = payment === 'Paid' ? amount : Number(document.getElementById('mPartial').value || 0);
+
+  const saleObj = {
+    id: existingId || String(Date.now()),
+    owner: currentRole,
+    client,
+    phone: document.getElementById('mPhone').value.trim(),
+    product,
+    amount,
+    purchase: Number(document.getElementById('mPurchase').value || 0),
+    date: document.getElementById('mDate').value || today(),
+    expiry: document.getElementById('mExpiry').value || addDays(today(), 30),
+    tenure: Number(document.getElementById('mTenure').value || 30),
+    payment,
+    partialPaid,
+    accountDetails: document.getElementById('mCreds').value.trim(),
+    notes: document.getElementById('mNotes').value.trim()
+  };
+
+  closeModal();
+  updateSyncBadge('SAVING SALE...', '#60a5fa');
+
+  if (existingId) {
+    state.sales = state.sales.map(s => String(s.id) === String(existingId) ? saleObj : s);
+  } else {
+    state.sales = [saleObj, ...state.sales];
+  }
+  saveLocalCache();
+  renderCurrentTab();
+
+  if (supabaseClient) {
+    const dbRow = mapSaleToDb(saleObj);
+    const { error } = await supabaseClient.from('sales').upsert(dbRow, { onConflict: 'id' });
+    if (error) {
+      console.error('Supabase save error:', error);
+      alert('Saved locally, but Supabase sync returned error: ' + error.message);
+    } else {
+      updateSyncBadge(`SUPABASE CLOUD • SAVED ✓`, '#34d399');
+    }
+  }
+}
+
+async function markSalePaid(saleId) {
+  const target = state.sales.find(s => String(s.id) === String(saleId));
+  if (!target) return;
+  target.payment = 'Paid';
+  target.partialPaid = target.amount;
+  saveLocalCache();
+  renderCurrentTab();
+
+  if (supabaseClient) {
+    await supabaseClient.from('sales').upsert(mapSaleToDb(target), { onConflict: 'id' });
+    updateSyncBadge('SUPABASE CLOUD • UPDATED ✓', '#34d399');
+  }
+}
+
+async function deleteSale(saleId) {
+  if (!confirm('Delete this sale permanently?')) return;
+  state.sales = state.sales.filter(s => String(s.id) !== String(saleId));
+  saveLocalCache();
+  renderCurrentTab();
+
+  if (supabaseClient) {
+    await supabaseClient.from('sales').delete().eq('id', String(saleId));
+    updateSyncBadge('SUPABASE CLOUD • DELETED ✓', '#34d399');
+  }
+}
+
+function openReceiptModal(saleId) {
+  const s = state.sales.find(x => String(x.id) === String(saleId));
+  if (!s) return;
+  const modal = document.getElementById('modal');
+  const box = document.getElementById('modalBox');
+
+  const msg = `*DR STREAMING — OFFICIAL RECEIPT* 🧾\n─────────────────────────\nClient: *${s.client}*\nDate: ${s.date}\nService: *${s.product}*\nDuration: ${s.tenure} Days\nActive Until: *${s.expiry}*\n\n• Amount Total: ${fmtCurrency(s.amount)}\n• Payment Status: ${s.payment === 'Paid' ? '✅ Paid' : '⏳ ' + s.payment}\n${s.accountDetails ? `\n🔑 *Account Details:*\n${s.accountDetails}\n` : ''}\nThank you for choosing DR Streaming!`;
+
+  const waUrl = `https://wa.me/${(s.phone || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+
+  box.innerHTML = `
+    <h2>Digital Receipt #${String(s.id).slice(-6)}</h2>
+    <pre style="background:#f8fafc;padding:16px;border-radius:12px;border:1px solid #e2e8f0;white-space:pre-wrap;font-size:12px;margin:14px 0;">${msg}</pre>
+    <div class="actions">
+      <button onclick="closeModal()">Close</button>
+      <button onclick="navigator.clipboard.writeText(\`${msg.replace(/`/g, '\\`')}\`);alert('Receipt copied!')">📋 Copy Text</button>
+      <a href="${waUrl}" target="_blank" style="text-decoration:none;"><button class="primary" style="background:#10b981;">💬 Send WhatsApp</button></a>
+    </div>
+  `;
+  modal.classList.add('show');
+}
+
+function openProductModal() {
+  const modal = document.getElementById('modal');
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `
+    <h2>Add New Product</h2>
+    <div class="grid" style="margin-top:14px;">
+      <label class="field full"><span>Product / Service Name *</span><input id="pName" placeholder="e.g. Netflix 4K 1 Screen"></label>
+      <label class="field"><span>Default Sale Price (Rs)</span><input id="pPrice" type="number" value="1000"></label>
+      <label class="field"><span>Default Cost (Rs)</span><input id="pCost" type="number" value="500"></label>
+      <div class="full actions">
+        <button onclick="closeModal()">Cancel</button>
+        <button class="primary" onclick="saveProduct()">Save Product</button>
+      </div>
+    </div>
+  `;
+  modal.classList.add('show');
+}
+
+async function saveProduct() {
+  const name = document.getElementById('pName').value.trim();
+  if (!name) return;
+  const prod = {
+    id: 'prod-' + Date.now(),
+    name,
+    defaultSalePrice: Number(document.getElementById('pPrice').value || 0),
+    defaultPurchaseCost: Number(document.getElementById('pCost').value || 0),
+    category: 'Streaming'
+  };
+  closeModal();
+  state.products.push(prod);
+  saveLocalCache();
+  renderCurrentTab();
+
+  if (supabaseClient) {
+    await supabaseClient.from('products').upsert({
+      id: prod.id,
+      name: prod.name,
+      default_sale_price: prod.defaultSalePrice,
+      default_purchase_cost: prod.defaultPurchaseCost,
+      raw_data: prod
+    }, { onConflict: 'id' });
+  }
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  state.products = state.products.filter(p => String(p.id) !== String(id));
+  saveLocalCache();
+  renderCurrentTab();
+  if (supabaseClient) {
+    await supabaseClient.from('products').delete().eq('id', String(id));
+  }
+}
+
+function openExpenseModal() {
+  const modal = document.getElementById('modal');
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `
+    <h2>Add Expense</h2>
+    <div class="grid" style="margin-top:14px;">
+      <label class="field full"><span>Expense Title *</span><input id="eTitle" placeholder="e.g. Server Renewal / Facebook Ads"></label>
+      <label class="field"><span>Amount (Rs) *</span><input id="eAmount" type="number" placeholder="2000"></label>
+      <label class="field"><span>Date</span><input id="eDate" type="date" value="${today()}"></label>
+      <div class="full actions">
+        <button onclick="closeModal()">Cancel</button>
+        <button class="primary" onclick="saveExpense()">Save Expense</button>
+      </div>
+    </div>
+  `;
+  modal.classList.add('show');
+}
+
+async function saveExpense() {
+  const title = document.getElementById('eTitle').value.trim();
+  const amount = Number(document.getElementById('eAmount').value || 0);
+  if (!title || !amount) return;
+  const exp = {
+    id: 'exp-' + Date.now(),
+    title,
+    amount,
+    category: 'Operations',
+    date: document.getElementById('eDate').value || today()
+  };
+  closeModal();
+  state.expenses = [exp, ...state.expenses];
+  saveLocalCache();
+  renderCurrentTab();
+
+  if (supabaseClient) {
+    await supabaseClient.from('expenses').upsert({
+      id: exp.id,
+      title: exp.title,
+      amount: exp.amount,
+      category: exp.category,
+      date: exp.date,
+      raw_data: exp
+    }, { onConflict: 'id' });
+  }
+}
+
+async function deleteExpense(id) {
+  if (!confirm('Delete this expense?')) return;
+  state.expenses = state.expenses.filter(e => String(e.id) !== String(id));
+  saveLocalCache();
+  renderCurrentTab();
+  if (supabaseClient) {
+    await supabaseClient.from('expenses').delete().eq('id', String(id));
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
 }
 
 function toggleMenu(e) {
@@ -302,49 +984,38 @@ function closeMenu() {
 window.onclick = () => closeMenu();
 
 function doLogin() {
+  const role = document.getElementById('loginAccount').value;
+  currentRole = role;
+  localStorage.setItem('dr_role', role);
+  document.getElementById('accountBadge').textContent = role.toUpperCase();
   document.getElementById('loginScreen').style.display = 'none';
   go('dashboard');
+  fetchAllFromSupabase();
 }
 
 function signOutApp() {
   document.getElementById('loginScreen').style.display = 'flex';
 }
 
-function openSaleModal() {
-  const modal = document.getElementById('modal');
-  const box = document.getElementById('modalBox');
-  box.innerHTML = `
-    <h2>Create New Sale</h2>
-    <p class="muted">Add customer subscription details.</p>
-    <div class="grid" style="margin-top:14px;">
-      <label class="field"><span>Client Name</span><input id="mClient" placeholder="e.g. Subhan"></label>
-      <label class="field"><span>Phone Number</span><input id="mPhone" placeholder="03001234567"></label>
-      <label class="field"><span>Service / Product</span><input id="mProduct" placeholder="Netflix / Capcut"></label>
-      <label class="field"><span>Amount (Rs)</span><input id="mAmount" type="number" placeholder="1000"></label>
-      <div class="full actions">
-        <button onclick="closeModal()">Cancel</button>
-        <button class="primary" onclick="alert('Sale saved locally!')">Save Sale</button>
-      </div>
-    </div>
-  `;
-  modal.classList.add('show');
-}
-
-function closeModal() {
-  document.getElementById('modal').classList.remove('show');
-}
-
 function saveSettings() {
-  const url = document.getElementById('cfgUrl').value;
-  const key = document.getElementById('cfgKey').value;
+  const url = document.getElementById('cfgUrl').value.trim();
+  const key = document.getElementById('cfgKey').value.trim();
   localStorage.setItem('sb_url', url);
   localStorage.setItem('sb_anon_key', key);
   initSupabaseClient();
-  alert('Supabase configuration saved successfully!');
+  fetchAllFromSupabase();
+  alert('Connected to Supabase & refreshing data!');
 }
 
-// Initial load check
-initSupabaseClient();
+// ==========================================
+// 6. INITIALIZATION ON PAGE LOAD
+// ==========================================
+window.addEventListener('DOMContentLoaded', () => {
+  initSupabaseClient();
+  go('dashboard');
+  fetchAllFromSupabase();
+  setupRealtimeSubscription();
+});
 </script>
 </body>
 </html>
