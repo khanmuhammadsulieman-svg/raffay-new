@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#101827">
-<link rel="apple-touch-icon" href="icon-192.png">
-<title>DR Streaming Manager</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="logo.png">
+<title>DR Streaming Manager — Supabase Edition</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 :root{--bg:#fdfbf7;--card:#ffffff;--ink:#0f172a;--muted:#64748b;--blue:#2563eb;--line:#f0eae1;--accent-blue:#eff6ff;--accent-green:#f0fdf4;--accent-purple:#f5f3ff;--accent-orange:#fff7ed}
@@ -36,7 +37,7 @@ h1{font-size:24px;margin:4px 0;font-weight:800;letter-spacing:-0.03em}h2{font-si
 .card-purple{border-top:4px solid #8b5cf6;background:linear-gradient(to bottom, #ffffff, #f7f5ff)}
 .card-orange{border-top:4px solid #f59e0b;background:linear-gradient(to bottom, #ffffff, #fbf7f0)}
 section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,0.01)}
-.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
+.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 button{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:#f4efe6;color:#334155;font-family:inherit;transition:background 0.15s}
 button:hover{background:#e8e1d5}
 .primary{background:var(--blue);color:#fff}.primary:hover{background:#1d4ed8}
@@ -75,9 +76,10 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <div class="card" style="width:min(90%, 360px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);border-radius:20px;padding:24px">
-    <h2 style="margin-bottom:20px;text-align:center;font-weight:800">DR Streaming</h2>
+    <h2 style="margin-bottom:6px;text-align:center;font-weight:800">DR Streaming</h2>
+    <p class="muted" style="text-align:center;margin:0 0 18px 0;font-size:12px;">Connected to Supabase Cloud</p>
     <div class="grid">
-      <label class="field full"><span>Account</span><select id="loginAccount" onchange="updateLoginAccount()"><option value="admin">👑 Admin</option><option value="coadmin">👤 Co-Admin</option></select></label>
+      <label class="field full"><span>Account</span><select id="loginAccount" onchange="updateLoginAccount()"><option value="admin">👑 Admin</option><option value="coadmin">👤 Manager / Co-Admin</option></select></label>
       <label class="field full"><span>Username</span><input id="loginUser" required placeholder="admin" value="admin"></label>
       <label class="field full"><span>Password</span><input id="loginPass" type="password" required placeholder="Enter password" onkeydown="if(event.key==='Enter') doLogin()"></label>
       <div class="full" style="margin-top:12px;">
@@ -89,7 +91,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 </div>
 
 <header>
-  <div class="brand">DR STREAMING <span id="accountBadge" style="font-size:10px;padding:3px 7px;border-radius:8px;background:rgba(22,101,52,.12);margin-left:6px;vertical-align:middle">ADMIN</span><small id="syncStatus">BUSINESS MANAGER • READY ✓</small></div>
+  <div class="brand">DR STREAMING <span id="accountBadge" style="font-size:10px;padding:3px 7px;border-radius:8px;background:rgba(16,185,129,.2);color:#34d399;margin-left:6px;vertical-align:middle">ADMIN</span><small id="syncStatus">SUPABASE CLOUD • READY ✓</small></div>
   <div style="display:flex;gap:8px;align-items:center">
     <button id="installBtn" class="small" style="display:none" onclick="installApp()">⬇ Install</button>
     <button class="primary small" onclick="openSale()">＋ Sale</button>
@@ -105,7 +107,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
         <a onclick="go('expenses');closeMenu()">💸 Expenses</a>
         <a onclick="go('profit');closeMenu()">📈 Profit</a>
         <a onclick="go('reports');closeMenu()">📊 Reports</a>
-        <a onclick="go('settings');closeMenu()">⚙️ Settings</a>
+        <a onclick="go('settings');closeMenu()">⚙️ Settings & Cloud</a>
         <a onclick="switchAccount();closeMenu()">🔄 Switch Account</a>
         <a onclick="signOutApp();closeMenu()">🚪 Sign Out</a>
       </div>
@@ -116,1208 +118,94 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.0
 <div id="app" class="container"></div>
 
 <nav class="bottom" id="bottomNav">
-<button class="nav on" data-page="dashboard" onclick="go('dashboard')">🏠<br>Home</button>
-<button class="nav" data-page="sales" onclick="go('sales')">💰<br>Sales</button>
-<button class="nav" data-page="products" onclick="go('products')">📦<br>Products</button>
-<button class="nav" data-page="clients" onclick="go('clients')">👥<br>Clients</button>
-<button class="nav" data-page="pending" onclick="go('pending')">⏳<br>Pending</button>
-<button class="nav" data-page="expenses" onclick="go('expenses')">💸<br>Expenses</button>
-<button class="nav" data-page="profit" onclick="go('profit')">📈<br>Profit</button>
-<button class="nav" data-page="reports" onclick="go('reports')">📊<br>Reports</button>
-<button class="nav" data-page="settings" onclick="go('settings')">⚙️<br>Settings</button>
+  <button class="nav on" data-page="dashboard" onclick="go('dashboard')">🏠<br>Home</button>
+  <button class="nav" data-page="sales" onclick="go('sales')">💰<br>Sales</button>
+  <button class="nav" data-page="products" onclick="go('products')">📦<br>Products</button>
+  <button class="nav" data-page="clients" onclick="go('clients')">👥<br>Clients</button>
+  <button class="nav" data-page="pending" onclick="go('pending')">⏳<br>Pending</button>
+  <button class="nav" data-page="expenses" onclick="go('expenses')">💸<br>Expenses</button>
+  <button class="nav" data-page="profit" onclick="go('profit')">📈<br>Profit</button>
+  <button class="nav" data-page="reports" onclick="go('reports')">📊<br>Reports</button>
+  <button class="nav" data-page="settings" onclick="go('settings')">⚙️<br>Settings</button>
 </nav>
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
 <script>
-window.currentAccount = sessionStorage.getItem('account') || 'admin';
-const LEGACY_DB = 'dr_streaming_manager_v1';
-const ACCOUNT_DBS = { admin:'dr_streaming_manager_v1_admin', coadmin:'dr_streaming_manager_v1_coadmin' };
-window.DB = ACCOUNT_DBS[window.currentAccount] || ACCOUNT_DBS.admin;
-
-window.data = {};
-try {
-  window.data = JSON.parse(localStorage.getItem(window.DB) || (window.currentAccount === 'admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}');
-} catch(e) { window.data = {}; }
-
-if(!Array.isArray(window.data.sales)) window.data.sales = [];
-if(!Array.isArray(window.data.expenses)) window.data.expenses = [];
-if(!Array.isArray(window.data.products)) window.data.products = [];
-if(!Array.isArray(window.data.clients)) window.data.clients = [];
-if(!window.data.settings) window.data.settings = window.currentAccount==='admin' ? {password:'vetville', username:'admin'} : {password:'coadmin', username:'coadmin'};
-if(!window.data.settings.password) window.data.settings.password = window.currentAccount==='admin' ? 'vetville' : 'coadmin';
-if(!window.data.settings.username) window.data.settings.username = window.currentAccount==='admin' ? 'admin' : 'coadmin';
-
-const catalog = [
-  ["Netflix Pakistan", "Netflix", "OTT", "netflix", "E50914", 1100],
-  ["Netflix Global", "Netflix", "OTT", "netflix", "E50914", 1200],
-  ["Prime Video", "Amazon Prime", "OTT", "primevideo", "00A8E1", 800],
-  ["Disney+", "Disney+", "OTT", "disneyplus", "113CCF", 900],
-  ["Spotify Premium", "Spotify", "OTT", "spotify", "1DB954", 650],
-  ["YouTube Premium", "YouTube", "OTT", "youtube", "FF0000", 600],
-  ["Apple TV+", "Apple", "OTT", "appletv", "000000", 850],
-  ["HBO Max", "Max", "OTT", "hbo", "000000", 950],
-  ["Crunchyroll", "Crunchyroll", "OTT", "crunchyroll", "F47521", 700],
-  ["ZEE5", "ZEE5", "OTT", "zee5", "000000", 500],
-  ["ExpressVPN", "ExpressVPN", "VPN", "expressvpn", "DA3940", 1000],
-  ["NordVPN", "NordVPN", "VPN", "nordvpn", "4687FF", 950],
-  ["Surfshark", "Surfshark", "VPN", "surfshark", "18A8B8", 900],
-  ["CyberGhost VPN", "CyberGhost", "VPN", "cyberghost", "F5C542", 850],
-  ["Proton VPN", "Proton", "VPN", "protonvpn", "6D4AFF", 900],
-  ["Private Internet Access", "PIA", "VPN", "privateinternetaccess", "5A2D81", 800],
-  ["Windscribe", "Windscribe", "VPN", "windscribe", "0D7CFF", 750],
-  ["TunnelBear", "TunnelBear", "VPN", "tunnelbear", "1C9BEF", 700],
-  ["ChatGPT Plus", "OpenAI", "AI", "openai", "111111", 2000],
-  ["Claude Pro", "Anthropic", "AI", "anthropic", "D97757", 1800],
-  ["Gemini Advanced", "Google Gemini", "AI", "googlegemini", "8E75B2", 1900],
-  ["Microsoft Copilot Pro", "Microsoft", "AI", "microsoftcopilot", "5E5CE6", 1950],
-  ["Perplexity Pro", "Perplexity", "AI", "perplexity", "20B2AA", 1750],
-  ["Midjourney", "Midjourney", "AI", "midjourney", "111111", 2200],
-  ["Canva Pro", "Canva", "AI", "canva", "00C4CC", 1100],
-  ["Adobe Creative Cloud", "Adobe", "AI", "adobecreativecloud", "FF0000", 3500],
-  ["Notion AI", "Notion", "AI", "notion", "000000", 1200],
-  ["Grammarly Premium", "Grammarly", "AI", "grammarly", "15C39A", 1000]
-];
-
-if(!window.data.products || window.data.products.length === 0) {
-  window.data.products = catalog.map(([name, brand, type, slug, color, price], index) => ({
-    id: `starter-${index}`,
-    name,
-    brand,
-    type,
-    price,
-    icon: `https://cdn.simpleicons.org/${slug}/${color}`
-  }));
-}
-
-let page='dashboard', reportRange='month', dashMode='all';
-let customStartDate = '', customEndDate = '';
-
-function setAccountState(account){
-  window.currentAccount = account === 'coadmin' ? 'coadmin' : 'admin';
-  window.DB = ACCOUNT_DBS[window.currentAccount];
-  try { window.data = JSON.parse(localStorage.getItem(window.DB) || '{}'); } catch(e) { window.data={}; }
-  if(!Array.isArray(window.data.sales)) window.data.sales=[];
-  if(!Array.isArray(window.data.expenses)) window.data.expenses=[];
-  if(!Array.isArray(window.data.products)) window.data.products=[];
-  if(!Array.isArray(window.data.clients)) window.data.clients=[];
-  if(!window.data.settings) window.data.settings=window.currentAccount==='admin'?{password:'vetville',username:'admin'}:{password:'coadmin',username:'coadmin'};
-  sessionStorage.setItem('account',window.currentAccount);
-  const badge=document.getElementById('accountBadge');
-  if(badge) badge.textContent=window.currentAccount==='admin'?'ADMIN':'CO-ADMIN';
-}
-
-function checkLocalAuth(account, u, p) {
-  const key = account === 'admin' ? 'dr_streaming_manager_v1_admin' : 'dr_streaming_manager_v1_coadmin';
-  let localData = {};
-  try { localData = JSON.parse(localStorage.getItem(key) || (account === 'admin' ? localStorage.getItem(LEGACY_DB) : '{}') || '{}'); } catch(e) {}
-  
-  const defaultUser = account === 'admin' ? 'admin' : 'coadmin';
-  const defaultPass = account === 'admin' ? 'vetville' : 'coadmin';
-
-  const storedUser = localData.settings?.username || defaultUser;
-  const storedPass = localData.settings?.password || defaultPass;
-
-  if((u === storedUser && p === storedPass) || (u === defaultUser && p === defaultPass)) {
-    sessionStorage.setItem('auth','true');
-    sessionStorage.setItem('account',account);
-    setAccountState(account);
-    const loginOverlay = document.getElementById('loginScreen');
-    if(loginOverlay) loginOverlay.style.display = 'none';
-    render();
-    if(window.initCloudSync) window.initCloudSync();
-    if(window.cloudSave) window.cloudSave();
-    return true;
-  }
-  return false;
-}
-
-window.doLogin = async function() {
-  const accountEl = document.getElementById('loginAccount');
-  const userEl = document.getElementById('loginUser');
-  const passEl = document.getElementById('loginPass');
-  const btn = document.getElementById('loginBtn');
-
-  const account = accountEl ? accountEl.value : 'admin';
-  const u = userEl ? userEl.value.trim() : 'admin';
-  const p = passEl ? passEl.value : '';
-
-  if(!p) {
-    alert('Please enter your password.');
-    return;
-  }
-
-  if(btn){ btn.disabled = true; btn.textContent = 'Connecting...'; }
-
-  try {
-    let ok = false;
-    if(window.cloudLoginAccount) {
-      try {
-        ok = await window.cloudLoginAccount(account, u, p);
-      } catch(err) {
-        console.warn("Cloud login check failed, falling back to local credentials:", err);
-        ok = checkLocalAuth(account, u, p);
-      }
-    } else {
-      ok = checkLocalAuth(account, u, p);
-    }
-    if(!ok) {
-      alert('Incorrect Password! (Default Admin Password is: vetville)');
-    }
-  } catch(e) {
-    console.error("Login exception:", e);
-    checkLocalAuth(account, u, p);
-  } finally {
-    if(btn){ btn.disabled = false; btn.textContent = 'Login to Dashboard'; }
-  }
-};
-
-window.updateLoginAccount = function() {
-  const account = document.getElementById('loginAccount').value;
-  const defaults = account === 'admin' ? {username:'admin'} : {username:'coadmin'};
-  const key = account === 'admin' ? 'dr_streaming_manager_v1_admin' : 'dr_streaming_manager_v1_coadmin';
-  let d={};
-  try { d=JSON.parse(localStorage.getItem(key) || (account==='admin'?localStorage.getItem(LEGACY_DB):'{}') || '{}'); } catch(e) {}
-  document.getElementById('loginUser').value = d.settings?.username || defaults.username;
-  document.getElementById('loginPass').value = '';
-  const bioKey = 'bioCredId_' + account;
-  const bioBtn = document.getElementById('bioLoginBtn');
-  if (bioBtn) bioBtn.style.display = localStorage.getItem(bioKey) && window.PublicKeyCredential ? 'block' : 'none';
-};
-
-window.save = async function(){
-  localStorage.setItem(window.DB, JSON.stringify(window.data));
-  if(window.cloudSave) window.cloudSave();
-};
-
-const rs = n => 'Rs. ' + Number(n||0).toLocaleString('en-PK');
-const esc = x => String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const today = () => new Date().toISOString().slice(0,10);
-const dateObj = d => new Date((d || today()) + 'T00:00:00');
-const expiry = (d,n) => { let x=dateObj(d); x.setDate(x.getDate()+Number(n)); return x.toISOString().slice(0,10); };
-const days = d => Math.ceil((dateObj(d) - new Date(new Date().toDateString())) / 86400000);
-const status = s => !s.expiry ? '—' : days(s.expiry)<0 ? 'Expired' : days(s.expiry)<=7 ? 'Expiring' : 'Active';
-
-const parseYearMonth = (dateStr) => {
-  if (!dateStr) return { year: 0, month: -1 };
-  const p = dateStr.split('-');
-  return { year: parseInt(p[0], 10), month: parseInt(p[1], 10) - 1 };
-};
-
-const waSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16" style="vertical-align:middle;margin-left:6px;cursor:pointer;"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>`;
-const waBtnSVG = waSVG.replace('fill="#25D366"','fill="#ffffff"').replace('margin-left:6px;','margin-right:8px;');
-
-const getFilteredSales = () => {
-  if (dashMode === 'all') return window.data.sales;
-  const now = new Date();
-  let targetYear = now.getFullYear();
-  let targetMonth = now.getMonth();
-
-  if (dashMode === 'current') {
-    targetMonth = now.getMonth();
-  } else if (dashMode === 'prev') {
-    targetMonth -= 1;
-    if (targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
-  } else if (dashMode === 'august') {
-    targetMonth = 7;
-  }
-
-  return window.data.sales.filter(s => {
-    const { year, month } = parseYearMonth(s.date);
-    return year === targetYear && month === targetMonth;
-  });
-};
-
-const getFilteredExpenses = () => {
-  if (dashMode === 'all') return window.data.expenses;
-  const now = new Date();
-  let targetYear = now.getFullYear();
-  let targetMonth = now.getMonth();
-
-  if (dashMode === 'current') {
-    targetMonth = now.getMonth();
-  } else if (dashMode === 'prev') {
-    targetMonth -= 1;
-    if (targetMonth < 0) { targetMonth = 11; targetYear -= 1; }
-  } else if (dashMode === 'august') {
-    targetMonth = 7;
-  }
-
-  return window.data.expenses.filter(e => {
-    const { year, month } = parseYearMonth(e.date);
-    return year === targetYear && month === targetMonth;
-  });
-};
-
-const income = a => a.filter(s=>s.payment==='Paid').reduce((x,s)=>x+Number(s.amount||0),0) + a.filter(s=>s.payment==='Partial').reduce((x,s)=>x+Number(s.partialPaid||0),0);
-const grossSales = a => a.reduce((x,s)=>x+Number(s.amount||0),0);
-const purchase = a => a.filter(s=>s.payment==='Paid' || s.payment==='Partial').reduce((x,s)=>x+Number(s.purchase||0),0);
-const expenses = a => a.reduce((x,s)=>x+Number(s.amount||0),0);
-
-window.modal = function(html){
-  const b = document.getElementById('modalBox');
-  if(b) b.innerHTML = html;
-  document.getElementById('modal').classList.add('show');
-};
-window.closeModal = function(){
-  document.getElementById('modal').classList.remove('show');
-};
-window.go = function(p){
-  page = p;
-  document.querySelectorAll('.nav').forEach(x => x.classList.toggle('on', x.dataset.page===p));
-  render();
-};
-
-function getProductIcon(productName) {
-  let matched = window.data.products.find(p => p.name.toLowerCase() === (productName || '').toLowerCase());
-  if (matched) {
-    if (matched.imageUrl) return `<img src="${esc(matched.imageUrl)}" alt="${esc(matched.name)} logo" style="width:32px;height:32px;object-fit:contain;" />`;
-    if (matched.icon) return `<img src="${esc(matched.icon)}" alt="${esc(matched.name)} logo" style="width:32px;height:32px;object-fit:contain;" />`;
-  }
-  return '<svg width="32" height="32" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#E2E8F0"/><path d="M256 160v192M160 256h192" stroke="#64748B" stroke-width="32" stroke-linecap="round"/></svg>';
-}
-
-function dashboard(){
- const activeSales = getFilteredSales();
- const activeExpList = getFilteredExpenses();
- const paid=income(activeSales), gross=grossSales(activeSales);
- const r=income(activeSales.filter(s=>s.owner==='Manager')), a=income(activeSales.filter(s=>s.owner==='Admin'));
- const cost=purchase(activeSales), exp=expenses(activeExpList), profit=paid-cost-exp;
- const pending=window.data.sales.filter(s=>s.payment!=='Paid');
- 
- const now = new Date();
- const currMonthName = now.toLocaleString('default', { month: 'long' });
- const currentDateTimeStr = now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
- const showingLabel = dashMode === 'all' 
-   ? 'All Recent Records' 
-   : dashMode === 'current' 
-     ? `${currMonthName} ${now.getFullYear()} (This Month)` 
-     : dashMode === 'prev' 
-       ? 'September 2026' 
-       : 'August 2026';
-
- return `<h1>Business Overview</h1>
- <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px;flex-wrap:wrap;gap:8px;">
-   <div>
-     <p class="muted" style="margin:0;">📅 System Date: <b>${currentDateTimeStr}</b></p>
-     <p class="muted" style="margin:2px 0 0 0;">Showing: <b>${showingLabel}</b> (${activeSales.length} items)</p>
-   </div>
-   <div style="display:flex;gap:6px;flex-wrap:wrap">
-     <button class="small ${dashMode==='all'?'primary':''}" onclick="dashMode='all';render()">All Records</button>
-     <button class="small ${dashMode==='current'?'primary':''}" onclick="dashMode='current';render()">This Month (${currMonthName})</button>
-     <button class="small ${dashMode==='prev'?'primary':''}" onclick="dashMode='prev';render()">September</button>
-     <button class="small ${dashMode==='august'?'primary':''}" onclick="dashMode='august';render()">August</button>
-   </div>
- </div>
- <div class="cards">
- <div class="card card-blue" onclick="showDetails('income')" style="cursor:pointer"><small>💼 PAID SALES / INCOME</small><b>${rs(paid)}</b></div>
- <div class="card card-orange" onclick="showDetails('purchase')" style="cursor:pointer"><small>🛒 PURCHASE COST</small><b>${rs(cost)}</b></div>
- <div class="card card-purple" onclick="showDetails('expenses')" style="cursor:pointer"><small>💸 EXPENSES</small><b>${rs(exp)}</b></div>
- <div class="card card-green" onclick="showDetails('profit')" style="cursor:pointer"><small>📈 NET PROFIT</small><b>${rs(profit)}</b></div>
- <div class="card card-blue" onclick="showDetails('manager')" style="cursor:pointer"><small>👤 MANAGER PAID SALES</small><b>${rs(r)}</b></div>
- <div class="card card-green" onclick="showDetails('admin')" style="cursor:pointer"><small>👑 ADMIN PAID SALES</small><b>${rs(a)}</b></div>
- <div class="card card-purple" onclick="showDetails('transactions')" style="cursor:pointer"><small>📦 TRANSACTIONS</small><b>${activeSales.length}</b></div>
- <div class="card card-orange" onclick="showDetails('pending')" style="cursor:pointer"><small>⏳ PENDING PAYMENTS</small><b>${pending.length}</b><span class="muted" style="font-size:11px">${rs(pending.reduce((x,s)=>x+(Number(s.amount||0) - Number(s.partialPaid||0)),0))} remaining →</span></div>
- </div>
- <section><div class="sectionHead"><h2>Recent Orders</h2><button class="small" onclick="go('sales')">View All</button></div>${salesTable(activeSales.slice(0,6),false)}</section>
- <section><div class="sectionHead"><h2>🔔 Expiring Soon</h2></div>${salesTable(window.data.sales.filter(s=>s.type==='Subscription'&&days(s.expiry)>=0&&days(s.expiry)<=14),false)}</section>`;
-}
-
-window.showDetails = function(type){
- const activeSales = getFilteredSales();
- const activeExpList = getFilteredExpenses();
- const paid=income(activeSales), cost=purchase(activeSales), exp=expenses(activeExpList);
- const pending=window.data.sales.filter(s=>s.payment!=='Paid');
- let title='',body='';
- const list=a=>a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Amount</th><th>Status</th></tr></thead><tbody>${a.map(s=>`<tr><td>${esc(s.client)}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td>${s.payment}${s.payment==='Partial'?`<br><span style="font-size:10px;color:var(--muted)">Paid: ${rs(s.partialPaid)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records found.</div>';
- if(type==='income'){title=`💼 Paid Income`;body=`<h2>${rs(paid)}</h2>${list(activeSales.filter(s=>s.payment==='Paid' || s.payment==='Partial'))}`;}
- if(type==='purchase'){let purchased=activeSales.filter(s=>Number(s.purchase||0)>0 && s.payment!=='Pending');title=`🛒 Purchase Cost`;body=`<h2>${rs(cost)}</h2>${list(purchased)}`;}
- if(type==='expenses'){title=`💸 Business Expenses`;body=`<h2>${rs(exp)}</h2>${list(activeExpList)}<br><button class="primary" onclick="closeModal();go('expenses')">Open Expenses</button>`;}
- if(type==='profit'){title=`📈 Net Profit Breakdown`;body=`<div class="card card-blue"><small>PAID INCOME</small><b>${rs(paid)}</b></div><br><div class="card card-orange"><small>MINUS PURCHASE COST</small><b>− ${rs(cost)}</b></div><br><div class="card card-purple"><small>MINUS EXPENSES</small><b>− ${rs(exp)}</b></div><br><div class="card card-green"><small>NET PROFIT</small><b>${rs(paid-cost-exp)}</b></div>`;}
- if(type==='manager'){let a=activeSales.filter(s=>s.owner==='Manager'&&(s.payment==='Paid'||s.payment==='Partial'));title='👤 Manager Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
- if(type==='admin'){let a=activeSales.filter(s=>s.owner==='Admin'&&(s.payment==='Paid'||s.payment==='Partial'));title='👑 Admin Sales';body=`<h2>${rs(income(a))}</h2>${list(a)}`;}
- if(type==='transactions'){title='📦 Transactions';body=`<p class="muted">${activeSales.length} records</p>${list(activeSales)}`;}
- if(type==='pending'){title='⏳ Pending Payments (All-Time)';body=`<h2>${rs(pending.reduce((x,s)=>x+(Number(s.amount||0) - Number(s.partialPaid||0)),0))} Remaining</h2>${list(pending)}<br><button class="primary" onclick="closeModal();go('pending')">Manage Pending Payments</button>`;}
- modal(`<div class="sectionHead"><h2>${title}</h2><button onclick="closeModal()">×</button></div>${body}`);
-};
-
-window.salesTable = function(a, actions=true){
- if(!a.length)return '<div class="empty">No records yet.</div>';
- return `<div class="table"><table><thead><tr><th>Client</th><th>Item</th><th>Owner</th><th>Amount</th><th>Status</th><th>Date / Expiry</th>${actions?'<th></th>':''}</tr></thead><tbody>${a.map(s=>`<tr><td><b>${esc(s.client||'Walk-in')}</b><br><span class="muted">${esc(s.phone \vert{}\vert{} '')}</span>${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(s.product)}<div><b>${esc(s.product)}</b><br><span class="muted">${s.type}</span></div></div></td><td>${s.owner==='Manager'?'👤 Manager':'👑 Admin'}</td><td>${rs(s.amount)}${s.payment==='Partial'?`<br><span style="color:#b91c1c;font-size:10px">Rem: ${rs(Number(s.amount||0) - Number(s.partialPaid||0))}</span>`:''}</td><td><select class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid" ${s.payment==='Paid'?'selected':''}>Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td>${s.type==='Subscription'?`${s.expiry}<br><span class="badge ${status(s)}">${status(s)}</span>`:s.date}</td>${actions?`<td style="white-space:nowrap"><button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button> <button class="small" style="background:#fef3c7;color:#92400e" onclick="editSale(${s.id})" title="Edit Full Record">✏️</button> <button class="danger small" onclick="delSale(${s.id})" title="Delete">🗑️</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
-};
-
-window.salesPage = function(){
-  return `<div class="sectionHead"><div><h1>Sales</h1><span class="muted">Subscriptions & products</span></div><button class="primary" onclick="openSale()">＋ Add Sale</button></div><section>${salesTable(window.data.sales,true)}</section>`;
-};
-
-window.openSale = function(){
-  let uniqueClients = [...new Set(window.data.sales.map(s => s.client).filter(Boolean))];
-  let clientOptions = uniqueClients.map(c => `<option value="${esc(c)}">`).join('');
-
-  modal(`
-    <div class="sectionHead"><h2>Add Sale</h2><button onclick="closeModal()">×</button></div>
-    <form id="sf" class="grid">
-      <div id="catalogSelectionContainer" class="field full"></div>
-      <label class="field"><span>Sold By *</span><select id="so"><option>Admin</option><option>Manager</option></select></label>
-      <label class="field"><span>Product Name (Auto-filled) *</span><input id="customProduct" required placeholder="Select from catalog or type name"></label>
-      <label class="field"><span>Client Name *</span><input id="sc" list="clientList" required placeholder="Select or type customer name"><datalist id="clientList">${clientOptions}</datalist></label>
-      <label class="field"><span>Phone / WhatsApp</span><input id="sph" placeholder="03001234567"></label>
-      <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required placeholder="0"></label>
-      <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="0" placeholder="0"></label>
-      <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${today()}" required></label>
-      <label class="field"><span>Purchase Date</span><input id="spdate" type="date"></label>
-      <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date"></label>
-      <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date"></label>
-      
-      <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option>Paid</option><option>Pending</option><option>Partial</option></select></label>
-      <label class="field" id="partialDiv" style="display:none;background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="0"></label>
-      
-      <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="30" placeholder="e.g. 30"></label>
-      <label class="field full"><span>Notes</span><textarea id="sn" placeholder="Optional notes"></textarea></label>
-      <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Sale</button></div>
-    </form>
-  `);
-
-  renderCatalogChips();
-
-  document.getElementById('sc').addEventListener('input', function() { onClientNameChange(this); });
-  document.getElementById('sc').addEventListener('change', function() { onClientNameChange(this); });
-
-  document.getElementById('sf').onsubmit = e => {
-    e.preventDefault();
-    let name = document.getElementById('customProduct').value.trim();
-    if(!name){ alert('Please provide a product name.'); return; }
-    
-    let tenureVal = +document.getElementById('stm').value;
-    let saleDate = document.getElementById('sd').value;
-    let pMatch = window.data.products.find(x => x.name.toLowerCase() === name.toLowerCase());
-    
-    window.data.sales.unshift({
-      id: Date.now(),
-      owner: document.getElementById('so').value,
-      client: document.getElementById('sc').value,
-      phone: document.getElementById('sph').value,
-      product: name,
-      amount: +document.getElementById('sa').value,
-      purchase: +document.getElementById('spurchase').value,
-      date: saleDate,
-      purchaseDate: document.getElementById('spdate').value,
-      paymentDate: document.getElementById('spaymentdate').value,
-      expiry: document.getElementById('sexpiry').value || (tenureVal ? expiry(saleDate, tenureVal) : ''),
-      payment: document.getElementById('payment').value,
-      partialPaid: document.getElementById('payment').value === 'Partial' ? +document.getElementById('partialPaid').value : 0,
-      tenure: tenureVal,
-      notes: document.getElementById('sn').value,
-      type: pMatch?.type || 'Subscription'
-    });
-    save(); closeModal(); render();
-  };
-};
-
-window.renderCatalogChips = function() {
-  let container = document.getElementById('catalogSelectionContainer');
-  if (!container) return;
-
-  container.innerHTML = `
-    <span style="display:flex;align-items:center;gap:6px;">🔍 Quick-Select Product Catalog & Search</span>
-    <input id="catalogSearchInput" placeholder="Type to search apps, VPNs, AI..." style="margin:6px 0 10px 0;padding:10px;border-radius:10px;border:1px solid #d9d0c1;font-size:13px;outline:none;" />
-    <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;padding:4px 0"></div>
-  `;
-
-  document.getElementById('catalogSearchInput').addEventListener('keyup', () => {
-    let query = document.getElementById('catalogSearchInput').value.toLowerCase();
-    document.querySelectorAll('.prefetch-chip-container').forEach(item => {
-      let text = item.getAttribute('data-name').toLowerCase();
-      item.style.display = text.includes(query) ? 'flex' : 'none';
-    });
-  });
-
-  let grid = document.getElementById('catalogGrid');
-  window.data.products.forEach(p => {
-    let chip = document.createElement('div');
-    chip.className = 'prefetch-chip-container';
-    chip.setAttribute('data-name', p.name);
-    chip.style.cssText = "display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9d0c1;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.2s";
-    
-    let iconHtml = p.imageUrl ? `<img src="${p.imageUrl}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : (p.icon ? `<img src="${p.icon}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : getProductIcon(p.name));
-    
-    chip.innerHTML = `
-      ${iconHtml}
-      <div style="text-align:left">
-        <span style="font-weight:bold;font-size:12px;color:#0f172a">${esc(p.name)}</span><br>
-        <span class="muted" style="font-size:11px">${rs(p.price)}</span>
-      </div>
-    `;
-
-    chip.addEventListener('click', () => {
-      document.getElementById('customProduct').value = p.name;
-      document.getElementById('sa').value = p.price;
-      document.getElementById('stm').value = '30';
-      container.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #10b981;border-radius:10px;padding:10px 14px;">
-          <span style="font-size:14px;font-weight:bold;color:#166534">✅ Selected: ${esc(p.name)} — ${rs(p.price)}</span>
-          <button type="button" class="small" onclick="renderCatalogChips()" style="background:#dcfce7;color:#166534;font-weight:bold;">Change Product</button>
-        </div>
-      `;
-    });
-
-    grid.appendChild(chip);
-  });
-};
-
-window.onClientNameChange = function(inputEl) {
-  let val = inputEl.value.trim().toLowerCase();
-  let matchedSale = window.data.sales.find(s => s.client && s.client.toLowerCase() === val && s.phone);
-  if (matchedSale) {
-    let phoneInput = document.getElementById('sph');
-    if (phoneInput) phoneInput.value = matchedSale.phone;
-  }
-};
-
-window.productsPage = function(){
- const now=new Date();
- let totalQty=0; let totalProfit=0;
- 
- const rows = window.data.products.map(p=>{
-   let pSales = window.data.sales.filter(s => {
-     if(s.product !== p.name || s.payment === 'Pending') return false;
-     let d = dateObj(s.date);
-     if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
-     if(reportRange==='year') return d.getFullYear()===now.getFullYear();
-     return true;
-   });
-   let qty = pSales.length;
-   let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?Number(s.partialPaid||0):Number(s.amount||0)) - Number(s.purchase||0)), 0);
-   totalQty += qty;
-   totalProfit += profit;
-   return `<tr>
-     <td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<div><b>${esc(p.name)}</b><br><span class="muted">${p.type}</span></div></div></td>
-     <td>${rs(p.price)}</td>
-     <td><span style="background:#f4efe6;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${qty}x</span></td>
-     <td><b style="color:#166534">${rs(profit)}</b></td>
-     <td style="white-space:nowrap">
-       <button class="small" onclick="viewProduct('${p.id}')">👁️ View</button>
-       <button class="small" style="background:#fef3c7;color:#92400e;margin:0 4px;" onclick="editProduct('${p.id}')" title="Edit Product">✏️ Edit</button>
-       <button class="danger small" onclick="delProduct('${p.id}')" title="Delete">🗑️</button>
-     </td>
-   </tr>`;
- }).join('');
-
- return `<div class="sectionHead"><div><h1>Products & Analytics</h1><span class="muted">Track quantity sold and net profit</span></div><button class="primary" onclick="openProduct()">＋ Add Product</button></div>
- <div class="tabs" style="margin-bottom:14px">
-   <button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button>
-   <button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button>
-   <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
- </div>
- <div class="cards">
-   <div class="card card-blue"><small>TOTAL QTY SOLD</small><b>${totalQty}x</b></div>
-   <div class="card card-green"><small>TOTAL NET PROFIT</small><b>${rs(totalProfit)}</b></div>
- </div>
- <section>${window.data.products.length?`<div class="table"><table><thead><tr><th>Product Icon</th><th>Price</th><th>Qty Sold</th><th>Net Profit</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">Add your first product or subscription service.</div>'}</section>`;
-};
-
-window.clientsPage = function(){
- let map={};
- window.data.sales.forEach(s=>{
-   if(!s.client)return;
-   let k=s.client+'|'+(s.phone||'');
-   if(!map[k])map[k]={name:s.client,phone:s.phone,total:0,count:0};
-   map[k].total+=Number(s.amount||0);
-   map[k].count++;
- });
- let a=Object.values(map);
- return `<h1>Clients</h1><p class="muted">All customers and their purchases</p><section>${a.length?`<div class="table"><table><thead><tr><th>Client</th><th>Phone</th><th>Purchases</th><th>Total</th><th>Action</th></tr></thead><tbody>${a.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'—')} ${c.phone?`<a href="https://wa.me/${String(c.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${c.count}</td><td>${rs(c.total)}</td><td><button class="small" onclick="editClient(decodeURIComponent('${encodeURIComponent(c.name)}'), decodeURIComponent('${encodeURIComponent(c.phone||'')}'))" title="Edit Client">✏️ Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No clients yet.</div>'}</section>`;
-};
-
-window.pendingPage = function(){
- const pending=window.data.sales.filter(s=>s.payment==='Pending'||s.payment==='Partial');
- const total=pending.reduce((a,s)=>a+(Number(s.amount||0) - (s.payment==='Partial'?(Number(s.partialPaid||0)):0)),0);
- return `<div class="sectionHead"><div><h1>Pending Payments</h1><span class="muted">Track clients who still need to pay</span></div></div>
- <section><div class="cards"><div class="card card-orange"><small>⏳ PENDING CLIENTS</small><b>${pending.length}</b></div><div class="card card-blue"><small>💰 PENDING / UNPAID VALUE</small><b>${rs(total)}</b></div></div>
- ${pending.length?`<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Total Bill</th><th>Remaining</th><th>Status</th><th>Action</th></tr></thead><tbody>${pending.map(s=>`<tr><td><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'')}</span> ${s.phone?`<a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none" title="Chat on WhatsApp">${waSVG}</a>`:''}</td><td>${esc(s.product)}</td><td>${rs(s.amount)}</td><td><b style="color:#b91c1c">${rs(Number(s.amount||0) - (s.payment==='Partial'?(Number(s.partialPaid||0)):0))}</b></td><td><select class="badge ${s.payment==='Partial'?'Expiring':'Expired'}" onchange="quickPayment(${s.id}, this.value)" style="border:none;cursor:pointer;outline:none"><option value="Paid">Paid</option><option value="Pending" ${s.payment==='Pending'?'selected':''}>Pending</option><option value="Partial" ${s.payment==='Partial'?'selected':''}>Partial</option></select></td><td style="white-space:nowrap"><button class="primary small" onclick="markPaid(${s.id})">Mark Paid</button> <button class="small" onclick="viewClient(${s.id})" title="View Details">👁️</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">🎉 No pending payments.</div>'}</section>`;
-};
-
-window.expensesPage = function(){
- return `<div class="sectionHead"><div><h1>Expenses</h1><span class="muted">Business expenses and outgoing payments</span></div><button class="primary" onclick="openExpense()">＋ Add Expense</button></div>
- <section><div class="cards"><div class="card card-orange"><small>TOTAL EXPENSES</small><b>${rs(expenses(window.data.expenses))}</b></div></div>
- ${window.data.expenses.length?`<div class="table"><table><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody>${window.data.expenses.map(e=>`<tr><td>${e.date}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.category)}</td><td>${rs(e.amount)}</td><td><button class="danger small" onclick="delExpense(${e.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No expenses recorded yet.</div>'}</section>`;
-};
-
-window.profitPage = function(){
-  const now = new Date();
-  const filteredSales = window.data.sales.filter(s => {
-    if(s.payment === 'Pending') return false; 
-    let d = dateObj(s.date);
-    if(reportRange === 'custom') {
-      if(!customStartDate || !customEndDate) return true;
-      return s.date >= customStartDate && s.date <= customEndDate;
-    }
-    if(reportRange === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    if(reportRange === 'year') return d.getFullYear() === now.getFullYear();
-    return true;
-  });
-
-  const periodExpenses = window.data.expenses.filter(e => {
-    let d = dateObj(e.date);
-    if(reportRange === 'custom') {
-      if(!customStartDate || !customEndDate) return true;
-      return e.date >= customStartDate && e.date <= customEndDate;
-    }
-    if(reportRange === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    if(reportRange === 'year') return d.getFullYear() === now.getFullYear();
-    return true;
-  });
-  
-  const totalRev = filteredSales.reduce((sum, s) => sum + (s.payment === 'Partial' ? Number(s.partialPaid||0) : Number(s.amount || 0)), 0);
-  const totalCost = filteredSales.reduce((sum, s) => sum + Number(s.purchase || 0), 0);
-  const totalExp = periodExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-  const netProfit = totalRev - totalCost - totalExp;
-  
-  const productRows = window.data.products.map(p => {
-    const pSales = filteredSales.filter(s => s.product === p.name);
-    const pQty = pSales.length;
-    const pRev = pSales.reduce((sum, s) => sum + (s.payment === 'Partial' ? Number(s.partialPaid||0) : Number(s.amount || 0)), 0);
-    const pCost = pSales.reduce((sum, s) => sum + Number(s.purchase || 0), 0);
-    const pProfit = pRev - pCost;
-    return `<tr><td><div style="display:flex;align-items:center;gap:8px;">${getProductIcon(p.name)}<b>${esc(p.name)}</b></div></td><td><span style="background:#f4efe6;padding:4px 8px;border-radius:12px;font-weight:bold;font-size:11px">${pQty}x</span></td><td>${rs(pRev)}</td><td>${rs(pCost)}</td><td><b style="color:#166534">${rs(pProfit)}</b></td></tr>`;
-  }).join('');
-
-  return `
-    <div class="sectionHead"><div><h1>Profit Analytics</h1><span class="muted">Ultimate breakdown of revenue, costs, and profit</span></div></div>
-    <div class="tabs" style="margin-bottom:14px;align-items:center;">
-      <button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button>
-      <button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button>
-      <button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button>
-      <button class="tab ${reportRange==='custom'?'on':''}" onclick="reportRange='custom';render()">📅 Custom Range</button>
-    </div>
-    ${reportRange==='custom'?`
-      <section style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:14px 20px;margin-bottom:16px;">
-        <label class="field" style="flex:1;min-width:140px;"><span>Start Date</span><input type="date" id="cStart" value="${customStartDate}" onchange="customStartDate=this.value;render()"></label>
-        <label class="field" style="flex:1;min-width:140px;"><span>End Date</span><input type="date" id="cEnd" value="${customEndDate}" onchange="customEndDate=this.value;render()"></label>
-      </section>
-    `:''}
-    <div class="cards">
-      <div class="card card-blue"><small>TOTAL REVENUE</small><b>${rs(totalRev)}</b></div>
-      <div class="card card-orange"><small>TOTAL PRODUCT COST</small><b>${rs(totalCost)}</b></div>
-      <div class="card card-purple"><small>TOTAL EXPENSES</small><b>${rs(totalExp)}</b></div>
-      <div class="card card-green"><small>ULTIMATE NET PROFIT</small><b style="color:#166534">${rs(netProfit)}</b></div>
-    </div>
-    <section><h2>Detailed Product Profits</h2>
-    <div class="table"><table><thead><tr><th>Product Icon</th><th>Qty Sold</th><th>Revenue</th><th>Purchase Cost</th><th>Net Profit</th></tr></thead><tbody>${productRows||'<tr><td colspan="5" class="empty">No products found.</td></tr>'}</tbody></table></div></section>
-  `;
-};
-
-window.reports = function(){
- const now=new Date(), filtered=window.data.sales.filter(s=>{let d=dateObj(s.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
- const r=income(filtered.filter(s=>s.owner==='Manager')),t=income(filtered.filter(s=>s.owner==='Admin'));
- const periodExpenses=window.data.expenses.filter(e=>{let d=dateObj(e.date);if(reportRange==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(reportRange==='year')return d.getFullYear()===now.getFullYear();return true});
- const pc=purchase(filtered.filter(s=>s.payment==='Paid'||s.payment==='Partial')), ex=expenses(periodExpenses), net=income(filtered)-pc-ex;
- let months=Array.from({length:12},(_,i)=>({m:new Date(now.getFullYear(),i,1).toLocaleString('en',{month:'short'}),v:income(window.data.sales.filter(s=>{let d=dateObj(s.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===i}))}));
- return `<h1>Sales Reports</h1><div class="tabs"><button class="tab ${reportRange==='month'?'on':''}" onclick="reportRange='month';render()">This Month</button><button class="tab ${reportRange==='year'?'on':''}" onclick="reportRange='year';render()">This Year</button><button class="tab ${reportRange==='all'?'on':''}" onclick="reportRange='all';render()">All Time</button></div>
- <div class="cards">
-   <div class="card card-blue"><small>PERIOD TOTAL</small><b>${rs(income(filtered))}</b></div>
-   <div class="card card-blue"><small>MANAGER</small><b>${rs(r)}</b></div>
-   <div class="card card-green"><small>ADMIN</small><b>${rs(t)}</b></div>
-   <div class="card card-orange"><small>PURCHASE COST</small><b>${rs(pc)}</b></div>
-   <div class="card card-purple"><small>EXPENSES</small><b>${rs(ex)}</b></div>
-   <div class="card card-green"><small>NET PROFIT</small><b>${rs(net)}</b></div>
-   <div class="card card-blue"><small>TRANSACTIONS</small><b>${filtered.length}</b></div>
- </div>
- ${reportRange==='year'?`<section><h2>Monthly Sales — ${now.getFullYear()}</h2><div class="table"><table><thead><tr><th>Month</th><th>Paid Sales</th><th>Action</th></tr></thead><tbody>${months.map((x,i)=>`<tr style="cursor:pointer" onclick="showMonthDetails(${i})"><td><b>${x.m}</b></td><td>${rs(x.v)}</td><td><button class="small">👁️ View</button></td></tr>`).join('')}</tbody></table></div></section>`:''}
- <section><h2>Data Backup</h2><p class="muted">Export your complete data before changing phones.</p><button class="primary" onclick="backup()">⬇ Export Backup</button> <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button><input id="importFile" type="file" accept=".json" hidden onchange="restore(this.files[0])"></section>`;
-};
-
-window.settingsPage = function(){
- return `<h1>Settings & Security</h1><p class="muted">Manage your security credentials and sign out</p>
- <section>
-   <h2>Account Credentials — ${window.currentAccount==='admin'?'Admin':'Co-Admin'}</h2>
-   <form onsubmit="saveCredentials(event)" class="grid" style="margin-top:12px;max-width:500px">
-     <label class="field full"><span>Username</span><input id="settingsUser" value="${esc(window.data.settings.username || 'admin')}" required></label>
-     <label class="field full"><span>Current Password</span><input id="settingsCurr" type="password" required></label>
-     <label class="field full"><span>New Password</span><input id="settingsNew" type="password" placeholder="Leave blank to keep current"></label>
-     <div class="full actions"><button class="primary" type="submit">Save Changes</button></div>
-   </form>
- </section>
- <section>
-   <h2>Biometric Login</h2>
-   <p class="muted">Enable device fingerprint or Face ID for fast one-tap sign-in.</p>
-   <button class="primary" style="background:#10b981;margin-top:10px" onclick="setupBiometrics()">👆 Enable Fingerprint Login</button>
- </section>
- <section>
-   <h2>Session Control</h2>
-   <p class="muted">Securely log out of your session on this device.</p>
-   <button class="danger" style="margin-top:10px" onclick="signOutApp()">🚪 Sign Out</button>
- </section>`;
-};
-
-window.render = function() {
-  const el = document.getElementById('app');
-  if(!el) return;
-  el.innerHTML = page==='dashboard'?dashboard():page==='sales'?salesPage():page==='products'?productsPage():page==='clients'?clientsPage():page==='pending'?pendingPage():page==='expenses'?expensesPage():page==='profit'?profitPage():page==='settings'?settingsPage():reports();
-};
-
-window.markPaid = function(id){
- let sale=window.data.sales.find(s=>s.id===id);
- if(sale){
-   sale.payment='Paid';
-   sale.partialPaid=0;
-   sale.paymentDate=prompt('Payment date (YYYY-MM-DD):', sale.paymentDate||today())||today();
-   save();render();
- }
-};
-
-window.quickPayment = function(id, value){
-  let sale=window.data.sales.find(s=>s.id===id);
-  if(sale){
-    if(value === 'Partial') {
-      let p = prompt(`Enter amount paid so far (Total Bill: Rs. ${sale.amount}):`, sale.partialPaid || 0);
-      if(p !== null && !isNaN(p)) {
-        sale.partialPaid = Number(p);
-      } else {
-        render(); return; 
-      }
-    }
-    sale.payment=value;
-    if(value==='Paid'&&!sale.paymentDate)sale.paymentDate=today();
-    if(value!=='Partial') sale.partialPaid = 0;
-    save();render();
-  }
-};
-
-window.viewClient = function(id){
-  let s = window.data.sales.find(x => x.id === id);
-  if(!s) return;
-  modal(`
-    <div class="sectionHead">
-      <h2>Client & Receipt Details</h2>
-      <div>
-        <button class="primary small" id="downloadReceiptBtn" style="margin-right:8px;background:#10b981;" onclick="captureReceiptCard()">📥 Save Receipt</button>
-        <button class="small" style="background:#fef3c7;color:#92400e;margin-right:8px" onclick="editSale(${id})">✏️ Edit</button>
-        <button onclick="closeModal()">×</button>
-      </div>
-    </div>
-    <div id="receiptCardContent" style="background:#fff;padding:16px;border-radius:12px;">
-      <div class="grid">
-        <div class="card full"><b>${esc(s.client)}</b><br><span class="muted">${esc(s.phone||'No Phone')}</span> ${s.phone?`<br><br><a href="https://wa.me/${String(s.phone).replace(/[^0-9]/g, '')}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:inline-flex;align-items:center;font-weight:bold;">${waBtnSVG} Message on WhatsApp</a>`:''}</div>
-        <div class="card"><small>Product / Service</small><b>${esc(s.product)}</b><span class="muted">${s.type}</span></div>
-        <div class="card"><small>Total Amount</small><b>${rs(s.amount)}</b></div>
-        <div class="card"><small>Payment Status</small><b>${s.payment}</b>${s.payment==='Partial'?`<span class="muted" style="display:block;margin-top:4px">Paid: ${rs(s.partialPaid)}<br>Remaining: <b style="color:#b91c1c">${rs(Number(s.amount||0)-Number(s.partialPaid||0))}</b></span>`:''}</div>
-        <div class="card"><small>Subscription Status</small><b>${status(s)}</b></div>
-        <div class="card"><small>Sale Date</small><b>${s.date}</b></div>
-        <div class="card"><small>Expiry Date</small><b>${s.expiry||'N/A'}</b></div>
-        <div class="card full"><small>Notes</small><b>${esc(s.notes||'None')}</b></div>
-      </div>
-    </div>
-  `);
-};
-
-window.editSale = function(id){
-  let s = window.data.sales.find(x => x.id === id);
-  if(!s) return;
-  let opts=window.data.products.map(p=>`<option value="${p.id}" ${s.product===p.name?'selected':''}>${esc(p.name)} — ${p.type}</option>`).join('');
-  
-  modal(`<div class="sectionHead"><h2>Edit Full Record</h2><button onclick="closeModal()">×</button></div><form id="sf" class="grid">
-  <label class="field"><span>Sold By *</span><select id="so"><option ${s.owner==='Admin'?'selected':''}>Admin</option><option ${s.owner==='Manager'?'selected':''}>Manager</option></select></label>
-  <label class="field"><span>Product / Service *</span><select id="sp"><option value="">Not in list / Custom</option>${opts}</select></label>
-  <label class="field full"><span>Or Product Name (Custom)</span><input id="customProduct" value="${esc(s.product)}" placeholder="Use if product is not in list"></label>
-  <label class="field"><span>Client Name *</span><input id="sc" required value="${esc(s.client)}"></label>
-  <label class="field"><span>Phone / WhatsApp</span><input id="sph" value="${esc(s.phone||'')}"></label>
-  <label class="field"><span>Sale Amount *</span><input id="sa" type="number" required value="${s.amount}"></label>
-  <label class="field"><span>Purchase Amount / Cost</span><input id="spurchase" type="number" value="${s.purchase||0}" placeholder="What you paid"></label>
-  <label class="field"><span>Sale Date</span><input id="sd" type="date" value="${s.date}" required></label>
-  <label class="field"><span>Purchase Date</span><input id="spdate" type="date" value="${s.purchaseDate||''}"></label>
-  <label class="field"><span>Payment Date</span><input id="spaymentdate" type="date" value="${s.paymentDate||''}"></label>
-  <label class="field"><span>Expiry Date (manual)</span><input id="sexpiry" type="date" value="${s.expiry||''}"></label>
-  
-  <label class="field"><span>Payment</span><select id="payment" onchange="document.getElementById('partialDiv').style.display=this.value==='Partial'?'flex':'none'"><option ${s.payment==='Paid'?'selected':''}>Paid</option><option ${s.payment==='Pending'?'selected':''}>Pending</option><option ${s.payment==='Partial'?'selected':''}>Partial</option></select></label>
-  <label class="field" id="partialDiv" style="display:${s.payment==='Partial'?'flex':'none'};background:#fef3c7;padding:10px;border-radius:8px"><span>Amount Paid (Partial)</span><input id="partialPaid" type="number" value="${s.partialPaid||0}"></label>
-  
-  <label class="field"><span>Tenure in Days</span><input id="stm" type="number" min="0" value="${s.tenure||0}" placeholder="e.g. 7, 25, 27, 30"></label>
-  <label class="field full"><span>Notes</span><textarea id="sn">${esc(s.notes||'')}</textarea></label>
-  <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary" style="background:#fef3c7;color:#92400e">Save Updates</button></div></form>`);
-  
-  document.getElementById('sp').onchange = () => {
-    let p = window.data.products.find(x => x.id == document.getElementById('sp').value);
-    if(p){
-      document.getElementById('customProduct').value = p.name; 
-      document.getElementById('sa').value = p.price;
-      document.getElementById('stm').value = '30';
-    }
-  };
-  
-  document.getElementById('sf').onsubmit = e => {
-    e.preventDefault();
-    let name = document.getElementById('customProduct').value.trim();
-    if(!name && document.getElementById('sp').value){
-      let p = window.data.products.find(x => x.id == document.getElementById('sp').value);
-      if(p) name = p.name;
-    }
-    if(!name){ alert('Add product name'); return; }
-    
-    s.owner = document.getElementById('so').value; 
-    s.client = document.getElementById('sc').value; 
-    s.phone = document.getElementById('sph').value; 
-    s.product = name;
-    s.amount = +document.getElementById('sa').value; 
-    s.purchase = +document.getElementById('spurchase').value; 
-    s.payment = document.getElementById('payment').value;
-    s.partialPaid = s.payment === 'Partial' ? +document.getElementById('partialPaid').value : 0;
-    s.date = document.getElementById('sd').value; 
-    s.purchaseDate = document.getElementById('spdate').value; 
-    s.paymentDate = document.getElementById('spaymentdate').value;
-    s.tenure = +document.getElementById('stm').value; 
-    s.expiry = document.getElementById('sexpiry').value; 
-    s.notes = document.getElementById('sn').value;
-    
-    let pMatch = window.data.products.find(x => x.name === name);
-    s.type = pMatch?.type || 'Subscription';
-    if(s.tenure && !s.expiry) s.expiry = expiry(s.date, s.tenure);
-    
-    save(); closeModal(); render();
-  };
-};
-
-window.delSale = function(id){
-  if(confirm('Are you sure you want to delete this sale?')) {
-    window.data.sales = window.data.sales.filter(s => s.id !== id);
-    save(); render();
-  }
-};
-
-window.delProduct = function(id){
-  if(confirm('Are you sure you want to delete this product?')) {
-    window.data.products = window.data.products.filter(p => p.id !== id);
-    save(); render();
-  }
-};
-
-window.delExpense = function(id){
-  if(confirm('Delete this expense?')) {
-    window.data.expenses = window.data.expenses.filter(e => e.id !== id);
-    save(); render();
-  }
-};
-
-window.openProduct = function() {
-  modal(`
-    <div class="sectionHead"><h2>Add Product / Service</h2><button onclick="closeModal()">×</button></div>
-    <form id="pf" class="grid">
-      <label class="field full"><span>Product / Service Name *</span><input id="pn" required placeholder="e.g. Netflix Global, Prime Video"></label>
-      <label class="field"><span>Price (Rs) *</span><input id="pp" type="number" required placeholder="1000"></label>
-      <label class="field"><span>Type</span><select id="pt"><option>OTT</option><option>VPN</option><option>AI</option><option>Subscription</option><option>Product</option></select></label>
-      <label class="field full"><span>Product Icon / Image (Upload from Gallery)</span><input id="pfile" type="file" accept="image/*" /></label>
-      <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Product</button></div>
-    </form>
-  `);
-  
-  document.getElementById('pf').onsubmit = e => {
-    e.preventDefault();
-    const fileInput = document.getElementById('pfile');
-    const saveNewProduct = (imgData = '') => {
-      window.data.products.push({
-        id: Date.now(),
-        name: document.getElementById('pn').value.trim(),
-        price: +document.getElementById('pp').value,
-        type: document.getElementById('pt').value,
-        imageUrl: imgData
-      });
-      save(); closeModal(); render();
-    };
-
-    if (fileInput.files && fileInput.files[0]) {
-      const reader = new FileReader();
-      reader.onload = uploadEvent => saveNewProduct(uploadEvent.target.result);
-      reader.readAsDataURL(fileInput.files[0]);
-    } else {
-      saveNewProduct('');
-    }
-  };
-};
-
-window.editProduct = function(id) {
-  let p = window.data.products.find(x => String(x.id) === String(id));
-  if(!p) return;
-  
-  modal(`
-    <div class="sectionHead"><h2>Edit Product / Service</h2><button onclick="closeModal()">×</button></div>
-    <form id="editPf" class="grid">
-      <label class="field full"><span>Product / Service Name *</span><input id="epn" required value="${esc(p.name)}"></label>
-      <label class="field"><span>Price (Rs) *</span><input id="epp" type="number" required value="${p.price}"></label>
-      <label class="field"><span>Type</span><select id="ept"><option ${p.type==='OTT'?'selected':''}>OTT</option><option ${p.type==='VPN'?'selected':''}>VPN</option><option ${p.type==='AI'?'selected':''}>AI</option><option ${p.type==='Subscription'?'selected':''}>Subscription</option><option ${p.type==='Product'?'selected':''}>Product</option></select></label>
-      <label class="field full"><span>Change Product Icon (Upload from Gallery)</span><input id="epfile" type="file" accept="image/*" /></label>
-      <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Updates</button></div>
-    </form>
-  `);
-  
-  document.getElementById('editPf').onsubmit = e => {
-    e.preventDefault();
-    p.name = document.getElementById('epn').value.trim();
-    p.price = +document.getElementById('epp').value;
-    p.type = document.getElementById('ept').value;
-    const fileInput = document.getElementById('epfile');
-    if (fileInput.files && fileInput.files[0]) {
-      const reader = new FileReader();
-      reader.onload = uploadEvent => {
-        p.imageUrl = uploadEvent.target.result;
-        p.icon = uploadEvent.target.result;
-        save(); closeModal(); render();
-      };
-      reader.readAsDataURL(fileInput.files[0]);
-    } else {
-      save(); closeModal(); render();
-    }
-  };
-};
-
-window.viewProduct = function(id){
-  let p = window.data.products.find(x => String(x.id) === String(id));
-  if(!p) return;
-  const now = new Date();
-  let pSales = window.data.sales.filter(s => {
-     if(s.product !== p.name || s.payment === 'Pending') return false;
-     let d = dateObj(s.date);
-     if(reportRange==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
-     if(reportRange==='year') return d.getFullYear()===now.getFullYear();
-     return true;
-  });
-  
-  let qty = pSales.length;
-  let revenue = pSales.reduce((sum, s) => sum + (s.payment==='Partial'?Number(s.partialPaid||0):Number(s.amount||0)), 0);
-  let profit = pSales.reduce((sum, s) => sum + ((s.payment==='Partial'?Number(s.partialPaid||0):Number(s.amount||0)) - Number(s.purchase||0)), 0);
-
-  modal(`<div class="sectionHead"><h2>${esc(p.name)} Analytics</h2><button onclick="closeModal()">×</button></div>
-  <div class="cards">
-    <div class="card card-blue"><small>QUANTITY SOLD</small><b>${qty}x</b></div>
-    <div class="card card-green"><small>TOTAL REVENUE</small><b>${rs(revenue)}</b></div>
-    <div class="card card-purple"><small>NET PROFIT</small><b>${rs(profit)}</b></div>
-  </div>
-  <br>
-  <div class="table"><table><thead><tr><th>Date</th><th>Client</th><th>Revenue</th><th>Profit</th></tr></thead><tbody>
-  ${pSales.length ? pSales.map(s=>{
-    let rev = s.payment==='Partial' ? Number(s.partialPaid||0) : Number(s.amount||0);
-    let prof = rev - Number(s.purchase||0);
-    return `<tr><td>${s.date}</td><td><b>${esc(s.client)}</b></td><td>${rs(rev)}</td><td><b style="color:#166534">${rs(prof)}</b></td></tr>`;
-  }).join('') : `<tr><td colspan="4" class="empty">No paid sales found for this period.</td></tr>`}
-  </tbody></table></div>`);
-};
-
-window.editClient = function(oldName, oldPhone){
-  modal(`<div class="sectionHead"><h2>Edit Client Info</h2><button onclick="closeModal()">×</button></div>
-  <form id="editClientForm" class="grid">
-    <p class="full muted" style="margin-top:0;">Updates the name and phone number for <b>all</b> records belonging to this client.</p>
-    <label class="field full"><span>Client Name *</span><input id="editCName" required value="${esc(oldName)}"></label>
-    <label class="field full"><span>Phone / WhatsApp</span><input id="editCPhone" value="${esc(oldPhone)}"></label>
-    <div class="full actions">
-      <button type="button" onclick="closeModal()">Cancel</button>
-      <button class="primary" type="submit">Save Changes</button>
-    </div>
-  </form>`);
-
-  document.getElementById('editClientForm').onsubmit = e => {
-    e.preventDefault();
-    const newName = document.getElementById('editCName').value.trim();
-    const newPhone = document.getElementById('editCPhone').value.trim();
-    if(!newName) return;
-
-    window.data.sales.forEach(s => {
-      if(s.client === oldName && (s.phone || '') === oldPhone) {
-        s.client = newName;
-        s.phone = newPhone;
-      }
-    });
-
-    save(); closeModal(); render();
-  };
-};
-
-window.openExpense = function(){
- modal(`<div class="sectionHead"><h2>Add Expense</h2><button onclick="closeModal()">×</button></div><form id="ef" class="grid">
- <label class="field"><span>Expense Name *</span><input id="en" required placeholder="Internet Bill"></label>
- <label class="field"><span>Category</span><select id="ec"><option>Business</option><option>Internet</option><option>Marketing</option><option>Software</option><option>Other</option></select></label>
- <label class="field"><span>Amount *</span><input id="ea" type="number" required></label>
- <label class="field"><span>Date</span><input id="ed" type="date" value="${today()}" required></label>
- <label class="field full"><span>Notes</span><textarea id="enote"></textarea></label>
- <div class="full actions"><button type="button" onclick="closeModal()">Cancel</button><button class="primary">Save Expense</button></div></form>`);
- ef.onsubmit=e=>{
-   e.preventDefault();
-   window.data.expenses.unshift({id:Date.now(),name:en.value,category:ec.value,amount:+ea.value,date:ed.value,notes:enote.value});
-   save();closeModal();render();
- };
-};
-
-window.showMonthDetails = function(mIndex){
-  const year = new Date().getFullYear();
-  const monthSales = window.data.sales.filter(s => {
-    let d = dateObj(s.date);
-    return d.getFullYear() === year && d.getMonth() === mIndex;
-  });
-  const monthName = new Date(year, mIndex, 1).toLocaleString('en', {month: 'long'});
-  const monthIncome = income(monthSales);
-  const monthCost = purchase(monthSales.filter(s=>s.payment==='Paid'||s.payment==='Partial'));
-  const monthProfit = monthIncome - monthCost;
-  
-  let body = '';
-  if(monthSales.length){
-    body = `<div class="table"><table><thead><tr><th>Client</th><th>Product</th><th>Amount Paid</th><th>Cost</th><th>Profit</th><th>Status</th></tr></thead><tbody>${monthSales.map(s=>{
-      let paidAmt = s.payment==='Paid' ? Number(s.amount||0) : (s.payment==='Partial' ? Number(s.partialPaid||0) : 0);
-      let costAmt = (s.payment!=='Pending') ? Number(s.purchase||0) : 0;
-      let profit = paidAmt - costAmt;
-      return `<tr><td><b>${esc(s.client)}</b></td><td>${esc(s.product)}</td><td>${rs(paidAmt)}</td><td>${rs(costAmt)}</td><td><b style="color:#166534">${rs(profit)}</b></td><td><span class="badge ${s.payment==='Paid'?'Active':s.payment==='Pending'?'Expired':'Expiring'}">${s.payment}</span></td></tr>`;
-    }).join('')}</tbody></table></div>`;
-  } else {
-    body = `<div class="empty">No sales records found for ${monthName} ${year}.</div>`;
-  }
-  
-  modal(`<div class="sectionHead"><h2>${monthName} ${year} Analytics</h2><button onclick="closeModal()">×</button></div>
-  <div class="cards">
-    <div class="card card-blue"><small>TRANSACTIONS</small><b>${monthSales.length}</b></div>
-    <div class="card card-green"><small>PAID INCOME</small><b>${rs(monthIncome)}</b></div>
-    <div class="card card-purple"><small>NET PROFIT</small><b>${rs(monthProfit)}</b></div>
-  </div><br>${body}`);
-};
-
-window.captureReceiptCard = function() {
-  const cardElement = document.getElementById('receiptCardContent');
-  if(!cardElement) return;
-
-  const takeSnapshot = (el) => {
-    html2canvas(el, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = `receipt_${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }).catch(err => { console.error(err); alert('Failed to save receipt image.'); });
-  };
-
-  if (typeof html2canvas === 'undefined') {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-    script.onload = () => takeSnapshot(cardElement);
-    document.head.appendChild(script);
-  } else {
-    takeSnapshot(cardElement);
-  }
-};
-
-window.backup = function(){
-  const blob = new Blob([JSON.stringify(window.data, null, 2)], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `dr_streaming_backup_${today()}.json`;
-  a.click();
-};
-
-window.restore = function(file){
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+// ==========================================
+// 1. SUPABASE CONFIGURATION (streamingz DB)
+// ==========================================
+const DEFAULT_SUPABASE_URL = "https://xwpcuxpxgqjytmeugbnt.supabase.co";
+// Note: If you have your anon key stored or want to paste it directly here, put it below or in Settings!
+const DEFAULT_SUPABASE_KEY = localStorage.getItem('sb_anon_key') || "";
+
+function getSupabaseCredentials() {
+  let url = localStorage.getItem('sb_url') || DEFAULT_SUPABASE_URL;
+  let key = localStorage.getItem('sb_anon_key') || DEFAULT_SUPABASE_KEY;
+
+  // Auto-detect from existing streamingz workspace localStorage if available on same browser
+  if (!key) {
     try {
-      const parsed = JSON.parse(e.target.result);
-      if(parsed.sales && parsed.products) {
-        window.data = parsed;
-        save(); render();
-        alert('Data restored successfully!');
-      } else { alert('Invalid backup file format.'); }
-    } catch(err) { alert('Failed to parse backup JSON.'); }
-  };
-  reader.readAsText(file);
-};
-
-window.signOutApp = function() {
-  sessionStorage.removeItem('auth');
-  sessionStorage.removeItem('account');
-  window.location.reload();
-};
-
-window.switchAccount = function(){
-  sessionStorage.removeItem('auth');
-  sessionStorage.removeItem('account');
-  window.currentAccount='admin';
-  document.getElementById('loginScreen').style.display='flex';
-  document.getElementById('loginAccount').value='admin';
-  updateLoginAccount();
-};
-
-window.saveCredentials = function(e) {
-  e.preventDefault();
-  let u = document.getElementById('settingsUser').value.trim();
-  let c = document.getElementById('settingsCurr').value;
-  let n = document.getElementById('settingsNew').value;
-  if(c !== window.data.settings.password) { alert('Current password incorrect!'); return; }
-  window.data.settings.username = u;
-  if(n) window.data.settings.password = n;
-  save();
-  alert('Credentials updated successfully!');
-  render();
-};
-
-window.toggleMenu = function(e) { e.stopPropagation(); document.getElementById('menuDropdown').classList.toggle('show'); };
-window.closeMenu = function() { document.getElementById('menuDropdown').classList.remove('show'); };
-window.onclick = function(e) { if (!e.target.matches('.menu-btn')) closeMenu(); };
-
-function getBuffer(len) { const b = new Uint8Array(len); window.crypto.getRandomValues(b); return b; }
-window.setupBiometrics = async function() {
-  if (!window.PublicKeyCredential) { alert("Biometrics not supported on this browser."); return; }
-  try {
-    const cred = await navigator.credentials.create({
-      publicKey: {
-        challenge: getBuffer(32),
-        rp: { name: "DR Streaming", id: window.location.hostname || "localhost" },
-        user: { id: getBuffer(16), name: "admin", displayName: "Admin" },
-        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-        timeout: 60000,
-        attestation: "none"
-      }
-    });
-    const credId = Array.from(new Uint8Array(cred.rawId));
-    localStorage.setItem('bioCredId_' + window.currentAccount, JSON.stringify(credId));
-    alert("Fingerprint / Face ID setup successful!");
-    document.getElementById('bioLoginBtn').style.display = 'block';
-  } catch(e) { alert("Biometric setup canceled or failed."); }
-};
-
-window.loginWithBiometrics = async function() {
-  const selectedAccount = document.getElementById('loginAccount')?.value || window.currentAccount;
-  const storedId = JSON.parse(localStorage.getItem('bioCredId_' + selectedAccount) || 'null');
-  if(!storedId) return alert("Biometrics not set up yet. Log in with password first.");
-  try {
-    const assertion = await navigator.credentials.get({
-      publicKey: {
-        challenge: getBuffer(32),
-        rpId: window.location.hostname || "localhost",
-        allowCredentials: [{ type: "public-key", id: new Uint8Array(storedId) }],
-        userVerification: "required",
-        timeout: 60000
-      }
-    });
-    if(assertion) {
-      sessionStorage.setItem('auth', 'true');
-      sessionStorage.setItem('account', selectedAccount);
-      setAccountState(selectedAccount);
-      document.getElementById('loginScreen').style.display = 'none';
-      render();
-      if(window.initCloudSync) window.initCloudSync();
-    }
-  } catch(e) { alert("Biometric verification failed."); }
-};
-
-window.addEventListener('DOMContentLoaded', () => {
-  const account = sessionStorage.getItem('account') || 'admin';
-  document.getElementById('loginAccount').value = account;
-  updateLoginAccount();
-  if(sessionStorage.getItem('auth') === 'true') {
-    document.getElementById('loginScreen').style.display = 'none';
-    setAccountState(account);
+      const existingWs = JSON.parse(localStorage.getItem('dr_streaming_workspace_Admin') || '{}');
+      if (existingWs.supabaseConfig?.url) url = existingWs.supabaseConfig.url;
+      if (existingWs.supabaseConfig?.anonKey) key = existingWs.supabaseConfig.anonKey;
+    } catch (e) {}
   }
-  render();
-});
-
-let deferredInstallPrompt;
-window.addEventListener('beforeinstallprompt',(e)=>{
-  e.preventDefault(); deferredInstallPrompt=e;
-  const btn = document.getElementById('installBtn');
-  if(btn) btn.style.display='inline-block';
-});
-window.installApp=async function(){
-  if(!deferredInstallPrompt){alert('Open this app in Chrome to install.');return;}
-  deferredInstallPrompt.prompt();
-  await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt=null;
-  document.getElementById('installBtn').style.display='none';
-};
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  return { url: url.trim(), key: key.trim() };
 }
-</script>
 
-<script type="module">
-  async function setupCloud() {
-    try {
-      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js");
-      const { getFirestore, doc, setDoc, getDoc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js");
+let supabaseClient = null;
+let realtimeChannel = null;
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyDn4YmA9CwI_3m9uVQYYpN6riwjVgil1d8",
-        authDomain: "dr-streaming-74df8.firebaseapp.com",
-        projectId: "dr-streaming-74df8",
-        storageBucket: "dr-streaming-74df8.firebasestorage.app",
-        messagingSenderId: "664753724681",
-        appId: "1:664753724681:web:7b29c19329ce2cda1f87d8",
-        measurementId: "G-EQ45V6R4Z9"
-      };
-
-      const firebaseApp = initializeApp(firebaseConfig);
-      const firestore = getFirestore(firebaseApp);
-      const ACCOUNT_DOCS = { admin:'admin', coadmin:'coadmin' };
-      let unsubscribe = null;
-
-      window.cloudSave = async function() {
-        try {
-          const ref = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[window.currentAccount]);
-          await setDoc(ref, { data: window.data, updatedAt: new Date().toISOString(), account: window.currentAccount }, { merge: true });
-          const syncEl = document.getElementById('syncStatus');
-          if(syncEl) syncEl.textContent = 'BUSINESS MANAGER • ' + window.currentAccount.toUpperCase() + ' SYNCED ✓';
-        } catch(err) {
-          console.warn("Cloud save failed, local copy intact:", err);
-        }
-      };
-
-      window.initCloudSync = function() {
-        if(unsubscribe) { unsubscribe(); unsubscribe = null; }
-        const ref = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[window.currentAccount]);
-        unsubscribe = onSnapshot(ref, snap => {
-          if(snap.exists() && snap.data()?.data) {
-            window.data = snap.data().data;
-            localStorage.setItem(window.DB, JSON.stringify(window.data));
-            const syncEl = document.getElementById('syncStatus');
-            if(syncEl) syncEl.textContent = 'BUSINESS MANAGER • ' + window.currentAccount.toUpperCase() + ' SYNCED ✓';
-            render();
-          }
-        }, err => {
-          console.warn("Firestore snapshot error, running in local mode:", err);
-          const syncEl = document.getElementById('syncStatus');
-          if(syncEl) syncEl.textContent = 'BUSINESS MANAGER • READY (LOCAL MODE) ✓';
-        });
-      };
-
-      window.cloudLoginAccount = async function(account, u, p) {
-        try {
-          const ref = doc(firestore, 'dr_streaming_accounts', ACCOUNT_DOCS[account]);
-          const snap = await getDoc(ref);
-          if(snap.exists() && snap.data()?.data) {
-            const cloudData = snap.data().data;
-            if(u === cloudData.settings?.username && p === cloudData.settings?.password) {
-              sessionStorage.setItem('auth','true');
-              sessionStorage.setItem('account',account);
-              setAccountState(account);
-              window.data = cloudData;
-              localStorage.setItem(window.DB, JSON.stringify(window.data));
-              const loginOverlay = document.getElementById('loginScreen');
-              if(loginOverlay) loginOverlay.style.display = 'none';
-              render();
-              window.initCloudSync();
-              return true;
-            }
-          }
-        } catch(e) {
-          console.warn("Cloud login check failed, falling back to local credentials:", e);
-        }
-        return checkLocalAuth(account, u, p);
-      };
-
-      if(sessionStorage.getItem('auth') === 'true') {
-        window.initCloudSync();
-      }
-    } catch(moduleErr) {
-      console.warn("Firebase module load failed or blocked by client; operating in pure offline/local mode.", moduleErr);
-      const syncEl = document.getElementById('syncStatus');
-      if(syncEl) syncEl.textContent = 'BUSINESS MANAGER • READY (LOCAL MODE) ✓';
-    }
+function initSupabaseClient() {
+  const { url, key } = getSupabaseCredentials();
+  if (!url || !key || !window.supabase) {
+    updateSyncBadge('SUPABASE: ADD KEY IN SETTINGS ⚙️', '#f59e0b');
+    return null;
   }
-  setupCloud();
-</script>
-</body>
-</html>
+  try {
+    supabaseClient = window.supabase.createClient(url, key);
+    return supabaseClient;
+  } catch (err) {
+    console.error("Supabase init error:", err);
+    return null;
+  }
+}
+
+function updateSyncBadge(text, color = '#94a3b8') {
+  const el = document.getElementById('syncStatus');
+  if (el) {
+    el.textContent = text;
+    el.style.color = color;
+  }
+}
+
+// ==========================================
+// 2. DATA MAPPERS (streamingz <-> Template)
+// ==========================================
+function mapSaleFromDb(row) {
+  const r = row.raw_data || row;
+  return {
+    id: String(row.id ?? r.id ?? Date.now()),
+    owner: r.assignedRole || row.assigned_role || r.owner || 'Admin',
+    client: r.clientName || row.client_name || r.client || 'Walk-in',
+    phone: r.clientPhone || row.client_phone || r.phone || '',
+    product: r.productName || row.product_name || r.product || '',
+    productId: r.productId || row.product_id || '',
+    amount: Number(r.saleAmount ?? row.sale_amount ?? r.amount ?? 0),
+    purchase: Number(r.purchaseCost ?? row.purchase_cost ?? r.purchase ?? 0),
+    date: r.saleDate || row.sale_date || r.date || today(),
+    purchaseDate: r.purchaseDate || row.purchase_date || '',
+    paymentDate: r.paymentDate || row.payment_date || '',
+    expiry: r.expiryDate || row.expiry_date || r.expiry || '',
+    payment: r.paymentStatus || row.payment_status || r.payment || 'Paid',
+    partialPaid: Number(r.partialPaid ?? row.partial_paid ?? 0),
+    tenure: Number(r.tenureDays ?? row.tenure_days ?? r.tenure ?? 30),
+    accountDetails: r.accountDetails || row.account_details || '',
+    notes: r.notes || row.notes || '',
+    type: r.type || 'Subscription',
+    createdAt: r.createdAt || row.created_at || new Date().toISOString()
+  };
+}
+
+function mapSaleToDb(s) {
